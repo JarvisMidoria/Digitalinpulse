@@ -12,6 +12,13 @@ const ROUTE_TO_KEY = {
 const PROGRAM_KEYS = new Set(["tech_for_competitivity", "women_for_innovation"]);
 const LEGAL_KEYS = new Set(["mentions_legales", "politique_cookies", "conditions_utilisation"]);
 
+const identityTokenPattern = /(invite_token|recovery_token|confirmation_token|email_change_token)=/;
+const hasIdentityToken = identityTokenPattern.test(window.location.hash) || identityTokenPattern.test(window.location.search);
+if (!window.location.pathname.startsWith("/admin") && hasIdentityToken) {
+  const suffix = `${window.location.search}${window.location.hash}`;
+  window.location.replace(`/admin/${suffix}`);
+}
+
 const mainNode = document.querySelector("main[data-page]");
 const pageKey = mainNode?.dataset.page || ROUTE_TO_KEY[normalizePath(window.location.pathname)] || "home";
 
