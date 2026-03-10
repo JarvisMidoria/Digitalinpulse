@@ -18,6 +18,21 @@ const LEGAL_KEYS = new Set([
   "politique_confidentialite",
 ]);
 
+const BRAND_ASSETS = {
+  logoLight: "https://digitalinpulse.com/wp-content/uploads/2022/06/logo_2022_2.png",
+  logoDark: "https://digitalinpulse.com/wp-content/uploads/2024/02/logo-bleu.png",
+  footerTexture: "https://digitalinpulse.com/wp-content/uploads/2019/07/footer2-1.png",
+  footerPartnerLogos: {
+    "Comite Richelieu": "https://digitalinpulse.com/wp-content/uploads/2020/03/logo-v6.png",
+    CCIFC: "https://digitalinpulse.com/wp-content/uploads/2024/03/Logo-CCI-FRANCE-CHINE.png",
+    FCCIHK: "https://digitalinpulse.com/wp-content/uploads/2024/03/Logo-FCCIHK.png",
+  },
+  homeProgramLogos: {
+    tech: "https://digitalinpulse.com/wp-content/uploads/2025/03/LOGODIP25_Blanc.png",
+    women: "https://digitalinpulse.com/wp-content/uploads/2025/03/LOGO_W4I_blanc.webp",
+  },
+};
+
 redirectIdentityTokensToAdmin();
 
 const mainNode = document.querySelector("main[data-page]");
@@ -30,8 +45,10 @@ bootstrap().catch((error) => {
     mainNode.innerHTML = `
       <section class="section">
         <div class="container">
-          <h2>Erreur de chargement</h2>
-          <p>Le contenu central n'a pas pu etre charge. Verifiez le fichier <code>/content/site.json</code>.</p>
+          <div class="legal-panel">
+            <h2>Erreur de chargement</h2>
+            <p>Le contenu n'a pas pu etre charge depuis <code>/content/site.json</code>.</p>
+          </div>
         </div>
       </section>
     `;
@@ -44,7 +61,7 @@ async function bootstrap() {
   renderNavigation(content, pageKey);
   renderFooter(content);
   renderPage(content, pageKey);
-  wireMobileMenu();
+  wireHeader();
   wireReveals();
   wireTestimonialSlider();
   wireDemoForms();
@@ -61,7 +78,7 @@ async function fetchContent() {
 function applyTheme(meta) {
   const root = document.documentElement.style;
   if (meta.primaryColor) {
-    root.setProperty("--brand", meta.primaryColor);
+    root.setProperty("--primary", meta.primaryColor);
   }
   if (meta.accentColor) {
     root.setProperty("--accent", meta.accentColor);
@@ -75,31 +92,47 @@ function renderNavigation(content, currentKey) {
   }
 
   const meta = content.meta || {};
-  const links = (content.navigation || [])
+  const entries = content.navigation || [];
+  const desktopEntries = entries.filter((item) => normalizePath(item.url || "") !== "/");
+  const desktopLinks = desktopEntries
     .map((item) => {
       const targetKey = ROUTE_TO_KEY[normalizePath(item.url || "")];
       const active = targetKey === currentKey;
-      return `<a class="nav-link${active ? " active" : ""}" href="${safeUrl(item.url)}">${escapeHtml(item.label)}</a>`;
+      return `<a class="nav-link${active ? " active" : ""}" href="${safeUrl(item.url)}" data-nav-link>${escapeHtml(item.label)}</a>`;
+    })
+    .join("");
+  const mobileLinks = entries
+    .map((item) => {
+      const targetKey = ROUTE_TO_KEY[normalizePath(item.url || "")];
+      const active = targetKey === currentKey;
+      return `<a class="mobile-nav-link${active ? " active" : ""}" href="${safeUrl(item.url)}" data-nav-link>${escapeHtml(item.label)}</a>`;
     })
     .join("");
 
   host.innerHTML = `
-    <div class="topline">
-      <div class="container">
-        <span>${escapeHtml(meta.tagline || "")}</span>
-        <a class="topline-mail" href="mailto:${escapeAttr(meta.contactEmail || "")}">${escapeHtml(meta.contactEmail || "")}</a>
-      </div>
-    </div>
-    <div class="site-header" data-site-header>
-      <div class="container">
-        <a class="logo" href="/">
-          <span class="logo-mark"></span>
-          <span>${escapeHtml(meta.siteName || "Digital InPulse")}</span>
+    <div class="header-shell" data-site-header>
+      <div class="container header-main">
+        <a class="brand" href="/" aria-label="${escapeAttr(meta.siteName || "Digital InPulse")}">
+          <img class="brand-logo brand-logo-light" src="${safeUrl(BRAND_ASSETS.logoLight)}" alt="${escapeAttr(meta.siteName || "Digital InPulse")}" />
+          <img class="brand-logo brand-logo-dark" src="${safeUrl(BRAND_ASSETS.logoDark)}" alt="${escapeAttr(meta.siteName || "Digital InPulse")}" />
         </a>
-        <button class="menu-toggle" type="button" data-menu-toggle>Menu</button>
-        <nav class="nav-links" aria-label="Navigation principale">
-          ${links}
+        <nav class="desktop-nav" aria-label="Navigation principale">
+          ${desktopLinks}
         </nav>
+        <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="mobile-nav">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+      <div class="mobile-nav" id="mobile-nav" data-mobile-nav>
+        <div class="mobile-nav-inner">
+          <nav class="mobile-nav-links" aria-label="Navigation mobile">
+            ${mobileLinks}
+          </nav>
+          <div class="mobile-nav-footer">
+            <p>${escapeHtml(meta.tagline || "")}</p>
+            <a href="mailto:${escapeAttr(meta.contactEmail || "")}">${escapeHtml(meta.contactEmail || "")}</a>
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -115,37 +148,45 @@ function renderFooter(content) {
   const footer = content.footer || {};
 
   const legalLinks = (footer.legalLinks || [])
-    .map((item) => `<a class="footer-link" href="${safeUrl(item.url)}">${escapeHtml(item.label)}</a>`)
+    .map((item) => `<li><a href="${safeUrl(item.url)}">${escapeHtml(item.label)}</a></li>`)
     .join("");
+
   const socials = (footer.socials || [])
-    .map((item) => `<a class="footer-link" href="${safeUrl(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.label)}</a>`)
+    .map((item) => {
+      const icon = socialIconLabel(item.label || "");
+      return `<a class="social-link" href="${safeUrl(item.url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(item.label || "")}"><span>${icon}</span>${escapeHtml(item.label || "")}</a>`;
+    })
     .join("");
+
   const partners = (footer.partners || [])
-    .map((item) => `<a class="partner-chip" href="${safeUrl(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.name)}</a>`)
+    .map((item) => {
+      const logo = BRAND_ASSETS.footerPartnerLogos[item.name] || "";
+      if (logo) {
+        return `<a class="partner-logo" href="${safeUrl(item.url)}" target="_blank" rel="noopener noreferrer"><img src="${safeUrl(logo)}" alt="${escapeAttr(item.name)}" /></a>`;
+      }
+      return `<a class="partner-chip" href="${safeUrl(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.name)}</a>`;
+    })
     .join("");
 
   host.classList.add("site-footer");
+  host.style.setProperty("--footer-texture", `url('${BRAND_ASSETS.footerTexture}')`);
   host.innerHTML = `
-    <div class="container">
-      <div class="footer-grid">
-        <section class="footer-block reveal">
-          <h4>Documents</h4>
-          <div class="footer-list">${legalLinks}</div>
-        </section>
-        <section class="footer-block reveal">
-          <h4>Partenaires</h4>
-          <div class="partner-wrap">${partners}</div>
-        </section>
-        <section class="footer-block reveal">
-          <h4>Contact</h4>
-          <div class="footer-list">
-            <a class="footer-link" href="mailto:${escapeAttr(meta.contactEmail || "")}">${escapeHtml(meta.contactEmail || "")}</a>
-            ${socials}
-          </div>
-        </section>
-      </div>
-      <div class="footer-bottom">${escapeHtml(meta.copyright || "")}</div>
+    <div class="container footer-partners">${partners}</div>
+    <div class="container footer-grid">
+      <section class="footer-column">
+        <h4>Liens</h4>
+        <ul>${legalLinks}</ul>
+      </section>
+      <section class="footer-column">
+        <h4>Suivez-nous</h4>
+        <div class="footer-socials">${socials}</div>
+      </section>
+      <section class="footer-column">
+        <h4>Contactez-nous</h4>
+        <p><a href="mailto:${escapeAttr(meta.contactEmail || "")}">${escapeHtml(meta.contactEmail || "")}</a></p>
+      </section>
     </div>
+    <div class="container footer-bottom">${escapeHtml(meta.copyright || "")}</div>
   `;
 }
 
@@ -159,8 +200,10 @@ function renderPage(content, currentKey) {
     mainNode.innerHTML = `
       <section class="section">
         <div class="container">
-          <h2>Page introuvable</h2>
-          <p>Le contenu de cette page n'existe pas encore dans le fichier de contenu.</p>
+          <div class="legal-panel">
+            <h2>Page introuvable</h2>
+            <p>Cette page n'existe pas dans le contenu central.</p>
+          </div>
         </div>
       </section>
     `;
@@ -196,16 +239,17 @@ function renderPage(content, currentKey) {
 }
 
 function renderHome(page) {
-  const hero = renderHero(page.hero, { secondaryAction: page.hero?.secondaryAction });
+  const hero = renderHero(page.hero, {
+    variant: "home",
+    sideContent: renderHomePrograms(),
+    secondaryAction: page.hero?.secondaryAction,
+  });
   const pillars = (page.pillars || [])
     .map(
       (item, index) => `
-        <article class="card card-pillar reveal" style="--delay:${index * 90}ms">
-          <div class="card-content">
-            <p class="pill-index">0${index + 1}</p>
-            <h3>${escapeHtml(item.title)}</h3>
-            <p>${escapeHtml(item.text)}</p>
-          </div>
+        <article class="feature-card reveal" style="--delay:${index * 80}ms">
+          <h3>${escapeHtml(item.title)}</h3>
+          <p>${escapeHtml(item.text)}</p>
         </article>
       `,
     )
@@ -213,12 +257,12 @@ function renderHome(page) {
   const categories = (page.categories || [])
     .map(
       (item, index) => `
-        <article class="card card-category reveal" style="--delay:${index * 120}ms">
-          <img class="media" src="${safeUrl(item.image)}" alt="${escapeAttr(item.title)}" />
-          <div class="card-content">
+        <article class="program-card reveal" style="--delay:${index * 100}ms">
+          <img class="program-card-media" src="${safeUrl(item.image)}" alt="${escapeAttr(item.title)}" />
+          <div class="program-card-content">
             <h3>${escapeHtml(item.title)}</h3>
             <p>${escapeHtml(item.text)}</p>
-            <a class="btn btn-primary" href="${safeUrl(item.url)}">${escapeHtml(item.ctaLabel || "En savoir plus")}</a>
+            <a class="btn btn-outline" href="${safeUrl(item.url)}">${escapeHtml(item.ctaLabel || "En savoir plus")}</a>
           </div>
         </article>
       `,
@@ -229,7 +273,7 @@ function renderHome(page) {
       (item, index) => `
         <article class="testimonial-slide${index === 0 ? " active" : ""}" data-slide-index="${index}">
           <blockquote>"${escapeHtml(item.quote)}"</blockquote>
-          <p><strong>${escapeHtml(item.author)}</strong></p>
+          <p class="testimonial-author">${escapeHtml(item.author)}</p>
           <p>${escapeHtml(item.role)}</p>
         </article>
       `,
@@ -238,29 +282,21 @@ function renderHome(page) {
 
   return `
     ${hero}
-    <section class="section">
-      <div class="container">
-        <header class="section-head reveal">
-          <h2>${escapeHtml(page.introTitle || "")}</h2>
-          <p>${escapeHtml(page.introText || "")}</p>
-        </header>
-        <div class="grid pillars">${pillars}</div>
-      </div>
-    </section>
     <section class="section section-soft">
       <div class="container">
-        <header class="section-head reveal">
-          <h2>${escapeHtml(page.categoriesTitle || "")}</h2>
-          <p>${escapeHtml(page.categoriesText || "")}</p>
-        </header>
-        <div class="grid cards-2">${categories}</div>
+        ${renderSectionHead(page.introTitle || "", page.introText || "", { centered: true })}
+        <div class="feature-grid">${pillars}</div>
       </div>
     </section>
     <section class="section">
       <div class="container">
-        <header class="section-head reveal">
-          <h2>${escapeHtml(page.testimonialsTitle || "")}</h2>
-        </header>
+        ${renderSectionHead(page.categoriesTitle || "", page.categoriesText || "", { centered: true })}
+        <div class="program-grid">${categories}</div>
+      </div>
+    </section>
+    <section class="section section-testimonials">
+      <div class="container">
+        ${renderSectionHead(page.testimonialsTitle || "", "", { centered: true })}
         <div class="testimonial-slider reveal" data-testimonial-slider>
           <button class="slider-btn prev" type="button" data-slide-prev aria-label="Temoignage precedent">‹</button>
           <div class="testimonial-track">${testimonials}</div>
@@ -273,12 +309,12 @@ function renderHome(page) {
 
 function renderContest(page) {
   const hero = renderHero(page.hero);
-  const tags = (page.tags || []).map((tag) => `<span class="badge">${escapeHtml(tag)}</span>`).join("");
+  const tags = (page.tags || []).map((tag) => `<span class="tag-pill">${escapeHtml(tag)}</span>`).join("");
   const timeline = (page.timeline || [])
     .map(
       (item, index) => `
-        <article class="timeline-item reveal" style="--delay:${index * 120}ms">
-          <span class="timeline-label">${escapeHtml(item.date)}</span>
+        <article class="timeline-item reveal" style="--delay:${index * 90}ms">
+          <p class="timeline-date">${escapeHtml(item.date)}</p>
           <h3>${escapeHtml(item.step)}</h3>
           <p>${escapeHtml(item.text)}</p>
         </article>
@@ -289,33 +325,22 @@ function renderContest(page) {
   return `
     ${hero}
     <section class="section">
-      <div class="container split">
-        <article class="reveal">
-          <h2>${escapeHtml(page.summaryTitle || "")}</h2>
-          <p>${escapeHtml(page.summaryText || "")}</p>
-          <div class="badge-list">${tags}</div>
+      <div class="container split-layout">
+        <article class="content-block reveal">
+          ${renderSectionHead(page.summaryTitle || "", page.summaryText || "", { compact: true })}
+          <div class="tag-list">${tags}</div>
         </article>
-        <article class="card reveal">
-          <img class="media" src="${safeUrl(page.summaryImage)}" alt="${escapeAttr(page.summaryTitle || "")}" />
-          <div class="card-content">
-            <h3>${escapeHtml(page.summaryCardTitle || "")}</h3>
-            <p>${escapeHtml(page.summaryCardText || "")}</p>
-          </div>
+        <article class="highlight-card reveal">
+          <img src="${safeUrl(page.summaryImage)}" alt="${escapeAttr(page.summaryTitle || "")}" />
+          <h3>${escapeHtml(page.summaryCardTitle || "")}</h3>
+          <p>${escapeHtml(page.summaryCardText || "")}</p>
         </article>
       </div>
     </section>
     <section class="section section-soft">
       <div class="container">
-        <header class="section-head reveal">
-          <h2>${escapeHtml(page.timelineTitle || "")}</h2>
-        </header>
+        ${renderSectionHead(page.timelineTitle || "", "", { centered: true })}
         <div class="timeline">${timeline}</div>
-      </div>
-    </section>
-    <section class="section">
-      <div class="container dual-cta reveal">
-        <a class="btn btn-primary" href="/tech-for-competitivity/">Explorer Tech For Competitivity</a>
-        <a class="btn btn-ghost dark" href="/women-for-innovation/">Explorer Women For Innovation</a>
       </div>
     </section>
   `;
@@ -326,9 +351,9 @@ function renderPrinciple(page) {
   const benefits = (page.benefits || [])
     .map(
       (item, index) => `
-        <article class="card reveal" style="--delay:${index * 90}ms">
-          ${item.image ? `<img class="media" src="${safeUrl(item.image)}" alt="${escapeAttr(item.title)}" />` : ""}
-          <div class="card-content">
+        <article class="benefit-card reveal" style="--delay:${index * 80}ms">
+          ${item.image ? `<img src="${safeUrl(item.image)}" alt="${escapeAttr(item.title)}" />` : ""}
+          <div class="benefit-card-content">
             <h3>${escapeHtml(item.title)}</h3>
             <p>${escapeHtml(item.text)}</p>
           </div>
@@ -341,16 +366,13 @@ function renderPrinciple(page) {
     ${hero}
     <section class="section">
       <div class="container">
-        <header class="section-head reveal">
-          <h2>${escapeHtml(page.introTitle || "")}</h2>
-          <p>${escapeHtml(page.introText || "")}</p>
-        </header>
-        <div class="grid cards-2">${benefits}</div>
+        ${renderSectionHead(page.introTitle || "", page.introText || "", { centered: true })}
+        <div class="benefit-grid">${benefits}</div>
       </div>
     </section>
     <section class="section section-soft">
       <div class="container">
-        <article class="alumni-callout reveal">
+        <article class="alumni-panel reveal">
           <h3>${escapeHtml(page.alumniTitle || "")}</h3>
           <p>${escapeHtml(page.alumniText || "")}</p>
         </article>
@@ -366,7 +388,7 @@ function renderProgram(page, programKey) {
     .map(
       (item, index) => `
         <article class="timeline-item reveal" style="--delay:${index * 90}ms">
-          <span class="timeline-label">${escapeHtml(item.date)}</span>
+          <p class="timeline-date">${escapeHtml(item.date)}</p>
           <h3>${escapeHtml(item.city)}</h3>
           <p>${escapeHtml(item.text)}</p>
         </article>
@@ -378,44 +400,34 @@ function renderProgram(page, programKey) {
   return `
     ${hero}
     <section class="section">
-      <div class="container split">
-        <article class="reveal">
-          <h2>${escapeHtml(page.themeTitle || "")}</h2>
-          <p>${escapeHtml(page.themeText || "")}</p>
-          <ul class="list-check">${checklist}</ul>
+      <div class="container split-layout">
+        <article class="content-block reveal">
+          ${renderSectionHead(page.themeTitle || "", page.themeText || "", { compact: true })}
+          <ul class="check-list">${checklist}</ul>
         </article>
-        <article class="card reveal">
-          <img class="media" src="${safeUrl(page.themeImage)}" alt="${escapeAttr(page.themeTitle || "")}" />
-          <div class="card-content">
-            <h3>${escapeHtml(page.scheduleTitle || "")}</h3>
-            <p>${escapeHtml(page.scheduleText || "")}</p>
-          </div>
+        <article class="highlight-card reveal">
+          <img src="${safeUrl(page.themeImage)}" alt="${escapeAttr(page.themeTitle || "")}" />
+          <h3>${escapeHtml(page.scheduleTitle || "")}</h3>
+          <p>${escapeHtml(page.scheduleText || "")}</p>
         </article>
       </div>
     </section>
-    <section class="section section-soft">
+    <section class="section section-dark">
       <div class="container">
-        <header class="section-head reveal">
-          <h2>Champs d'application</h2>
-        </header>
-        <div class="grid cards-3">${areas}</div>
+        ${renderSectionHead("Champs d'application", "", { centered: true, light: true })}
+        <div class="scope-grid">${areas}</div>
       </div>
     </section>
     <section class="section">
       <div class="container">
-        <header class="section-head reveal">
-          <h2>${escapeHtml(page.scheduleTitle || "")}</h2>
-        </header>
+        ${renderSectionHead(page.scheduleTitle || "", "", { centered: true })}
         <div class="timeline">${schedule}</div>
       </div>
     </section>
-    <section id="form" class="section application">
+    <section id="form" class="section">
       <div class="container">
-        <header class="section-head reveal light">
-          <h2>${escapeHtml(page.form?.title || "Candidature")}</h2>
-          <p>${escapeHtml(page.form?.description || "")}</p>
-        </header>
-        <div class="application-card reveal">
+        <div class="application-panel">
+          ${renderSectionHead(page.form?.title || "Candidature", page.form?.description || "", { compact: true })}
           ${buildProgramForm(page.form || {}, programKey)}
         </div>
       </div>
@@ -436,31 +448,89 @@ function renderLegal(page) {
   `;
 }
 
+function renderHero(hero = {}, options = {}) {
+  const style = hero.image ? ` style="--hero-image: url('${escapeAttr(hero.image)}')"` : "";
+  const primaryAction =
+    hero.ctaLabel && hero.ctaUrl ? `<a class="btn btn-light" href="${safeUrl(hero.ctaUrl)}">${escapeHtml(hero.ctaLabel)}</a>` : "";
+  const secondary = options.secondaryAction;
+  const secondaryAction =
+    secondary?.label && secondary?.url ? `<a class="btn btn-outline-light" href="${safeUrl(secondary.url)}">${escapeHtml(secondary.label)}</a>` : "";
+  const actions = primaryAction || secondaryAction ? `<div class="hero-actions">${primaryAction}${secondaryAction}</div>` : "";
+  const side = options.sideContent ? `<aside class="hero-side reveal">${options.sideContent}</aside>` : "";
+  const isHome = options.variant === "home";
+
+  return `
+    <section class="hero${isHome ? " hero-home" : ""}"${style}>
+      <div class="container hero-grid${side ? " with-side" : ""}">
+        <div class="hero-copy reveal">
+          ${hero.eyebrow ? `<p class="hero-eyebrow">${escapeHtml(hero.eyebrow)}</p>` : ""}
+          <h1>${escapeHtml(hero.title || "")}</h1>
+          <p>${escapeHtml(hero.subtitle || "")}</p>
+          ${actions}
+        </div>
+        ${side}
+      </div>
+    </section>
+  `;
+}
+
+function renderHomePrograms() {
+  return `
+    <a class="home-program-card" href="/tech-for-competitivity/">
+      <img src="${safeUrl(BRAND_ASSETS.homeProgramLogos.tech)}" alt="Tech For Competitivity" />
+      <p>Innovation pour la competitivite technologique, industrielle et economique.</p>
+    </a>
+    <a class="home-program-card" href="/women-for-innovation/">
+      <img src="${safeUrl(BRAND_ASSETS.homeProgramLogos.women)}" alt="Women For Innovation" />
+      <p>Une categorie dediee aux femmes qui entreprennent dans la tech.</p>
+    </a>
+  `;
+}
+
+function renderSectionHead(title, text, options = {}) {
+  const classes = ["section-head"];
+  if (options.centered) {
+    classes.push("centered");
+  }
+  if (options.light) {
+    classes.push("light");
+  }
+  if (options.compact) {
+    classes.push("compact");
+  }
+
+  return `
+    <header class="${classes.join(" ")} reveal">
+      <h2>${escapeHtml(title)}</h2>
+      <span class="section-divider"></span>
+      ${text ? `<p>${escapeHtml(text)}</p>` : ""}
+    </header>
+  `;
+}
+
 function buildProgramAreas(programKey) {
   const techAreas = [
-    "Productivite et efficacite operationnelle",
-    "Informatique decisionnelle et pilotage de la performance",
-    "Transformation industrielle et chaine de valeur",
-    "Competitivite economique et optimisation des couts",
-    "Automatisation, data, IA et cloud",
-    "Impact mesurable sur la croissance",
+    "Efficacite des entreprises / Productivite",
+    "Informatique decisionnelle / Business intelligence",
+    "Innovation industrielle",
+    "Marketing et performance commerciale",
+    "Data / IA / Cloud",
+    "Transformation numerique mesurable",
   ];
   const womenAreas = [
     "Leadership feminin dans la tech",
     "Innovation produit ou service",
-    "Traction business et projection internationale",
-    "Resilience et execution",
-    "Impact social, industriel ou economique",
-    "Vision long terme et passage a l'echelle",
+    "Traction business",
+    "Resilience entrepreneuriale",
+    "Impact social et economique",
+    "Passage a l'echelle",
   ];
   const list = programKey === "women_for_innovation" ? womenAreas : techAreas;
   return list
     .map(
       (item, index) => `
-        <article class="card card-mini reveal" style="--delay:${index * 70}ms">
-          <div class="card-content">
-            <h3>${escapeHtml(item)}</h3>
-          </div>
+        <article class="scope-card reveal" style="--delay:${index * 60}ms">
+          <h3>${escapeHtml(item)}</h3>
         </article>
       `,
     )
@@ -506,7 +576,7 @@ function buildProgramForm(form, programKey) {
       </fieldset>
 
       <fieldset>
-        <legend>Entreprise</legend>
+        <legend>Votre Entreprise</legend>
         <div class="form-grid">
           <div class="field full">
             <label for="${idPrefix}-company">Nom de l'entreprise *</label>
@@ -592,7 +662,7 @@ function buildProgramForm(form, programKey) {
           <div class="field">
             <label for="${idPrefix}-tech-stack">Technologies utilisees</label>
             <select id="${idPrefix}-tech-stack" name="tech_stack" multiple>
-              <option>Intelligence Artificielle</option>
+              <option>Intelligence artificielle</option>
               <option>Cloud</option>
               <option>Blockchain</option>
               <option>AR/VR</option>
@@ -601,7 +671,8 @@ function buildProgramForm(form, programKey) {
           </div>
           <div class="field">
             <label for="${idPrefix}-source">Comment avez-vous connu le concours ? *</label>
-            <select id="${idPrefix}-source" name="source" multiple required>
+            <select id="${idPrefix}-source" name="source" required>
+              <option value="">Selectionner</option>
               <option>Maddyness</option>
               <option>Comite Richelieu</option>
               <option>Huawei</option>
@@ -655,51 +726,48 @@ function buildProgramForm(form, programKey) {
         <button class="btn btn-primary" type="submit">${escapeHtml(form.submitLabel || "Envoyer la candidature")}</button>
         ${
           form.regulationUrl
-            ? `<a class="btn btn-ghost dark" href="${safeUrl(form.regulationUrl)}" target="_blank" rel="noopener">${escapeHtml(form.regulationLabel || "Voir le reglement")}</a>`
+            ? `<a class="btn btn-outline" href="${safeUrl(form.regulationUrl)}" target="_blank" rel="noopener">${escapeHtml(form.regulationLabel || "Voir le reglement")}</a>`
             : ""
         }
       </div>
-      <p class="help">${escapeHtml(form.notice || "Le back-end d'envoi des candidatures sera connecte dans une etape suivante.")}</p>
+      <p class="help">${escapeHtml(form.notice || "Le back-end de soumission sera connecte dans une etape suivante.")}</p>
       <p class="form-feedback" data-form-feedback role="status" aria-live="polite"></p>
     </form>
   `;
 }
 
-function renderHero(hero = {}, options = {}) {
-  const style = hero.image ? ` style="--hero-image: url('${escapeAttr(hero.image)}')"` : "";
-  const primaryAction =
-    hero.ctaLabel && hero.ctaUrl ? `<a class="btn btn-primary" href="${safeUrl(hero.ctaUrl)}">${escapeHtml(hero.ctaLabel)}</a>` : "";
-  const secondary = options.secondaryAction;
-  const secondaryAction =
-    secondary?.label && secondary?.url ? `<a class="btn btn-ghost" href="${safeUrl(secondary.url)}">${escapeHtml(secondary.label)}</a>` : "";
-
-  return `
-    <section class="hero"${style}>
-      <div class="container hero-grid">
-        <div class="hero-copy reveal">
-          ${hero.eyebrow ? `<p class="eyebrow">${escapeHtml(hero.eyebrow)}</p>` : ""}
-          <h1>${escapeHtml(hero.title || "")}</h1>
-          <p>${escapeHtml(hero.subtitle || "")}</p>
-          ${primaryAction || secondaryAction ? `<div class="hero-actions">${primaryAction}${secondaryAction}</div>` : ""}
-        </div>
-        <aside class="hero-panel reveal">
-          <p class="hero-panel-title">Digital InPulse</p>
-          <p class="hero-panel-text">Programme de soutien aux start-ups francaises depuis 2014.</p>
-          <p class="hero-panel-text">Edition annuelle, candidature nationale, accompagnement international.</p>
-        </aside>
-      </div>
-    </section>
-  `;
-}
-
-function wireMobileMenu() {
-  const button = document.querySelector("[data-menu-toggle]");
+function wireHeader() {
   const header = document.querySelector("[data-site-header]");
-  if (!button || !header) {
+  const button = document.querySelector("[data-menu-toggle]");
+  const mobileNav = document.querySelector("[data-mobile-nav]");
+  const links = [...document.querySelectorAll("[data-nav-link]")];
+  if (!header || !button || !mobileNav) {
     return;
   }
+
+  const setSticky = () => {
+    header.classList.toggle("is-sticky", window.scrollY > 45);
+  };
+  setSticky();
+  window.addEventListener("scroll", setSticky, { passive: true });
+
   button.addEventListener("click", () => {
-    header.classList.toggle("open");
+    const isOpen = header.classList.toggle("open");
+    button.setAttribute("aria-expanded", String(isOpen));
+  });
+
+  for (const link of links) {
+    link.addEventListener("click", () => {
+      header.classList.remove("open");
+      button.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  mobileNav.addEventListener("click", (event) => {
+    if (event.target === mobileNav) {
+      header.classList.remove("open");
+      button.setAttribute("aria-expanded", "false");
+    }
   });
 }
 
@@ -711,6 +779,7 @@ function wireReveals() {
     }
     return;
   }
+
   const observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
@@ -720,8 +789,9 @@ function wireReveals() {
         }
       }
     },
-    { threshold: 0.15 },
+    { threshold: 0.12 },
   );
+
   for (const node of nodes) {
     observer.observe(node);
   }
@@ -750,10 +820,10 @@ function wireTestimonialSlider() {
   prev.addEventListener("click", () => setActive(index - 1));
   next.addEventListener("click", () => setActive(index + 1));
 
-  let timer = window.setInterval(() => setActive(index + 1), 5500);
+  let timer = window.setInterval(() => setActive(index + 1), 6000);
   slider.addEventListener("mouseenter", () => window.clearInterval(timer));
   slider.addEventListener("mouseleave", () => {
-    timer = window.setInterval(() => setActive(index + 1), 5500);
+    timer = window.setInterval(() => setActive(index + 1), 6000);
   });
 }
 
@@ -770,7 +840,7 @@ function wireDemoForms() {
         return;
       }
       if (feedback) {
-        feedback.textContent = "Version de demonstration: candidature non envoyee. Connecter un back-end pour la soumission finale.";
+        feedback.textContent = "Version demonstration: candidature non envoyee. Connecter un back-end pour la soumission finale.";
         feedback.classList.remove("error");
       }
     });
@@ -789,6 +859,17 @@ function findInvalidFile(form) {
     }
   }
   return null;
+}
+
+function socialIconLabel(label) {
+  const lower = String(label || "").toLowerCase();
+  if (lower.includes("linkedin")) {
+    return "in";
+  }
+  if (lower.includes("twitter") || lower.includes("x")) {
+    return "x";
+  }
+  return "o";
 }
 
 function redirectIdentityTokensToAdmin() {
