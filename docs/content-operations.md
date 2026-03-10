@@ -8,6 +8,7 @@ Guide court pour modifier textes et visuels sans intervention developpement.
 - Identity active.
 - Compte admin invite et valide.
 - Variables Netlify configurees (`GITHUB_TOKEN`, `GITHUB_REPO`, `GITHUB_BRANCH`, `GITHUB_CONTENT_PATH`, `GITHUB_MEDIA_DIR`).
+- Variables soumission configurees (`SUBMISSIONS_GITHUB_REPO`, `SUBMISSIONS_GITHUB_BRANCH`, `SUBMISSIONS_DATA_DIR`, `SUBMISSIONS_ALLOWED_ORIGINS`).
 
 ## Modifier un texte
 
@@ -34,6 +35,13 @@ Resultat: un commit est cree automatiquement sur `main`.
 4. Confirmer le commit GitHub associe.
 
 Temps cible: < 5 minutes.
+
+## Verification formulaire (post-modif)
+
+1. Ouvrir une page candidature (`/tech-for-competitivity/` ou `/women-for-innovation/`).
+2. Envoyer une candidature test.
+3. Verifier la reference retournee a l'ecran.
+4. Verifier le commit de soumission dans le repo de stockage.
 
 ## Rollback rapide
 

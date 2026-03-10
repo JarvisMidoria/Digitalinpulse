@@ -809,6 +809,11 @@ img {
   gap: 1rem;
 }
 
+.program-form.is-submitting {
+  opacity: 0.72;
+  pointer-events: none;
+}
+
 .program-form fieldset {
   margin: 0;
   padding: 1rem;
@@ -883,6 +888,15 @@ textarea:focus {
   height: 18px;
   margin-top: 2px;
   flex: 0 0 auto;
+}
+
+.hp-field {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .submit-row {

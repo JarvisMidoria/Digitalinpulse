@@ -8,6 +8,7 @@ Checklist de mise en production domaine.
 - `/`, `/admin/` et pages metier accessibles.
 - Commit de reference note.
 - Variables Netlify des fonctions admin presentes.
+- Variables Netlify de soumission presentes (`SUBMISSIONS_*`).
 
 ## 2. Configurer le domaine
 
@@ -40,7 +41,8 @@ Configurer selon les instructions Netlify:
 1. Home, pages metier, pages legales.
 2. `/admin/` login.
 3. Publication d'un micro changement depuis admin custom (test commit).
-4. Test mobile rapide.
+4. Envoi d'une candidature test et verification de la reference retournee.
+5. Test mobile rapide.
 
 ## 7. Backout plan
 

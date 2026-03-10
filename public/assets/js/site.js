@@ -33,6 +33,9 @@ const BRAND_ASSETS = {
   },
 };
 
+const FORM_SUBMIT_ENDPOINT = "/.netlify/functions/submit-application";
+const FORM_MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
+
 redirectIdentityTokensToAdmin();
 
 const mainNode = document.querySelector("main[data-page]");
@@ -64,7 +67,7 @@ async function bootstrap() {
   wireHeader();
   wireReveals();
   wireTestimonialSlider();
-  wireDemoForms();
+  wireApplicationForms();
 }
 
 async function fetchContent() {
@@ -541,7 +544,7 @@ function buildProgramForm(form, programKey) {
   const isWomen = programKey === "women_for_innovation";
   const idPrefix = isWomen ? "wfi" : "tfc";
   return `
-    <form class="program-form" data-demo-form method="post" action="#">
+    <form class="program-form" data-program-form method="post" action="#">
       <fieldset>
         <legend>Vous</legend>
         <div class="form-grid">
@@ -688,11 +691,11 @@ function buildProgramForm(form, programKey) {
         <div class="form-grid">
           <div class="field">
             <label for="${idPrefix}-kbis">KBis (max 10 MB) *</label>
-            <input id="${idPrefix}-kbis" name="kbis" type="file" data-max-size="10485760" required />
+            <input id="${idPrefix}-kbis" name="kbis" type="file" data-max-size="10485760" accept=".pdf,.png,.jpg,.jpeg,.webp" required />
           </div>
           <div class="field">
             <label for="${idPrefix}-deck">Presentation entreprise/projet (max 10 MB) *</label>
-            <input id="${idPrefix}-deck" name="deck" type="file" data-max-size="10485760" required />
+            <input id="${idPrefix}-deck" name="deck" type="file" data-max-size="10485760" accept=".pdf,.ppt,.pptx,.doc,.docx,.png,.jpg,.jpeg,.webp" required />
           </div>
         </div>
       </fieldset>
@@ -721,6 +724,7 @@ function buildProgramForm(form, programKey) {
         </div>
       </fieldset>
 
+      <input class="hp-field" type="text" name="website_confirm" tabindex="-1" autocomplete="off" />
       <input type="hidden" name="program" value="${escapeAttr(programKey)}" />
       <div class="submit-row">
         <button class="btn btn-primary" type="submit">${escapeHtml(form.submitLabel || "Envoyer la candidature")}</button>
@@ -827,35 +831,167 @@ function wireTestimonialSlider() {
   });
 }
 
-function wireDemoForms() {
-  const forms = [...document.querySelectorAll("[data-demo-form]")];
+function wireApplicationForms() {
+  const forms = [...document.querySelectorAll("[data-program-form]")];
   for (const form of forms) {
-    form.addEventListener("submit", (event) => {
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const feedback = form.querySelector("[data-form-feedback]");
+      const submitButton = form.querySelector("button[type='submit']");
+
       const invalidFile = findInvalidFile(form);
-      if (invalidFile && feedback) {
-        feedback.textContent = "Un fichier depasse la taille maximale autorisee de 10 MB.";
-        feedback.classList.add("error");
+      if (invalidFile) {
+        setFormFeedback(feedback, "Un fichier depasse la taille maximale autorisee de 10 MB.", true);
         return;
       }
-      if (feedback) {
-        feedback.textContent = "Version demonstration: candidature non envoyee. Connecter un back-end pour la soumission finale.";
-        feedback.classList.remove("error");
+
+      if (!form.reportValidity()) {
+        return;
+      }
+
+      setFormBusy(form, submitButton, true);
+      setFormFeedback(feedback, "Envoi en cours, merci de patienter...");
+
+      try {
+        const payload = await buildSubmissionPayload(form);
+        const response = await fetch(FORM_SUBMIT_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const responseBody = await readJsonSafe(response);
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error("Le service de soumission n'est pas disponible sur cet environnement.");
+          }
+          throw new Error(responseBody.error || `Soumission impossible (${response.status})`);
+        }
+
+        form.reset();
+        setFormFeedback(
+          feedback,
+          `Candidature envoyee avec succes. Reference: ${String(responseBody.reference || "DIP-UNKNOWN")}.`,
+        );
+      } catch (error) {
+        setFormFeedback(feedback, error.message || "Erreur de soumission.", true);
+      } finally {
+        setFormBusy(form, submitButton, false);
       }
     });
   }
 }
 
+async function buildSubmissionPayload(form) {
+  const formData = new FormData(form);
+  const honeypot = String(formData.get("website_confirm") || "").trim();
+  const files = [];
+  const fields = {};
+
+  for (const [name, value] of formData.entries()) {
+    if (name === "website_confirm") {
+      continue;
+    }
+    if (value instanceof File) {
+      if (!value.name || value.size <= 0) {
+        continue;
+      }
+      files.push({
+        fieldName: name,
+        filename: value.name,
+        contentType: value.type || "application/octet-stream",
+        size: value.size,
+        base64: await fileToBase64(value),
+      });
+      continue;
+    }
+    appendSubmissionField(fields, name, String(value));
+  }
+
+  return {
+    program: String(fields.program || ""),
+    fields,
+    files,
+    honeypot,
+    submittedAt: new Date().toISOString(),
+    userAgent: navigator.userAgent || "",
+  };
+}
+
+function appendSubmissionField(fields, name, value) {
+  if (name in fields) {
+    if (!Array.isArray(fields[name])) {
+      fields[name] = [fields[name]];
+    }
+    fields[name].push(value);
+    return;
+  }
+  fields[name] = value;
+}
+
+function setFormBusy(form, submitButton, busy) {
+  form.classList.toggle("is-submitting", busy);
+  form.setAttribute("aria-busy", String(busy));
+  if (!submitButton) {
+    return;
+  }
+  if (!submitButton.dataset.defaultLabel) {
+    submitButton.dataset.defaultLabel = submitButton.textContent || "Envoyer";
+  }
+  submitButton.disabled = busy;
+  submitButton.textContent = busy ? "Envoi..." : submitButton.dataset.defaultLabel;
+}
+
+function setFormFeedback(node, message, isError = false) {
+  if (!node) {
+    return;
+  }
+  node.textContent = message;
+  node.classList.toggle("error", isError);
+}
+
+async function readJsonSafe(response) {
+  const raw = await response.text();
+  if (!raw) {
+    return {};
+  }
+  try {
+    return JSON.parse(raw);
+  } catch (_error) {
+    return { error: raw };
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result || "");
+      const parts = result.split(",");
+      if (parts.length < 2) {
+        reject(new Error("Fichier non lisible"));
+        return;
+      }
+      resolve(parts[1]);
+    };
+    reader.onerror = () => reject(new Error("Lecture fichier impossible"));
+    reader.readAsDataURL(file);
+  });
+}
+
 function findInvalidFile(form) {
   const fileInputs = [...form.querySelectorAll("input[type='file'][data-max-size]")];
   for (const input of fileInputs) {
-    const maxSize = Number(input.dataset.maxSize || "0");
+    const maxSize = Number(input.dataset.maxSize || String(FORM_MAX_UPLOAD_SIZE));
     if (!maxSize || !input.files || !input.files.length) {
       continue;
     }
-    if (input.files[0].size > maxSize) {
-      return input;
+    for (const file of input.files) {
+      if (file.size > maxSize) {
+        return input;
+      }
     }
   }
   return null;
