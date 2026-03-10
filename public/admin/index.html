@@ -4,20 +4,278 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin | Digital InPulse</title>
+    <link rel="stylesheet" href="/admin/styles.css" />
   </head>
   <body>
+    <div id="auth-screen" class="auth-screen">
+      <section class="auth-card">
+        <p class="auth-badge">Back-office Digital InPulse</p>
+        <h1>Edition simplifiee</h1>
+        <p>Connectez-vous avec votre compte Netlify Identity pour modifier textes et visuels.</p>
+        <p class="notes">Mot de passe oublie: utilisez l'option de reset dans la fenetre de connexion.</p>
+        <button type="button" id="login-btn" class="btn btn-primary">Se connecter</button>
+      </section>
+    </div>
+
+    <div id="app" class="app hidden">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-dot"></span>
+          <div>
+            <strong>Digital InPulse Admin</strong>
+            <small id="status-text">Pret</small>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button type="button" id="save-draft-btn" class="btn btn-ghost">Sauvegarder brouillon</button>
+          <button type="button" id="restore-draft-btn" class="btn btn-ghost">Restaurer brouillon</button>
+          <button type="button" id="publish-btn" class="btn btn-primary">Publier</button>
+          <button type="button" id="logout-btn" class="btn btn-ghost">Deconnexion</button>
+        </div>
+      </header>
+
+      <div class="layout">
+        <aside class="sidebar">
+          <button class="nav-item active" data-panel-target="panel-global">Global</button>
+          <button class="nav-item" data-panel-target="panel-home">Accueil</button>
+          <button class="nav-item" data-panel-target="panel-concours">Le concours</button>
+          <button class="nav-item" data-panel-target="panel-principe">Accompagnement</button>
+          <button class="nav-item" data-panel-target="panel-tech">Tech</button>
+          <button class="nav-item" data-panel-target="panel-women">Women</button>
+          <button class="nav-item" data-panel-target="panel-legal">Legal</button>
+          <button class="nav-item" data-panel-target="panel-media">Media</button>
+          <button class="nav-item" data-panel-target="panel-advanced">JSON avance</button>
+        </aside>
+
+        <main class="main">
+          <section id="panel-global" class="panel active">
+            <h2>Global</h2>
+            <div class="form-grid">
+              <label>Baseline
+                <input data-path="meta.tagline" type="text" />
+              </label>
+              <label>Email contact
+                <input data-path="meta.contactEmail" type="email" />
+              </label>
+              <label>Copyright
+                <input data-path="meta.copyright" type="text" />
+              </label>
+            </div>
+            <div class="notes">
+              <p>Les changements ici impactent header et footer sur tout le site.</p>
+            </div>
+          </section>
+
+          <section id="panel-home" class="panel">
+            <h2>Accueil</h2>
+            <div class="form-grid">
+              <label>Titre hero
+                <textarea data-path="pages.home.hero.title"></textarea>
+              </label>
+              <label>Sous-titre hero
+                <textarea data-path="pages.home.hero.subtitle"></textarea>
+              </label>
+              <label>Image hero (URL)
+                <input data-path="pages.home.hero.image" data-image-field="true" type="text" />
+              </label>
+              <label>Titre section categories
+                <input data-path="pages.home.categoriesTitle" type="text" />
+              </label>
+              <label>Carte 1 - Titre
+                <input data-path="pages.home.categories[0].title" type="text" />
+              </label>
+              <label>Carte 1 - Image (URL)
+                <input data-path="pages.home.categories[0].image" data-image-field="true" type="text" />
+              </label>
+              <label>Carte 2 - Titre
+                <input data-path="pages.home.categories[1].title" type="text" />
+              </label>
+              <label>Carte 2 - Image (URL)
+                <input data-path="pages.home.categories[1].image" data-image-field="true" type="text" />
+              </label>
+            </div>
+          </section>
+
+          <section id="panel-concours" class="panel">
+            <h2>Le concours</h2>
+            <div class="form-grid">
+              <label>Titre hero
+                <textarea data-path="pages.digital_in_pulse.hero.title"></textarea>
+              </label>
+              <label>Sous-titre hero
+                <textarea data-path="pages.digital_in_pulse.hero.subtitle"></textarea>
+              </label>
+              <label>Calendrier - Candidatures
+                <input data-path="pages.digital_in_pulse.timeline[0].date" type="text" />
+              </label>
+              <label>Calendrier - Auditions
+                <input data-path="pages.digital_in_pulse.timeline[1].date" type="text" />
+              </label>
+              <label>Calendrier - Finale
+                <input data-path="pages.digital_in_pulse.timeline[2].date" type="text" />
+              </label>
+              <label>Calendrier - Voyage
+                <input data-path="pages.digital_in_pulse.timeline[3].date" type="text" />
+              </label>
+            </div>
+          </section>
+
+          <section id="panel-principe" class="panel">
+            <h2>L'accompagnement</h2>
+            <div class="form-grid">
+              <label>Titre hero
+                <textarea data-path="pages.le_principe.hero.title"></textarea>
+              </label>
+              <label>Sous-titre hero
+                <textarea data-path="pages.le_principe.hero.subtitle"></textarea>
+              </label>
+              <label>Image hero (URL)
+                <input data-path="pages.le_principe.hero.image" data-image-field="true" type="text" />
+              </label>
+              <label>Titre intro
+                <input data-path="pages.le_principe.introTitle" type="text" />
+              </label>
+              <label>Texte intro
+                <textarea data-path="pages.le_principe.introText"></textarea>
+              </label>
+              <label>Benefice 1 - Titre
+                <input data-path="pages.le_principe.benefits[0].title" type="text" />
+              </label>
+              <label>Benefice 1 - Image (URL)
+                <input data-path="pages.le_principe.benefits[0].image" data-image-field="true" type="text" />
+              </label>
+              <label>Titre alumni
+                <input data-path="pages.le_principe.alumniTitle" type="text" />
+              </label>
+            </div>
+          </section>
+
+          <section id="panel-tech" class="panel">
+            <h2>Tech For Competitivity</h2>
+            <div class="form-grid">
+              <label>Titre hero
+                <textarea data-path="pages.tech_for_competitivity.hero.title"></textarea>
+              </label>
+              <label>Sous-titre hero
+                <textarea data-path="pages.tech_for_competitivity.hero.subtitle"></textarea>
+              </label>
+              <label>Image hero (URL)
+                <input data-path="pages.tech_for_competitivity.hero.image" data-image-field="true" type="text" />
+              </label>
+              <label>Titre formulaire
+                <input data-path="pages.tech_for_competitivity.form.title" type="text" />
+              </label>
+              <label>Texte formulaire
+                <textarea data-path="pages.tech_for_competitivity.form.description"></textarea>
+              </label>
+              <label>Date principale (finale)
+                <input data-path="pages.tech_for_competitivity.schedule[3].date" type="text" />
+              </label>
+              <label>Notice formulaire
+                <textarea data-path="pages.tech_for_competitivity.form.notice"></textarea>
+              </label>
+            </div>
+          </section>
+
+          <section id="panel-women" class="panel">
+            <h2>Women For Innovation</h2>
+            <div class="form-grid">
+              <label>Titre hero
+                <textarea data-path="pages.women_for_innovation.hero.title"></textarea>
+              </label>
+              <label>Sous-titre hero
+                <textarea data-path="pages.women_for_innovation.hero.subtitle"></textarea>
+              </label>
+              <label>Image hero (URL)
+                <input data-path="pages.women_for_innovation.hero.image" data-image-field="true" type="text" />
+              </label>
+              <label>Titre formulaire
+                <input data-path="pages.women_for_innovation.form.title" type="text" />
+              </label>
+              <label>Label champ video
+                <input data-path="pages.women_for_innovation.form.videoField" type="text" />
+              </label>
+              <label>Date principale (finale)
+                <input data-path="pages.women_for_innovation.schedule[3].date" type="text" />
+              </label>
+              <label>Notice formulaire
+                <textarea data-path="pages.women_for_innovation.form.notice"></textarea>
+              </label>
+            </div>
+          </section>
+
+          <section id="panel-legal" class="panel">
+            <h2>Legal & liens critiques</h2>
+            <div class="form-grid">
+              <label>URL politique confidentialite
+                <input data-path="footer.legalLinks[3].url" type="text" />
+              </label>
+              <label>URL reglement concours
+                <input data-path="footer.legalLinks[4].url" type="text" />
+              </label>
+              <label>Texte cookies - paragraphe 1
+                <textarea data-path="pages.politique_cookies.paragraphs[0]"></textarea>
+              </label>
+              <label>Texte confidentialite - paragraphe 1
+                <textarea data-path="pages.politique_confidentialite.paragraphs[0]"></textarea>
+              </label>
+            </div>
+          </section>
+
+          <section id="panel-media" class="panel">
+            <h2>Media</h2>
+            <div class="form-grid">
+              <label>Fichier image
+                <input id="media-file-input" type="file" accept=".png,.jpg,.jpeg,.webp,.gif,.svg" />
+              </label>
+              <label>URL media generee
+                <input id="media-url-output" type="text" readonly />
+              </label>
+            </div>
+            <div class="actions">
+              <button type="button" id="upload-media-btn" class="btn btn-primary">Uploader le media</button>
+              <button type="button" id="copy-media-url-btn" class="btn btn-ghost">Copier l'URL</button>
+            </div>
+            <p class="notes">Uploader ici, puis coller l'URL dans un champ image.</p>
+          </section>
+
+          <section id="panel-advanced" class="panel">
+            <h2>JSON avance</h2>
+            <textarea id="raw-json" class="raw-json"></textarea>
+            <div class="actions">
+              <button type="button" id="apply-json-btn" class="btn btn-primary">Appliquer le JSON</button>
+            </div>
+          </section>
+        </main>
+
+        <aside class="preview">
+          <h3>Apercu instantane</h3>
+          <article class="preview-card">
+            <p class="preview-label">Accueil</p>
+            <h4 id="preview-home-title"></h4>
+            <p id="preview-home-subtitle"></p>
+          </article>
+          <article class="preview-card">
+            <p class="preview-label">Tech</p>
+            <h4 id="preview-tech-title"></h4>
+            <p id="preview-tech-date"></p>
+          </article>
+          <article class="preview-card">
+            <p class="preview-label">Women</p>
+            <h4 id="preview-women-title"></h4>
+            <p id="preview-women-date"></p>
+          </article>
+          <article class="preview-card">
+            <p class="preview-label">Liens legaux</p>
+            <p id="preview-privacy-link"></p>
+            <p id="preview-rules-link"></p>
+          </article>
+          <p id="publish-result" class="publish-result"></p>
+        </aside>
+      </div>
+    </div>
+
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <script src="https://unpkg.com/decap-cms@3.5.0/dist/decap-cms.js"></script>
-    <script>
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", function (user) {
-          if (!user) {
-            window.netlifyIdentity.on("login", function () {
-              document.location.href = "/admin/";
-            });
-          }
-        });
-      }
-    </script>
+    <script type="module" src="/admin/app.js"></script>
   </body>
 </html>

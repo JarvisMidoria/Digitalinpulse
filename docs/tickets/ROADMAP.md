@@ -14,3 +14,4 @@ Etat des tickets de livraison.
 - [x] TKT-09 Back-office editorial robuste
 - [x] TKT-10 QA finale + pre-prod
 - [x] TKT-11 Mise en prod domaine
+- [x] TKT-12 Admin custom simplifie (Option 2)

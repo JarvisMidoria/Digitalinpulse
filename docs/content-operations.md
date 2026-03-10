@@ -5,24 +5,26 @@ Guide court pour modifier textes et visuels sans intervention developpement.
 ## Prerequis
 
 - Site Netlify connecte au repo GitHub.
-- Identity active + Git Gateway actif.
+- Identity active.
 - Compte admin invite et valide.
+- Variables Netlify configurees (`GITHUB_TOKEN`, `GITHUB_REPO`, `GITHUB_BRANCH`, `GITHUB_CONTENT_PATH`, `GITHUB_MEDIA_DIR`).
 
 ## Modifier un texte
 
 1. Ouvrir `/admin/`.
-2. Entrer dans `Contenu du site` -> `Contenu global + pages`.
+2. Aller dans le panneau cible (`Global`, `Accueil`, `Le concours`, etc.).
 3. Modifier le champ cible (titre, texte, dates, CTA).
-4. Cliquer `Publish`.
+4. Cliquer `Publier`.
 
 Resultat: un commit est cree automatiquement sur `main`.
 
 ## Modifier un visuel
 
-1. Ouvrir l'onglet `Media` dans `/admin/`.
+1. Ouvrir le panneau `Media` dans `/admin/`.
 2. Uploader le nouveau fichier.
-3. Copier le chemin genere (`/uploads/...`) ou selectionner le media dans un champ image.
-4. Publier.
+3. Copier l'URL generee (`/uploads/...`).
+4. Coller cette URL dans un champ image.
+5. Publier.
 
 ## Changement urgent (veille de lancement)
 
