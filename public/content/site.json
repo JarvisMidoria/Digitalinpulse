@@ -1,7 +1,7 @@
 {
   "meta": {
     "siteName": "Digital InPulse",
-    "tagline": "Programme de soutien aux start-ups de la French Tech",
+    "tagline": "Programme de soutien aux start-ups de la French Tech - Edition 2025",
     "primaryColor": "#0f3255",
     "accentColor": "#e52f4c",
     "contactEmail": "digitalinpulse@comite-richelieu.org",
@@ -77,8 +77,8 @@
     "home": {
       "hero": {
         "eyebrow": "Edition annuelle",
-        "title": "Depuis 2014, Digital InPulse celebre les start-ups francaises",
-        "subtitle": "Un programme national pour accompagner des projets innovants vers la croissance internationale.",
+        "title": "Depuis 2014, Digital InPulse celebre l'excellence des start-ups francaises",
+        "subtitle": "Un programme national pour accompagner des projets innovants vers la croissance internationale et l'ecosysteme asiatique.",
         "image": "https://digitalinpulse.com/wp-content/uploads/2024/02/header24.png",
         "ctaLabel": "Decouvrir le concours",
         "ctaUrl": "/digital-in-pulse/",
@@ -88,7 +88,7 @@
         }
       },
       "introTitle": "Une plateforme complete",
-      "introText": "Le site est organise pour donner une vision claire du programme, du calendrier et des parcours de candidature.",
+      "introText": "Le site est structure pour presenter clairement le programme, le calendrier annuel et les deux parcours de candidature.",
       "pillars": [
         {
           "title": "Un reseau",
@@ -108,7 +108,7 @@
         }
       ],
       "categoriesTitle": "Les deux parcours de candidature",
-      "categoriesText": "Chaque categorie garde ses propres messages, criteres et calendrier.",
+      "categoriesText": "Chaque categorie dispose de ses criteres, de son parcours et de son formulaire de candidature.",
       "categories": [
         {
           "title": "Tech For Competitivity",
@@ -152,10 +152,10 @@
         "image": "https://digitalinpulse.com/wp-content/uploads/2020/03/DIGITAL-INPULSE-2.png"
       },
       "summaryTitle": "Le programme",
-      "summaryText": "Chaque annee, Digital InPulse met en avant un theme strategique et selectionne des start-ups a fort potentiel.",
+      "summaryText": "Chaque annee, Digital InPulse met en avant un theme strategique et selectionne des start-ups a fort potentiel de croissance.",
       "summaryImage": "https://digitalinpulse.com/wp-content/uploads/2022/06/logo_2022_2.png",
       "summaryCardTitle": "Edition 2025",
-      "summaryCardText": "Edition centree sur la competitivite technologique, industrielle et economique.",
+      "summaryCardText": "Edition 2025 centree sur la competitivite technologique, industrielle et economique.",
       "tags": [
         "Innovation",
         "International",
@@ -235,10 +235,10 @@
         }
       },
       "themeTitle": "Un theme orienté impact business",
-      "themeText": "Le programme cible les solutions tech qui renforcent la performance operationnelle, economique ou industrielle.",
+      "themeText": "Le programme cible les solutions technologiques qui renforcent la performance operationnelle, economique ou industrielle.",
       "themeImage": "https://digitalinpulse.com/wp-content/uploads/2025/03/1.webp",
       "scheduleTitle": "Dates et auditions",
-      "scheduleText": "Les start-ups pre-selectionnees participent aux auditions en region avant la finale nationale.",
+      "scheduleText": "Les start-ups pre-selectionnees participent aux auditions en region puis a la finale nationale.",
       "checklist": [
         "Entreprise francaise creee avant le 1er janvier 2025",
         "Preuve de concept depassee",
@@ -247,24 +247,24 @@
       ],
       "schedule": [
         {
-          "city": "Lille",
-          "date": "26 septembre",
-          "text": "Auditions et remise de prix locale."
+          "city": "Ile-de-France",
+          "date": "Juin-juillet 2025",
+          "text": "Auditions regionales des start-ups pre-selectionnees."
         },
         {
-          "city": "Strasbourg",
-          "date": "17 octobre",
-          "text": "Pitch des start-ups pre-selectionnees."
+          "city": "Nord-Est",
+          "date": "Juin-juillet 2025",
+          "text": "Auditions regionales des start-ups pre-selectionnees."
         },
         {
-          "city": "Lyon",
-          "date": "6 juin",
-          "text": "Session regionale de selection."
+          "city": "Sud-Est",
+          "date": "Juin-juillet 2025",
+          "text": "Auditions regionales des start-ups pre-selectionnees."
         },
         {
-          "city": "Paris",
+          "city": "Finale nationale - Paris",
           "date": "16 septembre (TBC)",
-          "text": "Finale nationale du programme."
+          "text": "Pitch final des start-ups finalistes et remise de prix."
         }
       ],
       "form": {
@@ -290,10 +290,10 @@
         }
       },
       "themeTitle": "Valoriser les profils qui inspirent",
-      "themeText": "Le parcours met en avant les fondatrices, co-fondatrices et dirigeantes qui portent des projets tech ambitieux.",
+      "themeText": "Le parcours met en avant les fondatrices, co-fondatrices et dirigeantes qui portent des projets technologiques ambitieux.",
       "themeImage": "https://digitalinpulse.com/wp-content/uploads/2025/03/Women-for-Innovation.webp",
       "scheduleTitle": "Calendrier de la categorie",
-      "scheduleText": "Les candidates retenues participent a des auditions regionales avant une remise de prix a Paris.",
+      "scheduleText": "Les candidates retenues participent a des auditions regionales puis a une remise de prix nationale a Paris.",
       "checklist": [
         "Start-up francaise creee avant le 1er janvier 2025",
         "Direction ou co-fondation feminine",
@@ -302,24 +302,24 @@
       ],
       "schedule": [
         {
-          "city": "Lille",
-          "date": "26 septembre",
-          "text": "Session d'audition regionale."
+          "city": "Ile-de-France",
+          "date": "Juin-juillet 2025",
+          "text": "Auditions regionales des candidates pre-selectionnees."
         },
         {
-          "city": "Strasbourg",
-          "date": "17 octobre",
-          "text": "Session d'audition regionale."
+          "city": "Nord-Est",
+          "date": "Juin-juillet 2025",
+          "text": "Auditions regionales des candidates pre-selectionnees."
         },
         {
-          "city": "Lyon",
-          "date": "6 juin",
-          "text": "Session d'audition regionale."
+          "city": "Sud-Est",
+          "date": "Juin-juillet 2025",
+          "text": "Auditions regionales des candidates pre-selectionnees."
         },
         {
-          "city": "Paris",
+          "city": "Finale nationale - Paris",
           "date": "16 septembre (TBC)",
-          "text": "Pitch final et remise de prix."
+          "text": "Pitch final des laureates et remise de prix."
         }
       ],
       "form": {
