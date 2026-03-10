@@ -17,6 +17,10 @@ Projet de reconstruction front du site `digitalinpulse.com` avec edition continu
 - `public/content/site.json` (tous les textes, liens, visuels)
 - `public/admin/config.yml` (schema des champs editables)
 - `docs/audit-2026-03-10.md` (audit initial du site source)
+- `docs/content-operations.md` (guide edition urgente)
+- `docs/production-cutover.md` (runbook domaine + SSL)
+- `docs/qa-report-2026-03-10.md` (resultats QA)
+- `scripts/qa_check.py` (controle automatique pre-prod)
 
 ## Lancer en local
 
@@ -63,3 +67,9 @@ Une fois deploye:
 1. pointer le DNS du domaine
 2. activer HTTPS
 3. verifier les redirections (`www` / non-`www`)
+
+## Verification QA locale
+
+```bash
+python3 scripts/qa_check.py
+```
