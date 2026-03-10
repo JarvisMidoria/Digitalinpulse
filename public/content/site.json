@@ -44,6 +44,10 @@
         "url": "/politique-relative-a-lutilisation-des-cookies/"
       },
       {
+        "label": "Politique de confidentialite",
+        "url": "/politique-de-confidentialite/"
+      },
+      {
         "label": "Reglement du concours",
         "url": "https://digitalinpulse.com/wp-content/uploads/2025/04/REGLEMENT-DIP-2025.pdf"
       }
@@ -373,6 +377,21 @@
         "Les informations diffusees sont fournies a titre indicatif.",
         "L'utilisateur s'engage a ne pas perturber le service.",
         "Le droit applicable est le droit francais."
+      ]
+    },
+    "politique_confidentialite": {
+      "hero": {
+        "eyebrow": "Legal",
+        "title": "Politique de confidentialite",
+        "subtitle": "Cadre de traitement des donnees personnelles collectees via les formulaires de candidature.",
+        "image": "https://digitalinpulse.com/wp-content/uploads/2024/02/header24.png"
+      },
+      "paragraphs": [
+        "Les informations collectees via les formulaires servent exclusivement a l'analyse et au suivi des candidatures.",
+        "Les donnees sont traitees par les organisateurs du programme et les partenaires mandatés pour l'instruction des dossiers.",
+        "Les donnees obligatoires sont necessaires a la participation. Les donnees facultatives permettent d'affiner l'evaluation.",
+        "Conformement a la reglementation applicable, vous pouvez exercer vos droits d'acces, rectification, opposition et suppression.",
+        "Pour toute demande, contactez l'equipe via l'adresse de contact officielle du programme."
       ]
     }
   }

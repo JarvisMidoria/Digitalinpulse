@@ -299,6 +299,23 @@ collections:
                     widget: list
                     field: { label: Texte, name: text, widget: text }
 
+              - label: Politique de confidentialite
+                name: politique_confidentialite
+                widget: object
+                fields:
+                  - label: Hero
+                    name: hero
+                    widget: object
+                    fields:
+                      - { label: Eyebrow, name: eyebrow, widget: string, required: false }
+                      - { label: Titre, name: title, widget: string }
+                      - { label: Sous-titre, name: subtitle, widget: text }
+                      - { label: Image (URL), name: image, widget: string, required: false }
+                  - label: Paragraphes
+                    name: paragraphs
+                    widget: list
+                    field: { label: Texte, name: text, widget: text }
+
               - label: Conditions d'utilisation
                 name: conditions_utilisation
                 widget: object
