@@ -81,8 +81,8 @@
     "home": {
       "hero": {
         "eyebrow": "Edition annuelle",
-        "title": "Depuis 2014, Digital InPulse celebre l'excellence des start-ups francaises",
-        "subtitle": "Un programme national pour accompagner des projets innovants vers la croissance internationale et l'ecosysteme asiatique.",
+        "title": "Depuis 2014, nous celebrons l'excellence des start-ups francaises",
+        "subtitle": "Une edition Digital InPulse 2025 dediee a l'innovation au service de la competitivite technologique, industrielle ou economique de la France.",
         "image": "https://digitalinpulse.com/wp-content/uploads/2024/02/header24.png",
         "ctaLabel": "Decouvrir le concours",
         "ctaUrl": "/digital-in-pulse/",
@@ -151,7 +151,7 @@
     "digital_in_pulse": {
       "hero": {
         "eyebrow": "Le concours",
-        "title": "Digital InPulse, plus de 10 ans de soutien aux start-ups innovantes",
+        "title": "Digital InPulse plus de 10 ans de soutien aux start-ups francaises innovantes",
         "subtitle": "Un programme cree pour connecter innovation francaise et opportunites internationales.",
         "image": "https://digitalinpulse.com/wp-content/uploads/2020/03/DIGITAL-INPULSE-2.png"
       },
@@ -194,7 +194,7 @@
     "le_principe": {
       "hero": {
         "eyebrow": "L'accompagnement",
-        "title": "Ce que gagnent les laureats",
+        "title": "Le principe du concours",
         "subtitle": "Un accompagnement concret avec partenaires, experts et reseau alumni.",
         "image": "https://digitalinpulse.com/wp-content/uploads/2020/03/voyage-affaire-digital-inpulse.jpg"
       },
@@ -238,7 +238,7 @@
           "url": "https://digitalinpulse.com/wp-content/uploads/2025/04/REGLEMENT-DIP-2025.pdf"
         }
       },
-      "themeTitle": "Un theme orienté impact business",
+      "themeTitle": "La technologie au service de la competitivite",
       "themeText": "Le programme cible les solutions technologiques qui renforcent la performance operationnelle, economique ou industrielle.",
       "themeImage": "https://digitalinpulse.com/wp-content/uploads/2025/03/1.webp",
       "scheduleTitle": "Dates et auditions",
@@ -293,7 +293,7 @@
           "url": "https://digitalinpulse.com/wp-content/uploads/2025/04/REGLEMENT-DIP-2025.pdf"
         }
       },
-      "themeTitle": "Valoriser les profils qui inspirent",
+      "themeTitle": "Creer un prix dedie aux femmes entrepreneures",
       "themeText": "Le parcours met en avant les fondatrices, co-fondatrices et dirigeantes qui portent des projets technologiques ambitieux.",
       "themeImage": "https://digitalinpulse.com/wp-content/uploads/2025/03/Women-for-Innovation.webp",
       "scheduleTitle": "Calendrier de la categorie",
