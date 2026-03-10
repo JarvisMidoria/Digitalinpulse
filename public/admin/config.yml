@@ -1,0 +1,321 @@
+backend:
+  name: github
+  repo: JarvisMidoria/Digitalinpulse
+  branch: main
+  # Renseigner votre passerelle OAuth GitHub (Decap OAuth / Netlify / custom auth endpoint)
+  base_url: https://YOUR-DECAP-OAUTH-BRIDGE
+  auth_endpoint: /auth
+
+publish_mode: simple
+media_folder: public/uploads
+public_folder: /uploads
+locale: fr
+
+collections:
+  - name: website
+    label: Contenu du site
+    files:
+      - file: public/content/site.json
+        label: Contenu global + pages
+        name: site
+        format: json
+        fields:
+          - label: Meta
+            name: meta
+            widget: object
+            fields:
+              - { label: Nom du site, name: siteName, widget: string }
+              - { label: Baseline, name: tagline, widget: string }
+              - { label: Couleur principale, name: primaryColor, widget: string, default: "#0f3255" }
+              - { label: Couleur accent, name: accentColor, widget: string, default: "#e52f4c" }
+              - { label: Email contact, name: contactEmail, widget: string }
+              - { label: Copyright, name: copyright, widget: string }
+
+          - label: Navigation
+            name: navigation
+            widget: list
+            summary: "{{fields.label}} -> {{fields.url}}"
+            fields:
+              - { label: Label, name: label, widget: string }
+              - { label: URL, name: url, widget: string }
+
+          - label: Footer
+            name: footer
+            widget: object
+            fields:
+              - label: Liens legaux
+                name: legalLinks
+                widget: list
+                summary: "{{fields.label}} -> {{fields.url}}"
+                fields:
+                  - { label: Label, name: label, widget: string }
+                  - { label: URL, name: url, widget: string }
+              - label: Partenaires
+                name: partners
+                widget: list
+                summary: "{{fields.name}}"
+                fields:
+                  - { label: Nom, name: name, widget: string }
+                  - { label: URL, name: url, widget: string }
+              - label: Reseaux
+                name: socials
+                widget: list
+                summary: "{{fields.label}}"
+                fields:
+                  - { label: Label, name: label, widget: string }
+                  - { label: URL, name: url, widget: string }
+
+          - label: Pages
+            name: pages
+            widget: object
+            fields:
+              - label: Home
+                name: home
+                widget: object
+                fields:
+                  - label: Hero
+                    name: hero
+                    widget: object
+                    fields:
+                      - { label: Eyebrow, name: eyebrow, widget: string, required: false }
+                      - { label: Titre, name: title, widget: string }
+                      - { label: Sous-titre, name: subtitle, widget: text }
+                      - { label: Image hero (URL), name: image, widget: string, required: false }
+                      - { label: Label CTA, name: ctaLabel, widget: string, required: false }
+                      - { label: URL CTA, name: ctaUrl, widget: string, required: false }
+                      - label: CTA secondaire
+                        name: secondaryAction
+                        widget: object
+                        required: false
+                        fields:
+                          - { label: Label, name: label, widget: string, required: false }
+                          - { label: URL, name: url, widget: string, required: false }
+                  - { label: Titre intro, name: introTitle, widget: string }
+                  - { label: Texte intro, name: introText, widget: text }
+                  - label: Piliers
+                    name: pillars
+                    widget: list
+                    fields:
+                      - { label: Titre, name: title, widget: string }
+                      - { label: Texte, name: text, widget: text }
+                  - { label: Titre categories, name: categoriesTitle, widget: string }
+                  - { label: Texte categories, name: categoriesText, widget: text }
+                  - label: Categories
+                    name: categories
+                    widget: list
+                    fields:
+                      - { label: Titre, name: title, widget: string }
+                      - { label: Texte, name: text, widget: text }
+                      - { label: Image (URL), name: image, widget: string }
+                      - { label: URL, name: url, widget: string }
+                      - { label: Label CTA, name: ctaLabel, widget: string, required: false }
+                  - { label: Titre temoignages, name: testimonialsTitle, widget: string }
+                  - label: Temoignages
+                    name: testimonials
+                    widget: list
+                    fields:
+                      - { label: Citation, name: quote, widget: text }
+                      - { label: Auteur, name: author, widget: string }
+                      - { label: Role, name: role, widget: string }
+
+              - label: Le concours
+                name: digital_in_pulse
+                widget: object
+                fields:
+                  - label: Hero
+                    name: hero
+                    widget: object
+                    fields:
+                      - { label: Eyebrow, name: eyebrow, widget: string, required: false }
+                      - { label: Titre, name: title, widget: string }
+                      - { label: Sous-titre, name: subtitle, widget: text }
+                      - { label: Image (URL), name: image, widget: string, required: false }
+                  - { label: Titre resume, name: summaryTitle, widget: string }
+                  - { label: Texte resume, name: summaryText, widget: text }
+                  - { label: Image resume (URL), name: summaryImage, widget: string, required: false }
+                  - { label: Titre carte resume, name: summaryCardTitle, widget: string, required: false }
+                  - { label: Texte carte resume, name: summaryCardText, widget: text, required: false }
+                  - label: Tags
+                    name: tags
+                    widget: list
+                    field: { label: Tag, name: tag, widget: string }
+                  - { label: Titre timeline, name: timelineTitle, widget: string }
+                  - label: Timeline
+                    name: timeline
+                    widget: list
+                    fields:
+                      - { label: Etape, name: step, widget: string }
+                      - { label: Date, name: date, widget: string }
+                      - { label: Texte, name: text, widget: text }
+
+              - label: L'accompagnement
+                name: le_principe
+                widget: object
+                fields:
+                  - label: Hero
+                    name: hero
+                    widget: object
+                    fields:
+                      - { label: Eyebrow, name: eyebrow, widget: string, required: false }
+                      - { label: Titre, name: title, widget: string }
+                      - { label: Sous-titre, name: subtitle, widget: text }
+                      - { label: Image (URL), name: image, widget: string, required: false }
+                  - { label: Titre intro, name: introTitle, widget: string }
+                  - { label: Texte intro, name: introText, widget: text }
+                  - label: Benefices
+                    name: benefits
+                    widget: list
+                    fields:
+                      - { label: Titre, name: title, widget: string }
+                      - { label: Texte, name: text, widget: text }
+                      - { label: Image (URL), name: image, widget: string, required: false }
+                  - { label: Titre alumni, name: alumniTitle, widget: string }
+                  - { label: Texte alumni, name: alumniText, widget: text }
+
+              - label: Tech For Competitivity
+                name: tech_for_competitivity
+                widget: object
+                fields:
+                  - label: Hero
+                    name: hero
+                    widget: object
+                    fields:
+                      - { label: Eyebrow, name: eyebrow, widget: string, required: false }
+                      - { label: Titre, name: title, widget: string }
+                      - { label: Sous-titre, name: subtitle, widget: text }
+                      - { label: Image (URL), name: image, widget: string, required: false }
+                      - { label: Label CTA, name: ctaLabel, widget: string, required: false }
+                      - { label: URL CTA, name: ctaUrl, widget: string, required: false }
+                      - label: CTA secondaire
+                        name: secondaryAction
+                        widget: object
+                        required: false
+                        fields:
+                          - { label: Label, name: label, widget: string, required: false }
+                          - { label: URL, name: url, widget: string, required: false }
+                  - { label: Titre theme, name: themeTitle, widget: string }
+                  - { label: Texte theme, name: themeText, widget: text }
+                  - { label: Image theme (URL), name: themeImage, widget: string, required: false }
+                  - { label: Titre calendrier, name: scheduleTitle, widget: string }
+                  - { label: Texte calendrier, name: scheduleText, widget: text }
+                  - label: Checklist
+                    name: checklist
+                    widget: list
+                    field: { label: Point, name: point, widget: string }
+                  - label: Dates par ville
+                    name: schedule
+                    widget: list
+                    fields:
+                      - { label: Ville, name: city, widget: string }
+                      - { label: Date, name: date, widget: string }
+                      - { label: Texte, name: text, widget: text }
+                  - label: Bloc formulaire
+                    name: form
+                    widget: object
+                    fields:
+                      - { label: Titre, name: title, widget: string }
+                      - { label: Description, name: description, widget: text }
+                      - { label: Label bouton envoi, name: submitLabel, widget: string }
+                      - { label: Label reglement, name: regulationLabel, widget: string, required: false }
+                      - { label: URL reglement, name: regulationUrl, widget: string, required: false }
+                      - { label: Message aide, name: notice, widget: text, required: false }
+
+              - label: Women For Innovation
+                name: women_for_innovation
+                widget: object
+                fields:
+                  - label: Hero
+                    name: hero
+                    widget: object
+                    fields:
+                      - { label: Eyebrow, name: eyebrow, widget: string, required: false }
+                      - { label: Titre, name: title, widget: string }
+                      - { label: Sous-titre, name: subtitle, widget: text }
+                      - { label: Image (URL), name: image, widget: string, required: false }
+                      - { label: Label CTA, name: ctaLabel, widget: string, required: false }
+                      - { label: URL CTA, name: ctaUrl, widget: string, required: false }
+                      - label: CTA secondaire
+                        name: secondaryAction
+                        widget: object
+                        required: false
+                        fields:
+                          - { label: Label, name: label, widget: string, required: false }
+                          - { label: URL, name: url, widget: string, required: false }
+                  - { label: Titre theme, name: themeTitle, widget: string }
+                  - { label: Texte theme, name: themeText, widget: text }
+                  - { label: Image theme (URL), name: themeImage, widget: string, required: false }
+                  - { label: Titre calendrier, name: scheduleTitle, widget: string }
+                  - { label: Texte calendrier, name: scheduleText, widget: text }
+                  - label: Checklist
+                    name: checklist
+                    widget: list
+                    field: { label: Point, name: point, widget: string }
+                  - label: Dates par ville
+                    name: schedule
+                    widget: list
+                    fields:
+                      - { label: Ville, name: city, widget: string }
+                      - { label: Date, name: date, widget: string }
+                      - { label: Texte, name: text, widget: text }
+                  - label: Bloc formulaire
+                    name: form
+                    widget: object
+                    fields:
+                      - { label: Titre, name: title, widget: string }
+                      - { label: Description, name: description, widget: text }
+                      - { label: Label champ lien video, name: videoField, widget: string, required: false }
+                      - { label: Label bouton envoi, name: submitLabel, widget: string }
+                      - { label: Label reglement, name: regulationLabel, widget: string, required: false }
+                      - { label: URL reglement, name: regulationUrl, widget: string, required: false }
+                      - { label: Message aide, name: notice, widget: text, required: false }
+
+              - label: Mentions legales
+                name: mentions_legales
+                widget: object
+                fields:
+                  - label: Hero
+                    name: hero
+                    widget: object
+                    fields:
+                      - { label: Eyebrow, name: eyebrow, widget: string, required: false }
+                      - { label: Titre, name: title, widget: string }
+                      - { label: Sous-titre, name: subtitle, widget: text }
+                      - { label: Image (URL), name: image, widget: string, required: false }
+                  - label: Paragraphes
+                    name: paragraphs
+                    widget: list
+                    field: { label: Texte, name: text, widget: text }
+
+              - label: Politique cookies
+                name: politique_cookies
+                widget: object
+                fields:
+                  - label: Hero
+                    name: hero
+                    widget: object
+                    fields:
+                      - { label: Eyebrow, name: eyebrow, widget: string, required: false }
+                      - { label: Titre, name: title, widget: string }
+                      - { label: Sous-titre, name: subtitle, widget: text }
+                      - { label: Image (URL), name: image, widget: string, required: false }
+                  - label: Paragraphes
+                    name: paragraphs
+                    widget: list
+                    field: { label: Texte, name: text, widget: text }
+
+              - label: Conditions d'utilisation
+                name: conditions_utilisation
+                widget: object
+                fields:
+                  - label: Hero
+                    name: hero
+                    widget: object
+                    fields:
+                      - { label: Eyebrow, name: eyebrow, widget: string, required: false }
+                      - { label: Titre, name: title, widget: string }
+                      - { label: Sous-titre, name: subtitle, widget: text }
+                      - { label: Image (URL), name: image, widget: string, required: false }
+                  - label: Paragraphes
+                    name: paragraphs
+                    widget: list
+                    field: { label: Texte, name: text, widget: text }
