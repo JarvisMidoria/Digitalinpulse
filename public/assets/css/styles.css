@@ -255,6 +255,8 @@ img {
 
 .hero-home {
   min-height: 620px;
+  background-size: cover, auto 128%;
+  background-position: center, center top;
 }
 
 .hero-grid {
@@ -1091,6 +1093,8 @@ textarea:focus {
 
   .hero-home {
     min-height: 560px;
+    background-size: cover, auto 150%;
+    background-position: center, center top;
   }
 
   .hero-side {
