@@ -36,20 +36,24 @@ Puis ouvrir:
 3. Publier la modification.
 4. Decap cree un commit GitHub automatiquement.
 
-## Configuration OAuth Decap (obligatoire)
+## Configuration Netlify (obligatoire)
 
-Le fichier `public/admin/config.yml` pointe vers:
+Le fichier `public/admin/config.yml` est configure en `git-gateway`:
 
 ```yml
 backend:
-  name: github
-  repo: JarvisMidoria/Digitalinpulse
+  name: git-gateway
   branch: main
-  base_url: https://YOUR-DECAP-OAUTH-BRIDGE
-  auth_endpoint: /auth
 ```
 
-Avant usage production, remplacer `base_url` par votre endpoint OAuth (Decap OAuth server, Netlify auth, ou endpoint custom).
+Dans Netlify, activer:
+
+1. `Identity` -> `Enable Identity`
+2. `Identity` -> `Registration` -> `Invite only`
+3. `Identity` -> `Services` -> `Enable Git Gateway`
+4. `Identity` -> `Invite users` (votre email admin)
+
+Ensuite ouvrir `https://votre-site.netlify.app/admin/` et se connecter via email invite.
 
 ## Deploiement + domaine
 

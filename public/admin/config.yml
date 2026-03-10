@@ -1,10 +1,6 @@
 backend:
-  name: github
-  repo: JarvisMidoria/Digitalinpulse
+  name: git-gateway
   branch: main
-  # Renseigner votre passerelle OAuth GitHub (Decap OAuth / Netlify / custom auth endpoint)
-  base_url: https://YOUR-DECAP-OAUTH-BRIDGE
-  auth_endpoint: /auth
 
 publish_mode: simple
 media_folder: public/uploads
