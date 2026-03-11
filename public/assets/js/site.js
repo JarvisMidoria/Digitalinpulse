@@ -247,6 +247,7 @@ function renderHome(page) {
     sideContent: renderHomePrograms(),
     secondaryAction: page.hero?.secondaryAction,
   });
+  const homeVideo = renderHomeVideo(page.video || {});
   const pillars = (page.pillars || [])
     .map(
       (item, index) => `
@@ -285,6 +286,7 @@ function renderHome(page) {
 
   return `
     ${hero}
+    ${homeVideo}
     <section class="section section-soft">
       <div class="container">
         ${renderSectionHead(page.introTitle || "", page.introText || "", { centered: true })}
@@ -488,6 +490,66 @@ function renderHomePrograms() {
       <p>Une categorie dediee aux femmes qui entreprennent dans la tech.</p>
     </a>
   `;
+}
+
+function renderHomeVideo(video) {
+  if (!video?.url) {
+    return "";
+  }
+
+  const media = renderVideoMedia(video);
+  if (!media) {
+    return "";
+  }
+
+  return `
+    <section class="section section-video">
+      <div class="container home-video-layout">
+        <article class="home-video-copy reveal">
+          <p class="hero-eyebrow">Video</p>
+          <h2>${escapeHtml(video.title || "Digital InPulse en video")}</h2>
+          ${video.text ? `<p>${escapeHtml(video.text)}</p>` : ""}
+        </article>
+        <article class="home-video-frame reveal">
+          ${media}
+        </article>
+      </div>
+    </section>
+  `;
+}
+
+function renderVideoMedia(video) {
+  const url = String(video.url || "").trim();
+  const title = escapeAttr(video.title || "Video Digital InPulse");
+
+  const youtubeId = extractYoutubeId(url);
+  if (youtubeId) {
+    const src = `https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1`;
+    return `<iframe src="${safeUrl(src)}" title="${title}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+  }
+
+  const vimeoId = extractVimeoId(url);
+  if (vimeoId) {
+    const src = `https://player.vimeo.com/video/${vimeoId}`;
+    return `<iframe src="${safeUrl(src)}" title="${title}" loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+  }
+
+  const poster = video.poster ? ` poster="${safeUrl(video.poster)}"` : "";
+  return `<video controls preload="metadata"${poster}><source src="${safeUrl(url)}" />Votre navigateur ne supporte pas la lecture video.</video>`;
+}
+
+function extractYoutubeId(url) {
+  const value = String(url || "").trim();
+  const match = value.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/i,
+  );
+  return match?.[1] || "";
+}
+
+function extractVimeoId(url) {
+  const value = String(url || "").trim();
+  const match = value.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  return match?.[1] || "";
 }
 
 function renderSectionHead(title, text, options = {}) {

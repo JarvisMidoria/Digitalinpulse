@@ -91,6 +91,12 @@
           "url": "/tech-for-competitivity/"
         }
       },
+      "video": {
+        "title": "L'edition 2025 en video",
+        "text": "Un apercu du programme, de l'ecosysteme et de l'energie Digital InPulse.",
+        "url": "https://digitalinpulse.com/wp-content/uploads/2025/03/DIGITAL.mp4",
+        "poster": "https://digitalinpulse.com/wp-content/uploads/2024/02/header24.png"
+      },
       "introTitle": "Une plateforme complete",
       "introText": "Le site est structure pour presenter clairement le programme, le calendrier annuel et les deux parcours de candidature.",
       "pillars": [
