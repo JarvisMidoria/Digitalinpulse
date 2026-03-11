@@ -24,6 +24,7 @@ Projet de reconstruction front du site `digitalinpulse.com` avec edition continu
 - `netlify/functions/_submissions.js` (helpers partages soumissions)
 - `docs/audit-2026-03-10.md` (audit initial du site source)
 - `docs/content-operations.md` (guide edition urgente)
+- `docs/pre-delivery-checklist.md` (checklist operationnelle pre-livraison)
 - `docs/production-cutover.md` (runbook domaine + SSL)
 - `docs/qa-report-2026-03-10.md` (resultats QA)
 - `scripts/qa_check.py` (controle automatique pre-prod)
