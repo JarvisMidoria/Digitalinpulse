@@ -43,6 +43,7 @@
           <button class="nav-item" data-panel-target="panel-tech">Tech</button>
           <button class="nav-item" data-panel-target="panel-women">Women</button>
           <button class="nav-item" data-panel-target="panel-legal">Legal</button>
+          <button class="nav-item" data-panel-target="panel-submissions">Candidatures</button>
           <button class="nav-item" data-panel-target="panel-media">Media</button>
           <button class="nav-item" data-panel-target="panel-advanced">JSON avance</button>
         </aside>
@@ -219,6 +220,42 @@
               <label>Texte confidentialite - paragraphe 1
                 <textarea data-path="pages.politique_confidentialite.paragraphs[0]"></textarea>
               </label>
+            </div>
+          </section>
+
+          <section id="panel-submissions" class="panel">
+            <h2>Candidatures</h2>
+            <div class="submissions-toolbar">
+              <label>Programme
+                <select id="submissions-program-filter">
+                  <option value="all">Tous</option>
+                  <option value="tech_for_competitivity">Tech For Competitivity</option>
+                  <option value="women_for_innovation">Women For Innovation</option>
+                </select>
+              </label>
+              <label>Recherche
+                <input id="submissions-search" type="text" placeholder="Nom, email, entreprise, reference..." />
+              </label>
+              <button type="button" id="submissions-refresh-btn" class="btn btn-ghost">Rafraichir</button>
+              <button type="button" id="submissions-export-btn" class="btn btn-primary">Exporter CSV (Excel)</button>
+            </div>
+            <p id="submissions-count" class="notes">Aucune candidature chargee.</p>
+            <div class="submissions-table-wrap">
+              <table class="submissions-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Programme</th>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Entreprise</th>
+                    <th>Region</th>
+                    <th>Reference</th>
+                    <th>Fichiers</th>
+                  </tr>
+                </thead>
+                <tbody id="submissions-table-body"></tbody>
+              </table>
             </div>
           </section>
 

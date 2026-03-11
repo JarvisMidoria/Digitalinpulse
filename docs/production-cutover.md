@@ -42,7 +42,9 @@ Configurer selon les instructions Netlify:
 2. `/admin/` login.
 3. Publication d'un micro changement depuis admin custom (test commit).
 4. Envoi d'une candidature test et verification de la reference retournee.
-5. Test mobile rapide.
+5. Verification notification email/CRM (si activee).
+6. Export CSV depuis `/admin/` -> `Candidatures`.
+7. Test mobile rapide.
 
 ## 7. Backout plan
 

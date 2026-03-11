@@ -42,6 +42,8 @@ Temps cible: < 5 minutes.
 2. Envoyer une candidature test.
 3. Verifier la reference retournee a l'ecran.
 4. Verifier le commit de soumission dans le repo de stockage.
+5. Ouvrir `/admin/` -> panneau `Candidatures` pour verifier la ligne creee.
+6. Utiliser `Exporter CSV (Excel)` pour tester l'export.
 
 ## Rollback rapide
 

@@ -20,6 +20,8 @@ Projet de reconstruction front du site `digitalinpulse.com` avec edition continu
 - `netlify/functions/save-content.js` (publish JSON sur GitHub)
 - `netlify/functions/upload-media.js` (upload visuels dans `public/uploads`)
 - `netlify/functions/submit-application.js` (soumission des formulaires vers GitHub)
+- `netlify/functions/list-submissions.js` (lecture des candidatures dans le back-office)
+- `netlify/functions/_submissions.js` (helpers partages soumissions)
 - `docs/audit-2026-03-10.md` (audit initial du site source)
 - `docs/content-operations.md` (guide edition urgente)
 - `docs/production-cutover.md` (runbook domaine + SSL)
@@ -37,7 +39,7 @@ Puis ouvrir:
 - `http://localhost:8080/`
 - `http://localhost:8080/admin/`
 
-Note: en local simple (`python`), la publication admin, l'upload media et la soumission de candidatures ne fonctionneront pas car elles passent par des fonctions Netlify.
+Note: en local simple (`python`), la publication admin, l'upload media, la soumission et la lecture des candidatures ne fonctionneront pas car elles passent par des fonctions Netlify.
 
 ## Edition contenu (workflow client)
 
@@ -73,9 +75,22 @@ Variables recommandees pour la soumission de candidatures:
 - `SUBMISSIONS_ALLOWED_ORIGINS`: domaines autorises a soumettre (comma-separated)
 - `SUBMISSIONS_COMMITTER_NAME`: nom du bot de commit
 - `SUBMISSIONS_COMMITTER_EMAIL`: email du bot de commit
+- `SUBMISSIONS_NOTIFY_EMAILS`: emails de notification (comma-separated)
+- `SUBMISSIONS_FROM_EMAIL`: expediteur des emails (utilise avec Resend)
+- `RESEND_API_KEY`: cle API Resend pour envoi email
+- `SUBMISSIONS_CRM_WEBHOOK_URL`: webhook CRM (HubSpot/Make/Zapier/outil maison)
+- `SUBMISSIONS_CRM_WEBHOOK_SECRET`: secret optionnel ajoute dans le header `X-Webhook-Secret`
 
 Si `SUBMISSIONS_GITHUB_REPO` n'est pas defini, les candidatures seront stockees dans `GITHUB_REPO`.
 Recommandation: utiliser un repository prive dedie pour eviter d'exposer des donnees sensibles.
+
+## Candidatures: email, CRM, export Excel
+
+- Chaque candidature cree une reference (`DIP-...`) et est stockee avec ses fichiers.
+- Notifications email: activees si `RESEND_API_KEY` + `SUBMISSIONS_NOTIFY_EMAILS` sont renseignes.
+- CRM: active via `SUBMISSIONS_CRM_WEBHOOK_URL` (payload JSON a chaque candidature).
+- Back-office: onglet `Candidatures` pour lister/rechercher.
+- Export: bouton `Exporter CSV (Excel)` dans l'admin (ouvre directement dans Excel).
 
 ## Deploiement + domaine
 

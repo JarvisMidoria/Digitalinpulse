@@ -1,4 +1,5 @@
-const { getConfig, requestGitHub, normalizeFileName, response, createHttpError } = require("./_github");
+const { requestGitHub, normalizeFileName, response, createHttpError } = require("./_github");
+const { getSubmissionConfig, ensureAllowedOrigin, readHeader } = require("./_submissions");
 
 const ALLOWED_PROGRAMS = new Set(["tech_for_competitivity", "women_for_innovation"]);
 const ALLOWED_CONTENT_TYPES = new Set([
@@ -16,7 +17,6 @@ const ALLOWED_CONTENT_TYPES = new Set([
   "application/x-zip-compressed",
 ]);
 
-const DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MAX_FILES = 6;
 const MAX_FIELDS = 120;
 
@@ -74,54 +74,18 @@ exports.handler = async (event) => {
     const recordBody = `${JSON.stringify(record, null, 2)}\n`;
     await writeGitHubFile(config, `${basePath}/submission.json`, Buffer.from(recordBody, "utf-8"), `[FORM] ${reference} submission`);
 
+    const notificationWarnings = await notifyIntegrations(config, record);
+
     return response(200, {
       ok: true,
       reference,
       storedFiles: storedFiles.length,
+      warnings: notificationWarnings,
     });
   } catch (error) {
     return response(Number(error.statusCode) || 500, { error: error.message });
   }
 };
-
-function getSubmissionConfig() {
-  const base = getConfig();
-  const maxFileSize = Number(process.env.SUBMISSIONS_MAX_FILE_SIZE || DEFAULT_MAX_FILE_SIZE);
-  const allowedOrigins = (process.env.SUBMISSIONS_ALLOWED_ORIGINS || "")
-    .split(",")
-    .map((value) => value.trim().toLowerCase().replace(/\/+$/, ""))
-    .filter(Boolean);
-  const dataDir = String(process.env.SUBMISSIONS_DATA_DIR || "submissions")
-    .replace(/^\/+|\/+$/g, "")
-    .replace(/\.\./g, "")
-    .replace(/\/{2,}/g, "/");
-
-  return {
-    token: process.env.SUBMISSIONS_GITHUB_TOKEN || base.token,
-    repo: process.env.SUBMISSIONS_GITHUB_REPO || base.repo,
-    branch: process.env.SUBMISSIONS_GITHUB_BRANCH || base.branch,
-    dataDir: dataDir || "submissions",
-    maxFileSize: Number.isFinite(maxFileSize) && maxFileSize > 0 ? maxFileSize : DEFAULT_MAX_FILE_SIZE,
-    allowedOrigins,
-    committerName: process.env.SUBMISSIONS_COMMITTER_NAME || "Digital InPulse Bot",
-    committerEmail: process.env.SUBMISSIONS_COMMITTER_EMAIL || "noreply@digitalinpulse.local",
-  };
-}
-
-function ensureAllowedOrigin(config, event) {
-  if (!config.allowedOrigins.length) {
-    return;
-  }
-  const origin = String(readHeader(event, "origin") || "")
-    .toLowerCase()
-    .replace(/\/+$/, "");
-  const referer = String(readHeader(event, "referer") || "").toLowerCase();
-  const hasAllowedOrigin = origin && config.allowedOrigins.includes(origin);
-  const hasAllowedReferer = referer && config.allowedOrigins.some((allowed) => referer.startsWith(`${allowed}/`));
-  if (!hasAllowedOrigin && !hasAllowedReferer) {
-    throw createHttpError(403, "Origin is not allowed");
-  }
-}
 
 function normalizeSubmission(payload, config) {
   if (!payload || typeof payload !== "object") {
@@ -259,6 +223,91 @@ async function writeGitHubFile(config, path, binary, message) {
   });
 }
 
+async function notifyIntegrations(config, record) {
+  const warnings = [];
+
+  const jobs = [
+    sendEmailNotification(config, record),
+    sendCrmWebhook(config, record),
+  ];
+  const results = await Promise.allSettled(jobs);
+
+  for (const result of results) {
+    if (result.status === "rejected") {
+      warnings.push(result.reason?.message || "Notification failed");
+    }
+  }
+
+  return warnings;
+}
+
+async function sendEmailNotification(config, record) {
+  if (!config.resendApiKey || !config.notifyEmails.length) {
+    return;
+  }
+
+  const name = `${toSingleValue(record.fields.first_name)} ${toSingleValue(record.fields.last_name)}`.trim() || "Candidat";
+  const email = toSingleValue(record.fields.email) || "N/A";
+  const company = toSingleValue(record.fields.company) || "N/A";
+  const subject = `[Digital InPulse] Nouvelle candidature ${record.reference}`;
+  const text = [
+    `Reference: ${record.reference}`,
+    `Programme: ${record.program}`,
+    `Date: ${record.createdAt}`,
+    `Nom: ${name}`,
+    `Email: ${email}`,
+    `Entreprise: ${company}`,
+    `Fichiers: ${record.files.length}`,
+  ].join("\n");
+
+  const responseResend = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${config.resendApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: config.fromEmail,
+      to: config.notifyEmails,
+      subject,
+      text,
+    }),
+  });
+
+  if (!responseResend.ok) {
+    const payload = await responseResend.text();
+    throw new Error(`Email notification failed: ${responseResend.status} ${payload}`);
+  }
+}
+
+async function sendCrmWebhook(config, record) {
+  if (!config.crmWebhookUrl) {
+    return;
+  }
+
+  const responseCrm = await fetch(config.crmWebhookUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(config.crmWebhookSecret ? { "X-Webhook-Secret": config.crmWebhookSecret } : {}),
+    },
+    body: JSON.stringify({
+      source: "digital-inpulse",
+      event: "application_submitted",
+      submittedAt: record.createdAt,
+      reference: record.reference,
+      program: record.program,
+      fields: record.fields,
+      files: record.files,
+    }),
+  });
+
+  if (!responseCrm.ok) {
+    const payload = await responseCrm.text();
+    throw new Error(`CRM webhook failed: ${responseCrm.status} ${payload}`);
+  }
+}
+
 function buildReference(program, date) {
   const shortProgram = program === "women_for_innovation" ? "WFI" : "TFC";
   const day = date.toISOString().slice(0, 10).replace(/-/g, "");
@@ -291,15 +340,14 @@ function getPreferredExtension(file) {
   return map[file.contentType] || "bin";
 }
 
-function readHeader(event, name) {
-  const headers = event?.headers || {};
-  const target = name.toLowerCase();
-  for (const key of Object.keys(headers)) {
-    if (key.toLowerCase() === target) {
-      return headers[key];
-    }
+function toSingleValue(value) {
+  if (Array.isArray(value)) {
+    return String(value[0] || "");
   }
-  return "";
+  if (value == null) {
+    return "";
+  }
+  return String(value);
 }
 
 function trimText(value, maxLength) {

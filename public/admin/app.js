@@ -1,12 +1,16 @@
 const CONTENT_ENDPOINT = "/content/site.json";
 const SAVE_ENDPOINT = "/.netlify/functions/save-content";
 const UPLOAD_ENDPOINT = "/.netlify/functions/upload-media";
+const LIST_SUBMISSIONS_ENDPOINT = "/.netlify/functions/list-submissions";
 const DRAFT_KEY = "dip_admin_draft_v2";
 
 const state = {
   user: null,
   content: null,
   original: null,
+  submissions: [],
+  filteredSubmissions: [],
+  submissionsLoaded: false,
 };
 
 const authScreen = document.getElementById("auth-screen");
@@ -16,6 +20,10 @@ const publishResult = document.getElementById("publish-result");
 const rawJsonInput = document.getElementById("raw-json");
 const mediaFileInput = document.getElementById("media-file-input");
 const mediaUrlOutput = document.getElementById("media-url-output");
+const submissionsCount = document.getElementById("submissions-count");
+const submissionsTableBody = document.getElementById("submissions-table-body");
+const submissionsSearchInput = document.getElementById("submissions-search");
+const submissionsProgramFilter = document.getElementById("submissions-program-filter");
 
 init();
 
@@ -51,6 +59,9 @@ function wireIdentity() {
 
   window.netlifyIdentity.on("logout", () => {
     state.user = null;
+    state.submissions = [];
+    state.filteredSubmissions = [];
+    state.submissionsLoaded = false;
     showAuth();
     setStatus("Deconnecte");
   });
@@ -64,7 +75,11 @@ function wireSidebar() {
     item.addEventListener("click", () => {
       navItems.forEach((node) => node.classList.remove("active"));
       item.classList.add("active");
-      showPanel(item.dataset.panelTarget);
+      const panelTarget = item.dataset.panelTarget;
+      showPanel(panelTarget);
+      if (panelTarget === "panel-submissions") {
+        loadSubmissions();
+      }
     });
   }
 }
@@ -84,6 +99,10 @@ function wireActions() {
   document.getElementById("upload-media-btn")?.addEventListener("click", uploadMedia);
   document.getElementById("copy-media-url-btn")?.addEventListener("click", copyMediaUrl);
   document.getElementById("apply-json-btn")?.addEventListener("click", applyRawJson);
+  document.getElementById("submissions-refresh-btn")?.addEventListener("click", () => loadSubmissions(true));
+  document.getElementById("submissions-export-btn")?.addEventListener("click", exportSubmissionsCsv);
+  submissionsSearchInput?.addEventListener("input", applySubmissionsFilters);
+  submissionsProgramFilter?.addEventListener("change", applySubmissionsFilters);
 }
 
 async function enterEditorMode() {
@@ -297,6 +316,215 @@ async function copyMediaUrl() {
   }
 }
 
+async function loadSubmissions(force = false) {
+  if (!state.user) {
+    setResult("Session non authentifiee.", true);
+    return;
+  }
+  if (state.submissionsLoaded && !force) {
+    applySubmissionsFilters();
+    return;
+  }
+
+  try {
+    setStatus("Chargement des candidatures...");
+    const jwt = await state.user.jwt(true);
+    const response = await fetch(`${LIST_SUBMISSIONS_ENDPOINT}?limit=300`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    const payload = await readJsonSafe(response);
+    if (!response.ok) {
+      throw new Error(payload.error || `Echec chargement candidatures (${response.status})`);
+    }
+
+    state.submissions = Array.isArray(payload.items) ? payload.items : [];
+    state.submissionsLoaded = true;
+    applySubmissionsFilters();
+    setStatus("Candidatures chargees");
+  } catch (error) {
+    setResult(`Erreur candidatures: ${error.message}`, true);
+    setStatus("Erreur chargement candidatures");
+  }
+}
+
+function applySubmissionsFilters() {
+  const selectedProgram = String(submissionsProgramFilter?.value || "all");
+  const query = String(submissionsSearchInput?.value || "")
+    .toLowerCase()
+    .trim();
+
+  state.filteredSubmissions = state.submissions.filter((item) => {
+    if (selectedProgram !== "all" && String(item.program) !== selectedProgram) {
+      return false;
+    }
+    if (!query) {
+      return true;
+    }
+    const haystack = [
+      item.reference,
+      item.program,
+      item.summary?.name,
+      item.summary?.email,
+      item.summary?.company,
+      item.summary?.region,
+      item.summary?.city,
+    ]
+      .map((value) => String(value || "").toLowerCase())
+      .join(" ");
+    return haystack.includes(query);
+  });
+
+  renderSubmissions();
+}
+
+function renderSubmissions() {
+  if (!submissionsTableBody) {
+    return;
+  }
+
+  submissionsTableBody.innerHTML = state.filteredSubmissions
+    .map((item) => {
+      const displayDate = formatDate(item.createdAt);
+      const programLabel = programToLabel(item.program);
+      const name = item.summary?.name || "-";
+      const email = item.summary?.email || "-";
+      const company = item.summary?.company || "-";
+      const region = item.summary?.region || item.summary?.city || "-";
+      const reference = item.reference || "-";
+      const fileCount = Number(item.fileCount || 0);
+
+      return `
+        <tr>
+          <td>${escapeHtml(displayDate)}</td>
+          <td><span class="chip">${escapeHtml(programLabel)}</span></td>
+          <td>${escapeHtml(name)}</td>
+          <td>${escapeHtml(email)}</td>
+          <td>${escapeHtml(company)}</td>
+          <td>${escapeHtml(region)}</td>
+          <td><span class="mono">${escapeHtml(reference)}</span></td>
+          <td>${escapeHtml(String(fileCount))}</td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  if (submissionsCount) {
+    const total = state.submissions.length;
+    const shown = state.filteredSubmissions.length;
+    submissionsCount.textContent = `${shown} candidature(s) affichee(s) / ${total} total.`;
+  }
+}
+
+function exportSubmissionsCsv() {
+  if (!state.filteredSubmissions.length) {
+    setResult("Aucune candidature a exporter.", true);
+    return;
+  }
+
+  const headers = [
+    "reference",
+    "created_at",
+    "program",
+    "name",
+    "email",
+    "phone",
+    "company",
+    "website",
+    "region",
+    "city",
+    "stage",
+    "source",
+    "pitch_english",
+    "employees",
+    "revenue_2024",
+    "revenue_2025",
+    "summary",
+    "impact_statement",
+    "file_count",
+  ];
+
+  const rows = state.filteredSubmissions.map((item) => {
+    return [
+      item.reference || "",
+      item.createdAt || "",
+      item.program || "",
+      item.summary?.name || "",
+      getSubmissionField(item, "email"),
+      getSubmissionField(item, "phone"),
+      getSubmissionField(item, "company"),
+      getSubmissionField(item, "website"),
+      getSubmissionField(item, "region"),
+      getSubmissionField(item, "city"),
+      getSubmissionField(item, "stage"),
+      getSubmissionField(item, "source"),
+      getSubmissionField(item, "pitch_english"),
+      getSubmissionField(item, "employees"),
+      getSubmissionField(item, "revenue_2024"),
+      getSubmissionField(item, "revenue_2025"),
+      getSubmissionField(item, "summary"),
+      getSubmissionField(item, "impact_statement"),
+      String(item.fileCount || 0),
+    ];
+  });
+
+  const csv = [headers.join(";"), ...rows.map((row) => row.map(csvEscape).join(";"))].join("\n");
+  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const date = new Date().toISOString().slice(0, 10);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `digital-inpulse-candidatures-${date}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+  setStatus("Export CSV genere");
+}
+
+function getSubmissionField(item, key) {
+  const value = item?.fields?.[key];
+  if (Array.isArray(value)) {
+    return value.join(" | ");
+  }
+  if (value == null) {
+    return "";
+  }
+  if (typeof value === "boolean") {
+    return value ? "true" : "false";
+  }
+  return String(value);
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "-";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+  return `${date.toLocaleDateString("fr-FR")} ${date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`;
+}
+
+function programToLabel(value) {
+  if (value === "tech_for_competitivity") {
+    return "Tech";
+  }
+  if (value === "women_for_innovation") {
+    return "Women";
+  }
+  return value || "N/A";
+}
+
+function csvEscape(value) {
+  const text = String(value ?? "");
+  if (text.includes(";") || text.includes('"') || text.includes("\n")) {
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+  return text;
+}
+
 function showAuth() {
   authScreen.classList.remove("hidden");
   appRoot.classList.add("hidden");
@@ -334,6 +562,15 @@ function setText(id, value) {
     return;
   }
   node.textContent = value == null ? "" : String(value);
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function hasIdentityToken() {
