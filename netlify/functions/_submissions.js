@@ -14,6 +14,7 @@ function getSubmissionConfig() {
     repo: process.env.SUBMISSIONS_GITHUB_REPO || base.repo,
     branch: process.env.SUBMISSIONS_GITHUB_BRANCH || base.branch,
     dataDir: dataDir || "submissions",
+    allowedEmails: base.allowedEmails,
     maxFileSize: Number.isFinite(maxFileSize) && maxFileSize > 0 ? maxFileSize : DEFAULT_MAX_FILE_SIZE,
     allowedOrigins: parseCsv(process.env.SUBMISSIONS_ALLOWED_ORIGINS || "").map((value) => value.toLowerCase().replace(/\/+$/, "")),
     notifyEmails: parseCsv(process.env.SUBMISSIONS_NOTIFY_EMAILS || ""),

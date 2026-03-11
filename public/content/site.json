@@ -49,7 +49,7 @@
       },
       {
         "label": "Reglement du concours",
-        "url": "https://digitalinpulse.com/wp-content/uploads/2025/04/REGLEMENT-DIP-2025.pdf"
+        "url": "/assets/media/documents/reglement-dip-2025.pdf"
       }
     ],
     "partners": [
@@ -83,7 +83,7 @@
         "eyebrow": "Edition annuelle",
         "title": "Depuis 2014, nous celebrons l'excellence des start-ups francaises",
         "subtitle": "Une edition Digital InPulse 2025 dediee a l'innovation au service de la competitivite technologique, industrielle ou economique de la France.",
-        "image": "https://digitalinpulse.com/wp-content/uploads/2024/02/header24.png",
+        "image": "/assets/media/pages/header24.png",
         "ctaLabel": "Decouvrir le concours",
         "ctaUrl": "/digital-in-pulse/",
         "secondaryAction": {
@@ -94,8 +94,8 @@
       "video": {
         "title": "L'edition 2025 en video",
         "text": "Un apercu du programme, de l'ecosysteme et de l'energie Digital InPulse.",
-        "url": "https://digitalinpulse.com/wp-content/uploads/2025/03/DIGITAL.mp4",
-        "poster": "https://digitalinpulse.com/wp-content/uploads/2024/02/header24.png",
+        "url": "/assets/media/video/digital-inpulse-2025.mp4",
+        "poster": "/assets/media/pages/header24.png",
         "mobileVisibility": "on"
       },
       "introTitle": "Une plateforme complete",
@@ -124,14 +124,14 @@
         {
           "title": "Tech For Competitivity",
           "text": "Parcours dedie aux start-ups qui utilisent la technologie au service de la competitivite industrielle et economique.",
-          "image": "https://digitalinpulse.com/wp-content/uploads/2025/03/2025-02.webp",
+          "image": "/assets/media/pages/home-tech-card.webp",
           "url": "/tech-for-competitivity/",
           "ctaLabel": "En savoir plus"
         },
         {
           "title": "Women For Innovation",
           "text": "Categorie dediee aux femmes entrepreneures et dirigeantes de start-ups innovantes.",
-          "image": "https://digitalinpulse.com/wp-content/uploads/2025/03/Women-for-Innovation.webp",
+          "image": "/assets/media/pages/home-women-card.webp",
           "url": "/women-for-innovation/",
           "ctaLabel": "En savoir plus"
         }
@@ -160,11 +160,11 @@
         "eyebrow": "Le concours",
         "title": "Digital InPulse plus de 10 ans de soutien aux start-ups francaises innovantes",
         "subtitle": "Un programme cree pour connecter innovation francaise et opportunites internationales.",
-        "image": "https://digitalinpulse.com/wp-content/uploads/2020/03/DIGITAL-INPULSE-2.png"
+        "image": "/assets/media/pages/contest-hero.png"
       },
       "summaryTitle": "Le programme",
       "summaryText": "Chaque annee, Digital InPulse met en avant un theme strategique et selectionne des start-ups a fort potentiel de croissance.",
-      "summaryImage": "https://digitalinpulse.com/wp-content/uploads/2022/06/logo_2022_2.png",
+      "summaryImage": "/assets/media/brand/logo-light.png",
       "summaryCardTitle": "Edition 2025",
       "summaryCardText": "Edition 2025 centree sur la competitivite technologique, industrielle et economique.",
       "tags": [
@@ -203,7 +203,7 @@
         "eyebrow": "L'accompagnement",
         "title": "Le principe du concours",
         "subtitle": "Un accompagnement concret avec partenaires, experts et reseau alumni.",
-        "image": "https://digitalinpulse.com/wp-content/uploads/2020/03/voyage-affaire-digital-inpulse.jpg"
+        "image": "/assets/media/pages/principle-trip.jpg"
       },
       "introTitle": "Les piliers de l'accompagnement",
       "introText": "Le programme combine immersion internationale, integration tech et acceleration commerciale.",
@@ -211,22 +211,22 @@
         {
           "title": "Un accompagnement vers la Chine",
           "text": "Une semaine de rencontres business avec des acteurs de Hong Kong, Shenzhen et Canton.",
-          "image": "https://digitalinpulse.com/wp-content/uploads/2020/03/voyage-affaire-digital-inpulse.jpg"
+          "image": "/assets/media/pages/principle-trip.jpg"
         },
         {
           "title": "Une integration dans l'ecosysteme Huawei",
           "text": "Des echanges avec des experts cloud, IoT et mobile pour accelerer l'industrialisation.",
-          "image": "https://digitalinpulse.com/wp-content/uploads/2023/01/Digital-inpulse-ecosysteme-huawei.jpg"
+          "image": "/assets/media/pages/principle-huawei-ecosystem.jpg"
         },
         {
           "title": "Un club alumni actif",
           "text": "Un reseau d'anciens laureats pour partager retours terrain, connexions et opportunites.",
-          "image": "https://digitalinpulse.com/wp-content/uploads/2023/01/Digital-Inpulse-Huawei.jpg"
+          "image": "/assets/media/pages/principle-huawei.jpg"
         },
         {
           "title": "Une visibilite renforcee",
           "text": "Des prises de parole et des mises en relation lors d'evenements strategiques.",
-          "image": "https://digitalinpulse.com/wp-content/uploads/2023/01/Digital-Inpulse-Huawei.jpg"
+          "image": "/assets/media/pages/principle-huawei.jpg"
         }
       ],
       "alumniTitle": "Le reseau alumni Digital InPulse",
@@ -237,17 +237,17 @@
         "eyebrow": "Candidature 2025",
         "title": "Tech For Competitivity",
         "subtitle": "Des solutions numeriques au service de la competitivite des entreprises et de l'industrie.",
-        "image": "https://digitalinpulse.com/wp-content/uploads/2025/03/LOGODIP25_Blanc.png",
+        "image": "/assets/media/brand/home-tech-logo.png",
         "ctaLabel": "Aller au formulaire",
         "ctaUrl": "#form",
         "secondaryAction": {
           "label": "Voir le reglement",
-          "url": "https://digitalinpulse.com/wp-content/uploads/2025/04/REGLEMENT-DIP-2025.pdf"
+          "url": "/assets/media/documents/reglement-dip-2025.pdf"
         }
       },
       "themeTitle": "La technologie au service de la competitivite",
       "themeText": "Le programme cible les solutions technologiques qui renforcent la performance operationnelle, economique ou industrielle.",
-      "themeImage": "https://digitalinpulse.com/wp-content/uploads/2025/03/1.webp",
+      "themeImage": "/assets/media/pages/tech-theme.webp",
       "scheduleTitle": "Dates et auditions",
       "scheduleText": "Les start-ups pre-selectionnees participent aux auditions en region puis a la finale nationale.",
       "checklist": [
@@ -283,7 +283,7 @@
         "description": "Mettez a jour ce bloc et ce formulaire a tout moment depuis /admin.",
         "submitLabel": "Envoyer la candidature",
         "regulationLabel": "Voir le reglement",
-        "regulationUrl": "https://digitalinpulse.com/wp-content/uploads/2025/04/REGLEMENT-DIP-2025.pdf",
+        "regulationUrl": "/assets/media/documents/reglement-dip-2025.pdf",
         "notice": "Le branchement du back-end d'envoi sera connecte selon votre choix d'outil (API, CRM ou no-code)."
       }
     },
@@ -292,17 +292,17 @@
         "eyebrow": "Candidature 2025",
         "title": "Women For Innovation",
         "subtitle": "Une categorie dediee aux femmes entrepreneures et dirigeantes de start-ups innovantes.",
-        "image": "https://digitalinpulse.com/wp-content/uploads/2025/03/LOGO_W4I_blanc.webp",
+        "image": "/assets/media/brand/home-women-logo.webp",
         "ctaLabel": "Aller au formulaire",
         "ctaUrl": "#form",
         "secondaryAction": {
           "label": "Voir le reglement",
-          "url": "https://digitalinpulse.com/wp-content/uploads/2025/04/REGLEMENT-DIP-2025.pdf"
+          "url": "/assets/media/documents/reglement-dip-2025.pdf"
         }
       },
       "themeTitle": "Creer un prix dedie aux femmes entrepreneures",
       "themeText": "Le parcours met en avant les fondatrices, co-fondatrices et dirigeantes qui portent des projets technologiques ambitieux.",
-      "themeImage": "https://digitalinpulse.com/wp-content/uploads/2025/03/Women-for-Innovation.webp",
+      "themeImage": "/assets/media/pages/home-women-card.webp",
       "scheduleTitle": "Calendrier de la categorie",
       "scheduleText": "Les candidates retenues participent a des auditions regionales puis a une remise de prix nationale a Paris.",
       "checklist": [
@@ -339,7 +339,7 @@
         "videoField": "Lien vers votre video de presentation",
         "submitLabel": "Envoyer la candidature",
         "regulationLabel": "Voir le reglement",
-        "regulationUrl": "https://digitalinpulse.com/wp-content/uploads/2025/04/REGLEMENT-DIP-2025.pdf",
+        "regulationUrl": "/assets/media/documents/reglement-dip-2025.pdf",
         "notice": "Vous pourrez ajuster ce contenu la veille du lancement sans modifier le code source."
       }
     },
@@ -348,7 +348,7 @@
         "eyebrow": "Legal",
         "title": "Mentions legales",
         "subtitle": "Informations legales et editeur du site.",
-        "image": "https://digitalinpulse.com/wp-content/uploads/2024/02/header24.png"
+        "image": "/assets/media/pages/header24.png"
       },
       "paragraphs": [
         "Raison sociale: Association Comite Richelieu.",
@@ -363,7 +363,7 @@
         "eyebrow": "Legal",
         "title": "Politique relative aux cookies",
         "subtitle": "Informations sur l'utilisation des cookies et outils de mesure.",
-        "image": "https://digitalinpulse.com/wp-content/uploads/2024/02/header24.png"
+        "image": "/assets/media/pages/header24.png"
       },
       "paragraphs": [
         "Le site peut utiliser des cookies techniques pour garantir le fonctionnement.",
@@ -377,7 +377,7 @@
         "eyebrow": "Legal",
         "title": "Conditions generales d'utilisation",
         "subtitle": "Regles d'acces et d'usage de la plateforme.",
-        "image": "https://digitalinpulse.com/wp-content/uploads/2024/02/header24.png"
+        "image": "/assets/media/pages/header24.png"
       },
       "paragraphs": [
         "L'acces au site implique l'acceptation des conditions en vigueur.",
@@ -391,7 +391,7 @@
         "eyebrow": "Legal",
         "title": "Politique de confidentialite",
         "subtitle": "Cadre de traitement des donnees personnelles collectees via les formulaires de candidature.",
-        "image": "https://digitalinpulse.com/wp-content/uploads/2024/02/header24.png"
+        "image": "/assets/media/pages/header24.png"
       },
       "paragraphs": [
         "Les informations collectees via les formulaires servent exclusivement a l'analyse et au suivi des candidatures.",

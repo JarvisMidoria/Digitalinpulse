@@ -22,8 +22,8 @@ collections:
             fields:
               - { label: Nom du site, name: siteName, widget: string }
               - { label: Baseline, name: tagline, widget: string }
-              - { label: Couleur principale, name: primaryColor, widget: string, default: "#0f3255" }
-              - { label: Couleur accent, name: accentColor, widget: string, default: "#e52f4c" }
+              - { label: Couleur principale, name: primaryColor, widget: string, default: "#223160" }
+              - { label: Couleur accent, name: accentColor, widget: string, default: "#46c1ee" }
               - { label: Email contact, name: contactEmail, widget: string }
               - { label: Copyright, name: copyright, widget: string }
 
@@ -86,6 +86,21 @@ collections:
                         fields:
                           - { label: Label, name: label, widget: string, required: false }
                           - { label: URL, name: url, widget: string, required: false }
+                  - label: Video
+                    name: video
+                    widget: object
+                    fields:
+                      - { label: Titre video, name: title, widget: string, required: false }
+                      - { label: Texte video, name: text, widget: text, required: false }
+                      - { label: URL video, name: url, widget: string, required: false }
+                      - { label: Poster video (URL), name: poster, widget: string, required: false }
+                      - label: Afficher sur mobile
+                        name: mobileVisibility
+                        widget: select
+                        default: "on"
+                        options:
+                          - { label: "On", value: "on" }
+                          - { label: "Off", value: "off" }
                   - { label: Titre intro, name: introTitle, widget: string }
                   - { label: Texte intro, name: introText, widget: text }
                   - label: Piliers

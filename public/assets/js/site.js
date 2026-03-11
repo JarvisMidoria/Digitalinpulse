@@ -19,17 +19,17 @@ const LEGAL_KEYS = new Set([
 ]);
 
 const BRAND_ASSETS = {
-  logoLight: "https://digitalinpulse.com/wp-content/uploads/2022/06/logo_2022_2.png",
-  logoDark: "https://digitalinpulse.com/wp-content/uploads/2024/02/logo-bleu.png",
-  footerTexture: "https://digitalinpulse.com/wp-content/uploads/2019/07/footer2-1.png",
+  logoLight: "/assets/media/brand/logo-light.png",
+  logoDark: "/assets/media/brand/logo-dark.png",
+  footerTexture: "/assets/media/brand/footer-texture.png",
   footerPartnerLogos: {
-    "Comite Richelieu": "https://digitalinpulse.com/wp-content/uploads/2020/03/logo-v6.png",
-    CCIFC: "https://digitalinpulse.com/wp-content/uploads/2024/03/Logo-CCI-FRANCE-CHINE.png",
-    FCCIHK: "https://digitalinpulse.com/wp-content/uploads/2024/03/Logo-FCCIHK.png",
+    "Comite Richelieu": "/assets/media/brand/partner-comite-richelieu.png",
+    CCIFC: "/assets/media/brand/partner-ccifc.png",
+    FCCIHK: "/assets/media/brand/partner-fccihk.png",
   },
   homeProgramLogos: {
-    tech: "https://digitalinpulse.com/wp-content/uploads/2025/03/LOGODIP25_Blanc.png",
-    women: "https://digitalinpulse.com/wp-content/uploads/2025/03/LOGO_W4I_blanc.webp",
+    tech: "/assets/media/brand/home-tech-logo.png",
+    women: "/assets/media/brand/home-women-logo.webp",
   },
 };
 
