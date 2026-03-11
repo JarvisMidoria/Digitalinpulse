@@ -1135,6 +1135,12 @@ textarea:focus {
   }
 }
 
+@media (max-width: 760px) {
+  .section-video.hide-on-mobile {
+    display: none;
+  }
+}
+
 @media (max-width: 680px) {
   .header-main {
     min-height: 78px;

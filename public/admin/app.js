@@ -136,7 +136,7 @@ function hydrateInputs() {
   const inputs = [...document.querySelectorAll("[data-path]")];
   for (const input of inputs) {
     const value = getByPath(state.content, input.dataset.path);
-    if (input.tagName === "TEXTAREA" || input.tagName === "INPUT") {
+    if (input.tagName === "TEXTAREA" || input.tagName === "INPUT" || input.tagName === "SELECT") {
       input.value = value == null ? "" : String(value);
     }
   }
@@ -149,12 +149,14 @@ function bindInputs() {
       continue;
     }
     input.dataset.bound = "true";
-    input.addEventListener("input", () => {
+    const handleUpdate = () => {
       setByPath(state.content, input.dataset.path, input.value);
       updateRawJson();
       updatePreview();
       setStatus("Modification locale non publiee");
-    });
+    };
+    input.addEventListener("input", handleUpdate);
+    input.addEventListener("change", handleUpdate);
   }
 }
 

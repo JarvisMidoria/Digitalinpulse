@@ -501,9 +501,10 @@ function renderHomeVideo(video) {
   if (!media) {
     return "";
   }
+  const hideOnMobile = shouldHideVideoOnMobile(video);
 
   return `
-    <section class="section section-video">
+    <section class="section section-video${hideOnMobile ? " hide-on-mobile" : ""}">
       <div class="container home-video-layout">
         <article class="home-video-copy reveal">
           <p class="hero-eyebrow">Video</p>
@@ -550,6 +551,16 @@ function extractVimeoId(url) {
   const value = String(url || "").trim();
   const match = value.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
   return match?.[1] || "";
+}
+
+function shouldHideVideoOnMobile(video) {
+  const visibility = String(video?.mobileVisibility || "")
+    .trim()
+    .toLowerCase();
+  if (!visibility) {
+    return Boolean(video?.hideOnMobile);
+  }
+  return ["off", "false", "0", "no", "hidden"].includes(visibility);
 }
 
 function renderSectionHead(title, text, options = {}) {

@@ -17,7 +17,7 @@ Guide court pour modifier textes et visuels sans intervention developpement.
 3. Modifier le champ cible (titre, texte, dates, CTA).
 4. Cliquer `Publier`.
 
-Note: la video home se pilote depuis `Accueil` (`pages.home.video.url`, `title`, `text`, `poster`).
+Note: la video home se pilote depuis `Accueil` (`pages.home.video.url`, `title`, `text`, `poster`, `mobileVisibility` On/Off).
 
 Resultat: un commit est cree automatiquement sur `main`.
 
