@@ -64,10 +64,12 @@ async function bootstrap() {
   renderNavigation(content, pageKey);
   renderFooter(content);
   renderPage(content, pageKey);
+  document.body.classList.add("js-dynamic");
   wireHeader();
   wireReveals();
   wireTestimonialSlider();
   wireApplicationForms();
+  wireDynamicEnhancements();
 }
 
 async function fetchContent() {
@@ -114,6 +116,7 @@ function renderNavigation(content, currentKey) {
 
   host.innerHTML = `
     <div class="header-shell" data-site-header>
+      <div class="scroll-progress" data-scroll-progress aria-hidden="true"></div>
       <div class="container header-main">
         <a class="brand" href="/" aria-label="${escapeAttr(meta.siteName || "Digital InPulse")}">
           <img class="brand-logo brand-logo-light" src="${safeUrl(BRAND_ASSETS.logoLight)}" alt="${escapeAttr(meta.siteName || "Digital InPulse")}" />
@@ -846,6 +849,104 @@ function wireHeader() {
       button.setAttribute("aria-expanded", "false");
     }
   });
+}
+
+function wireDynamicEnhancements() {
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  wireScrollProgress();
+  wireInteractiveCards(prefersReducedMotion);
+  if (!prefersReducedMotion) {
+    wireHeroParallax();
+  }
+}
+
+function wireScrollProgress() {
+  const progressBar = document.querySelector("[data-scroll-progress]");
+  if (!progressBar) {
+    return;
+  }
+
+  const updateProgress = () => {
+    const scrollMax = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const ratio = Math.min(1, Math.max(0, window.scrollY / scrollMax));
+    progressBar.style.setProperty("--progress-scale", ratio.toFixed(4));
+  };
+
+  updateProgress();
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  window.addEventListener("resize", updateProgress);
+}
+
+function wireHeroParallax() {
+  const hero = document.querySelector(".hero");
+  if (!hero) {
+    return;
+  }
+
+  const updateShift = () => {
+    const shift = Math.min(42, window.scrollY * 0.08);
+    hero.style.setProperty("--hero-shift", `${shift.toFixed(2)}px`);
+  };
+
+  updateShift();
+  window.addEventListener("scroll", updateShift, { passive: true });
+
+  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    return;
+  }
+
+  hero.addEventListener("mousemove", (event) => {
+    const rect = hero.getBoundingClientRect();
+    if (!rect.width || !rect.height) {
+      return;
+    }
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    hero.style.setProperty("--hero-spot-x", `${Math.min(100, Math.max(0, x)).toFixed(2)}%`);
+    hero.style.setProperty("--hero-spot-y", `${Math.min(100, Math.max(0, y)).toFixed(2)}%`);
+  });
+
+  hero.addEventListener("mouseleave", () => {
+    hero.style.setProperty("--hero-spot-x", "86%");
+    hero.style.setProperty("--hero-spot-y", "16%");
+  });
+}
+
+function wireInteractiveCards(prefersReducedMotion = false) {
+  const cards = [
+    ...document.querySelectorAll(
+      ".feature-card, .program-card, .timeline-item, .scope-card, .home-program-card, .highlight-card, .benefit-card, .alumni-panel",
+    ),
+  ];
+  if (!cards.length) {
+    return;
+  }
+
+  for (const card of cards) {
+    card.classList.add("interactive-card");
+  }
+
+  if (prefersReducedMotion || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    return;
+  }
+
+  for (const card of cards) {
+    card.addEventListener("mousemove", (event) => {
+      const rect = card.getBoundingClientRect();
+      if (!rect.width || !rect.height) {
+        return;
+      }
+      const x = (event.clientX - rect.left) / rect.width - 0.5;
+      const y = (event.clientY - rect.top) / rect.height - 0.5;
+      card.style.setProperty("--tilt-y", `${(x * 5).toFixed(2)}deg`);
+      card.style.setProperty("--tilt-x", `${(-y * 4).toFixed(2)}deg`);
+    });
+
+    card.addEventListener("mouseleave", () => {
+      card.style.setProperty("--tilt-y", "0deg");
+      card.style.setProperty("--tilt-x", "0deg");
+    });
+  }
 }
 
 function wireReveals() {
