@@ -68,6 +68,7 @@ async function bootstrap() {
   wireHeader();
   wireReveals();
   wireTestimonialSlider();
+  wireMultiSelectFields();
   wireApplicationForms();
   wireDynamicEnhancements();
 }
@@ -276,15 +277,36 @@ function renderHome(page) {
     )
     .join("");
   const testimonials = (page.testimonials || [])
-    .map(
-      (item, index) => `
+    .map((item, index) => {
+      const companyName = item.company || extractCompanyName(item.role || "");
+      const companyInitials = textInitials(companyName || item.author || "DIP");
+      const authorInitials = textInitials(item.author || "DIP");
+      const logoNode = item.logo
+        ? `<img src="${safeUrl(item.logo)}" alt="${escapeAttr(companyName || "Entreprise")}" />`
+        : `<span class="testimonial-company-mark">${escapeHtml(companyInitials)}</span>`;
+      return `
         <article class="testimonial-slide${index === 0 ? " active" : ""}" data-slide-index="${index}">
+          <header class="testimonial-head">
+            <span class="testimonial-avatar" aria-hidden="true">${escapeHtml(authorInitials)}</span>
+            <div class="testimonial-meta">
+              <p class="testimonial-author">${escapeHtml(item.author)}</p>
+              <p class="testimonial-role">${escapeHtml(item.role || "")}</p>
+            </div>
+            ${
+              companyName
+                ? `
+              <div class="testimonial-company">
+                ${logoNode}
+                <span class="testimonial-company-name">${escapeHtml(companyName)}</span>
+              </div>
+            `
+                : ""
+            }
+          </header>
           <blockquote>"${escapeHtml(item.quote)}"</blockquote>
-          <p class="testimonial-author">${escapeHtml(item.author)}</p>
-          <p>${escapeHtml(item.role)}</p>
         </article>
-      `,
-    )
+      `;
+    })
     .join("");
 
   return `
@@ -306,9 +328,11 @@ function renderHome(page) {
       <div class="container">
         ${renderSectionHead(page.testimonialsTitle || "", "", { centered: true })}
         <div class="testimonial-slider reveal" data-testimonial-slider>
-          <button class="slider-btn prev" type="button" data-slide-prev aria-label="Temoignage precedent">‹</button>
           <div class="testimonial-track">${testimonials}</div>
-          <button class="slider-btn next" type="button" data-slide-next aria-label="Temoignage suivant">›</button>
+          <div class="testimonial-controls">
+            <button class="slider-btn prev" type="button" data-slide-prev aria-label="Temoignage precedent">‹</button>
+            <button class="slider-btn next" type="button" data-slide-next aria-label="Temoignage suivant">›</button>
+          </div>
         </div>
       </div>
     </section>
@@ -738,16 +762,7 @@ function buildProgramForm(form, programKey) {
             <label for="${idPrefix}-impact">En quoi votre entreprise repond aux enjeux du concours ? *</label>
             <textarea id="${idPrefix}-impact" name="impact_statement" required></textarea>
           </div>
-          <div class="field">
-            <label for="${idPrefix}-tech-stack">Technologies utilisees</label>
-            <select id="${idPrefix}-tech-stack" name="tech_stack" multiple>
-              <option>Intelligence artificielle</option>
-              <option>Cloud</option>
-              <option>Blockchain</option>
-              <option>AR/VR</option>
-              <option>IoT</option>
-            </select>
-          </div>
+          ${buildTechStackField(idPrefix)}
           <div class="field">
             <label for="${idPrefix}-source">Comment avez-vous connu le concours ? *</label>
             <select id="${idPrefix}-source" name="source" required>
@@ -816,6 +831,41 @@ function buildProgramForm(form, programKey) {
   `;
 }
 
+function buildTechStackField(idPrefix) {
+  const options = ["Intelligence artificielle", "Cloud", "Blockchain", "AR/VR", "IoT"];
+  const optionNodes = options
+    .map((label, index) => {
+      const id = `${idPrefix}-tech-option-${index + 1}`;
+      return `
+        <label class="multi-option" for="${id}">
+          <input id="${id}" data-multi-select-option type="checkbox" value="${escapeAttr(label)}" />
+          <span>${escapeHtml(label)}</span>
+        </label>
+      `;
+    })
+    .join("");
+
+  return `
+    <div class="field multi-select" data-multi-select data-field-name="tech_stack">
+      <label for="${idPrefix}-tech-stack-trigger">Technologies utilisees</label>
+      <button
+        id="${idPrefix}-tech-stack-trigger"
+        class="multi-select-trigger"
+        data-multi-select-trigger
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded="false"
+      >
+        Selectionner une ou plusieurs technologies
+      </button>
+      <div class="multi-select-menu" data-multi-select-menu role="listbox" aria-multiselectable="true">
+        ${optionNodes}
+      </div>
+      <div class="multi-select-values" data-multi-select-values></div>
+    </div>
+  `;
+}
+
 function wireHeader() {
   const header = document.querySelector("[data-site-header]");
   const button = document.querySelector("[data-menu-toggle]");
@@ -858,6 +908,91 @@ function wireDynamicEnhancements() {
   if (!prefersReducedMotion) {
     wireHeroParallax();
   }
+}
+
+function wireMultiSelectFields() {
+  const groups = [...document.querySelectorAll("[data-multi-select]")];
+  if (!groups.length) {
+    return;
+  }
+
+  const closeGroup = (group) => {
+    const trigger = group.querySelector("[data-multi-select-trigger]");
+    group.classList.remove("open");
+    if (trigger) {
+      trigger.setAttribute("aria-expanded", "false");
+    }
+  };
+
+  const closeAll = (except = null) => {
+    for (const group of groups) {
+      if (group === except) {
+        continue;
+      }
+      closeGroup(group);
+    }
+  };
+
+  for (const group of groups) {
+    const fieldName = String(group.dataset.fieldName || "").trim();
+    const trigger = group.querySelector("[data-multi-select-trigger]");
+    const valuesHost = group.querySelector("[data-multi-select-values]");
+    const options = [...group.querySelectorAll("[data-multi-select-option]")];
+    if (!fieldName || !trigger || !valuesHost || !options.length) {
+      continue;
+    }
+
+    const sync = () => {
+      const selected = options.filter((option) => option.checked).map((option) => option.value);
+      valuesHost.replaceChildren();
+      for (const value of selected) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = fieldName;
+        input.value = value;
+        valuesHost.appendChild(input);
+      }
+
+      const label =
+        selected.length === 0
+          ? "Selectionner une ou plusieurs technologies"
+          : `${selected.length} technologie(s) selectionnee(s)`;
+      trigger.textContent = label;
+      trigger.classList.toggle("has-value", selected.length > 0);
+    };
+
+    group.syncMultiSelect = sync;
+    sync();
+
+    trigger.addEventListener("click", () => {
+      const nextState = !group.classList.contains("open");
+      closeAll(group);
+      group.classList.toggle("open", nextState);
+      trigger.setAttribute("aria-expanded", String(nextState));
+    });
+
+    for (const option of options) {
+      option.addEventListener("change", sync);
+    }
+
+    group.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeGroup(group);
+      }
+    });
+  }
+
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Node)) {
+      closeAll();
+      return;
+    }
+    const inside = groups.some((group) => group.contains(target));
+    if (!inside) {
+      closeAll();
+    }
+  });
 }
 
 function wireScrollProgress() {
@@ -1045,6 +1180,7 @@ function wireApplicationForms() {
         }
 
         form.reset();
+        resetFormEnhancements(form);
         setFormFeedback(
           feedback,
           `Candidature envoyee avec succes. Reference: ${String(responseBody.reference || "DIP-UNKNOWN")}.`,
@@ -1055,6 +1191,24 @@ function wireApplicationForms() {
         setFormBusy(form, submitButton, false);
       }
     });
+  }
+}
+
+function resetFormEnhancements(form) {
+  const groups = [...form.querySelectorAll("[data-multi-select]")];
+  for (const group of groups) {
+    const options = [...group.querySelectorAll("[data-multi-select-option]")];
+    for (const option of options) {
+      option.checked = false;
+    }
+    if (typeof group.syncMultiSelect === "function") {
+      group.syncMultiSelect();
+    }
+    group.classList.remove("open");
+    const trigger = group.querySelector("[data-multi-select-trigger]");
+    if (trigger) {
+      trigger.setAttribute("aria-expanded", "false");
+    }
   }
 }
 
@@ -1169,6 +1323,25 @@ function findInvalidFile(form) {
     }
   }
   return null;
+}
+
+function extractCompanyName(roleText) {
+  const value = String(roleText || "");
+  if (!value.includes(",")) {
+    return "";
+  }
+  return value.split(",").slice(1).join(",").trim();
+}
+
+function textInitials(text) {
+  const tokens = String(text || "")
+    .split(/[\s-]+/)
+    .filter(Boolean)
+    .slice(0, 2);
+  if (!tokens.length) {
+    return "DI";
+  }
+  return tokens.map((token) => token.charAt(0).toUpperCase()).join("");
 }
 
 function socialIconLabel(label) {
