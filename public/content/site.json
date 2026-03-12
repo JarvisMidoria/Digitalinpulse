@@ -160,11 +160,11 @@
         "eyebrow": "Le concours",
         "title": "Digital InPulse plus de 10 ans de soutien aux start-ups francaises innovantes",
         "subtitle": "Un programme cree pour connecter innovation francaise et opportunites internationales.",
-        "image": "/assets/media/pages/contest-hero.png"
+        "image": "/assets/media/pages/contest-downtown-china.jpg"
       },
       "summaryTitle": "Le programme",
       "summaryText": "Chaque annee, Digital InPulse met en avant un theme strategique et selectionne des start-ups a fort potentiel de croissance.",
-      "summaryImage": "/assets/media/pages/contest-hero.png",
+      "summaryImage": "/assets/media/pages/contest-downtown-china.jpg",
       "summaryCardTitle": "Edition 2025",
       "summaryCardText": "Edition 2025 centree sur la competitivite technologique, industrielle et economique.",
       "tags": [
@@ -226,7 +226,7 @@
         {
           "title": "Une visibilite renforcee",
           "text": "Des prises de parole et des mises en relation lors d'evenements strategiques.",
-          "image": "/assets/media/pages/principle-huawei.jpg"
+          "image": "/assets/media/pages/principle-visibility-conference.jpg"
         }
       ],
       "alumniTitle": "Le reseau alumni Digital InPulse",
