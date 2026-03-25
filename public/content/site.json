@@ -14,19 +14,11 @@
     },
     {
       "label": "Le concours",
-      "url": "/digital-in-pulse/"
+      "url": "#experience-digital-inpulse"
     },
     {
       "label": "L'accompagnement",
-      "url": "/le-principe/"
-    },
-    {
-      "label": "Tech For Competitivity",
-      "url": "/tech-for-competitivity/"
-    },
-    {
-      "label": "Women For Innovation",
-      "url": "/women-for-innovation/"
+      "url": "#experience-digital-inpulse"
     }
   ],
   "footer": {
@@ -80,58 +72,64 @@
   "pages": {
     "home": {
       "hero": {
-        "eyebrow": "Edition annuelle",
-        "title": "Depuis 2014, nous celebrons l'excellence des start-ups francaises",
-        "subtitle": "Une edition Digital InPulse 2025 dediee a l'innovation au service de la competitivite technologique, industrielle ou economique de la France.",
-        "image": "/assets/media/pages/header24.png",
-        "ctaLabel": "Decouvrir le concours",
-        "ctaUrl": "/digital-in-pulse/",
+        "eyebrow": "10ème édition",
+        "title": "10 ans d’audace, un seul cap : la performance.",
+        "subtitle": "Depuis 2014, nous propulsons les startups françaises vers le succès international. Que vous soyez à Lille, Lyon ou Marseille, Digital InPulse vient à vous pour transformer votre innovation en réussite à l'international, cap sur l'Asie !",
+        "highlight": "+100 startups propulsées à l’international",
+        "video": "/assets/media/video/headervideo.mp4",
+        "ctaLabel": "Découvrir le concours",
+        "ctaUrl": "#parcours-candidature",
         "secondaryAction": {
-          "label": "Candidater",
-          "url": "/tech-for-competitivity/"
+          "label": "Je candidate",
+          "url": "#parcours-candidature"
         }
       },
-      "video": {
-        "title": "L'edition 2025 en video",
-        "text": "Un apercu du programme, de l'ecosysteme et de l'energie Digital InPulse.",
-        "url": "/assets/media/video/digital-inpulse-2025.mp4",
-        "poster": "/assets/media/pages/header24.png",
-        "mobileVisibility": "on"
-      },
-      "introTitle": "Une plateforme complete",
-      "introText": "Le site est structure pour presenter clairement le programme, le calendrier annuel et les deux parcours de candidature.",
+        "video": {
+          "title": "L'edition 2025 en video",
+          "text": "Plongez au cœur de l’écosystème Digital InPulse : un concentré d’innovation, d’expertise et d’énergie brute à découvrir en vidéo.",
+          "url": "/assets/media/video/digital-inpulse-2025.mp4",
+          "poster": "/assets/media/pages/header24.png",
+          "mobileVisibility": "on"
+        },
+        "introTitle": "L'Expérience Digital InPulse",
+      "introText": "Bien plus qu'un programme, une roadmap complète vers le leadership international",
       "pillars": [
         {
           "title": "Un reseau",
-          "text": "Un ecossysteme de partenaires, d'alumni et d'experts business."
+          "text": "Connectez-vous à la puissance de frappe d'un écosystème unique : partenaires stratégiques, alumni inspirants et experts business de haut vol."
         },
         {
           "title": "Un programme",
-          "text": "Un cadre annuel avec des etapes claires pour candidater et pitcher."
+          "text": "Un calendrier stratégique conçu pour les entrepreneurs : postulez en quelques clics, pitchez avec impact."
         },
         {
           "title": "Un accompagnement",
-          "text": "Un suivi concret pour accelerer les projets sur des marches internationaux."
+          "text": "De l'atelier de pitch à une semaine d'immersion à Hong Kong, Shenzhen et Canton, un suivi à haute intensité pour transformer votre projet en succès international."
+        },
+        {
+          "title": "Une expertise",
+          "text": "Un accès direct à nos experts Cloud, IoT et Mobile pour sécuriser votre stack et accélérer votre industrialisation."
         },
         {
           "title": "Des territoires",
-          "text": "Une presence multi-regions pour ouvrir le programme a toutes les pepites."
+          "text": "Une présence multi-régions pour dénicher et propulser les pépites là où elles se trouvent."
         }
       ],
-      "categoriesTitle": "Les deux parcours de candidature",
-      "categoriesText": "Chaque categorie dispose de ses criteres, de son parcours et de son formulaire de candidature.",
+        "categoriesTitle": "Le parcours de candidature",
+        "categoriesText": "",
       "categories": [
         {
-          "title": "Tech For Competitivity",
-          "text": "Parcours dedie aux start-ups qui utilisent la technologie au service de la competitivite industrielle et economique.",
-          "image": "/assets/media/pages/home-tech-card.webp",
-          "url": "/tech-for-competitivity/",
+          "title": "Smart Mobility",
+          "text": "La mobilité intelligente : pour une mobilité urbaine, durable & inclusive",
+          "image": "/assets/media/pages/dip-cb-150-transparent.png",
+          "videoAside": "/assets/media/video/cardvideo3.mp4",
+          "url": "#parcours-candidature",
           "ctaLabel": "En savoir plus"
         },
         {
           "title": "Women For Innovation",
-          "text": "Categorie dediee aux femmes entrepreneures et dirigeantes de start-ups innovantes.",
-          "image": "/assets/media/pages/home-women-card.webp",
+          "text": "Tu es une femme à la tête d'une startup innovante ? Un accélérateur de croissance pour les femmes aux commandes des projets les plus ambitieux de l'écosystème.",
+          "image": "/assets/media/pages/women-logo-replacement-updated.png",
           "url": "/women-for-innovation/",
           "ctaLabel": "En savoir plus"
         }
@@ -160,11 +158,11 @@
         "eyebrow": "Le concours",
         "title": "Digital InPulse plus de 10 ans de soutien aux start-ups francaises innovantes",
         "subtitle": "Un programme cree pour connecter innovation francaise et opportunites internationales.",
-        "image": "/assets/media/pages/contest-downtown-china.jpg"
+        "image": "/assets/media/pages/contest-hero.png"
       },
       "summaryTitle": "Le programme",
       "summaryText": "Chaque annee, Digital InPulse met en avant un theme strategique et selectionne des start-ups a fort potentiel de croissance.",
-      "summaryImage": "/assets/media/pages/contest-downtown-china.jpg",
+      "summaryImage": "/assets/media/brand/logo-light.png",
       "summaryCardTitle": "Edition 2025",
       "summaryCardText": "Edition 2025 centree sur la competitivite technologique, industrielle et economique.",
       "tags": [
@@ -226,7 +224,7 @@
         {
           "title": "Une visibilite renforcee",
           "text": "Des prises de parole et des mises en relation lors d'evenements strategiques.",
-          "image": "/assets/media/pages/principle-visibility-conference.jpg"
+          "image": "/assets/media/pages/principle-huawei.jpg"
         }
       ],
       "alumniTitle": "Le reseau alumni Digital InPulse",
@@ -245,39 +243,81 @@
           "url": "/assets/media/documents/reglement-dip-2025.pdf"
         }
       },
-      "themeTitle": "La technologie au service de la competitivite",
-      "themeText": "Le programme cible les solutions technologiques qui renforcent la performance operationnelle, economique ou industrielle.",
+      "introCard": {
+        "logo": "/assets/media/pages/photo-tech-for-comp-removebg-preview.png",
+        "logoAlt": "Tech For Competitivity",
+        "logoVariant": "tech",
+        "text": "À travers cette thématique, Huawei souhaite valoriser les projets qui transforment la manière dont nous nous déplaçons, échangeons et connectons les territoires :",
+        "points": [
+          "Mobilité urbaine (véhicules intelligents, villes connectées, gestion du trafic et des transports en commun)",
+          "Mobilité durable (électrification, solutions bas carbone)",
+          "Mobilité inclusive et accessible (solutions technologiques facilitant l’autonomie)."
+        ],
+        "highlightTitle": "⚡ Êtes-vous la pépite que nous cherchons ?",
+        "highlightText": "Le profil idéal : Vous ne vous contentez pas d'innover, vous transformez l'économie réelle.",
+        "eligibilityTitle": "🔧 Critères d’Éligibilité",
+        "eligibilityText": "Pour postuler, votre structure doit répondre à ces trois piliers :",
+        "eligibilityItems": [
+          "Entreprise française immatriculée avant le 1er janvier 2025.",
+          "Étape de la Preuve de Concept (POC) franchie et validée.",
+          "Un plan de déploiement international concret, avec un cap marqué vers la Chine."
+        ],
+        "evaluationTitle": "✅ Critères d’évaluation",
+        "evaluationItems": [
+          "Votre solution répond-elle au défi de la compétitivité 2026 ?",
+          "Le caractère unique et disruptif de votre technologie.",
+          "Viabilité du business model et réalisme de votre trajectoire.",
+          "Capacité à passer immédiatement de l'innovation à l'exécution.",
+          "Pertinence et ambition de votre déploiement à l'international.",
+          "Expertise, vision et leadership des fondateurs (présence d'un dirigeant au pitch requise)."
+        ]
+      },
+      "womenIntroCard": {
+        "logo": "/assets/media/pages/women-for-innovation-horizontal.png",
+        "logoAlt": "Women For Innovation",
+        "logoVariant": "women",
+        "text": "Un accélérateur de croissance pour les fondatrices et dirigeantes qui transforment l'innovation.",
+        "highlightTitle": "⚡ Êtes-vous la leader que nous cherchons ?",
+        "highlightText": "Vous ne vous contentez pas de diriger, vous redéfinissez les codes de l’innovation.",
+        "eligibilityTitle": "🔧 Critères d’Éligibilité",
+        "eligibilityText": "Pour postuler, votre profil et votre structure doivent répondre à ces trois piliers :",
+        "eligibilityItems": [
+          "Être une femme de plus de 18 ans, résidant en France, occupant un poste clé (Fondatrice, CEO, CTO, etc.) ou actionnaire associée.",
+          "Start-up française immatriculée avant le 1er janvier 2025.",
+          "Porter un projet innovant déjà en phase de déploiement ou d'accélération."
+        ],
+        "evaluationTitle": "✅ Critères d’Évaluation",
+        "evaluationItems": [
+          "La force technologique et le caractère novateur de votre solution.",
+          "Maturité du projet, viabilité économique et solidité de votre business plan.",
+          "La richesse de votre parcours entrepreneurial et votre capacité à naviguer dans l'écosystème Tech.",
+          "Votre rôle actif pour la mixité et l’égalité femmes-hommes dans l’innovation (initiatives, réseaux, prises de parole)."
+        ]
+      },
+      "themeTitle": "Critères d'Éligibilité",
+      "themeText": "Pour postuler, votre structure doit répondre à ces trois piliers :",
       "themeImage": "/assets/media/pages/tech-theme.webp",
       "scheduleTitle": "Dates et auditions",
-      "scheduleText": "Les start-ups pre-selectionnees participent aux auditions en region puis a la finale nationale.",
+      "scheduleText": "Les start-ups pré-sélectionnées participent aux auditions en régions puis à la finale nationale.",
       "checklist": [
-        "Entreprise francaise creee avant le 1er janvier 2025",
-        "Preuve de concept depassee",
-        "Potentiel de developpement international",
-        "Capacite a pitcher en anglais"
+        "Entreprise française immatriculée avant le 1er janvier 2025.",
+        "Étape de la Preuve de Concept (POC) franchie et validée.",
+        "Un plan de déploiement international concret, avec un cap marqué vers la Chine."
       ],
-      "schedule": [
-        {
-          "city": "Ile-de-France",
-          "date": "Juin-juillet 2025",
-          "text": "Auditions regionales des start-ups pre-selectionnees."
-        },
-        {
-          "city": "Nord-Est",
-          "date": "Juin-juillet 2025",
-          "text": "Auditions regionales des start-ups pre-selectionnees."
-        },
-        {
-          "city": "Sud-Est",
-          "date": "Juin-juillet 2025",
-          "text": "Auditions regionales des start-ups pre-selectionnees."
-        },
-        {
-          "city": "Finale nationale - Paris",
-          "date": "16 septembre (TBC)",
-          "text": "Pitch final des start-ups finalistes et remise de prix."
-        }
-      ],
+        "schedule": [
+          {
+            "city": "Sur dossier",
+            "date": "Juin-juillet 2026",
+            "text": "Les start-ups candidates seront sélectionnées sur dossier.",
+            "video": "/assets/media/video/cardvideo1.mp4"
+          },
+          {
+            "city": "Finale nationale - Paris",
+            "date": "Septembre (TBC)",
+            "text": "Pitch final des start-ups finalistes et remise de prix.",
+            "image": "/assets/media/pages/finale-paris.webp"
+          }
+        ],
       "form": {
         "title": "Candidatez - Tech For Competitivity",
         "description": "Mettez a jour ce bloc et ce formulaire a tout moment depuis /admin.",

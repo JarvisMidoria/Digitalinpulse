@@ -21,6 +21,8 @@ const LEGAL_KEYS = new Set([
 const BRAND_ASSETS = {
   logoLight: "/assets/media/brand/logo-light.png",
   logoDark: "/assets/media/brand/logo-dark.png",
+  logoStickyDip: "/assets/media/brand/sticky-dip-black.png",
+  logoStickyMobility: "/assets/media/brand/sticky-smart-mobility.png",
   footerTexture: "/assets/media/brand/footer-texture.png",
   footerPartnerLogos: {
     "Comite Richelieu": "/assets/media/brand/partner-comite-richelieu.png",
@@ -64,13 +66,15 @@ async function bootstrap() {
   renderNavigation(content, pageKey);
   renderFooter(content);
   renderPage(content, pageKey);
-  document.body.classList.add("js-dynamic");
+  wireHomeIntro();
   wireHeader();
   wireReveals();
   wireTestimonialSlider();
-  wireMultiSelectFields();
   wireApplicationForms();
-  wireDynamicEnhancements();
+  wireProgramPanels();
+  wireProgramFlipCards();
+  wireHomePreviewDrift();
+  wireScrollProgress();
 }
 
 async function fetchContent() {
@@ -117,11 +121,14 @@ function renderNavigation(content, currentKey) {
 
   host.innerHTML = `
     <div class="header-shell" data-site-header>
-      <div class="scroll-progress" data-scroll-progress aria-hidden="true"></div>
-      <div class="container header-main">
+      <div class="container header-main" data-scroll-progress-target>
         <a class="brand" href="/" aria-label="${escapeAttr(meta.siteName || "Digital InPulse")}">
           <img class="brand-logo brand-logo-light" src="${safeUrl(BRAND_ASSETS.logoLight)}" alt="${escapeAttr(meta.siteName || "Digital InPulse")}" />
           <img class="brand-logo brand-logo-dark" src="${safeUrl(BRAND_ASSETS.logoDark)}" alt="${escapeAttr(meta.siteName || "Digital InPulse")}" />
+          <span class="brand-sticky-group" aria-hidden="true">
+            <img class="brand-logo-sticky brand-logo-sticky-dip" src="${safeUrl(BRAND_ASSETS.logoStickyDip)}" alt="" />
+            <img class="brand-logo-sticky brand-logo-sticky-mobility" src="${safeUrl(BRAND_ASSETS.logoStickyMobility)}" alt="" />
+          </span>
         </a>
         <nav class="desktop-nav" aria-label="Navigation principale">
           ${desktopLinks}
@@ -178,7 +185,10 @@ function renderFooter(content) {
   host.classList.add("site-footer");
   host.style.setProperty("--footer-texture", `url('${BRAND_ASSETS.footerTexture}')`);
   host.innerHTML = `
-    <div class="container footer-partners">${partners}</div>
+    <div class="container footer-partners-wrap">
+      <h4 class="footer-partners-title">Nos partenaires</h4>
+      <div class="footer-partners">${partners}</div>
+    </div>
     <div class="container footer-grid">
       <section class="footer-column">
         <h4>Liens</h4>
@@ -202,6 +212,8 @@ function renderPage(content, currentKey) {
     return;
   }
 
+  document.body.dataset.currentPage = currentKey;
+
   const page = content.pages?.[currentKey];
   if (!page) {
     mainNode.innerHTML = `
@@ -222,7 +234,19 @@ function renderPage(content, currentKey) {
   }
 
   if (currentKey === "home") {
-    mainNode.innerHTML = renderHome(page);
+    const techPage = content.pages?.tech_for_competitivity || {};
+    const homePage = {
+      ...page,
+      techProgramForm: techPage.form || null,
+      techScheduleTitle: techPage.scheduleTitle || "",
+      techSchedule: techPage.schedule || [],
+      womenProgramForm: content.pages?.women_for_innovation?.form || null,
+    };
+    mainNode.innerHTML = renderHome(
+      homePage,
+      techPage.introCard,
+      content.pages?.women_for_innovation?.introCard || content.pages?.tech_for_competitivity?.womenIntroCard,
+    );
     return;
   }
   if (currentKey === "digital_in_pulse") {
@@ -245,94 +269,172 @@ function renderPage(content, currentKey) {
   mainNode.innerHTML = "";
 }
 
-function renderHome(page) {
+function renderHome(page, techIntroCard = null, womenIntroCard = null) {
+  const techFormBack = page.techProgramForm ? renderProgramFlipBack(page.techProgramForm, "tech_for_competitivity") : "";
+  const techHomeIntroCard = techIntroCard
+    ? {
+        ...techIntroCard,
+        ctaLabel: "Je candidate",
+        ctaUrl: "/tech-for-competitivity/#form",
+      }
+    : null;
   const hero = renderHero(page.hero, {
     variant: "home",
-    sideContent: renderHomePrograms(),
+    sideContent: "",
     secondaryAction: page.hero?.secondaryAction,
   });
   const homeVideo = renderHomeVideo(page.video || {});
   const pillars = (page.pillars || [])
     .map(
-      (item, index) => `
-        <article class="feature-card reveal" style="--delay:${index * 80}ms">
+      (item, index, items) => `
+        <article class="feature-card reveal${items.length % 2 === 1 && index === items.length - 1 ? " feature-card-centered" : ""}" style="--delay:${index * 80}ms">
           <h3>${escapeHtml(item.title)}</h3>
           <p>${escapeHtml(item.text)}</p>
         </article>
       `,
     )
     .join("");
-  const categories = (page.categories || [])
-    .map(
-      (item, index) => `
-        <article class="program-card reveal" style="--delay:${index * 100}ms">
-          <img class="program-card-media" src="${safeUrl(item.image)}" alt="${escapeAttr(item.title)}" />
-          <div class="program-card-content">
-            <h3>${escapeHtml(item.title)}</h3>
-            <p>${escapeHtml(item.text)}</p>
-            <a class="btn btn-outline" href="${safeUrl(item.url)}">${escapeHtml(item.ctaLabel || "En savoir plus")}</a>
-          </div>
-        </article>
-      `,
-    )
-    .join("");
-  const testimonials = (page.testimonials || [])
-    .map((item, index) => {
-      const companyName = item.company || extractCompanyName(item.role || "");
-      const companyInitials = textInitials(companyName || item.author || "DIP");
-      const authorInitials = textInitials(item.author || "DIP");
-      const logoNode = item.logo
-        ? `<img src="${safeUrl(item.logo)}" alt="${escapeAttr(companyName || "Entreprise")}" />`
-        : `<span class="testimonial-company-mark">${escapeHtml(companyInitials)}</span>`;
-      return `
-        <article class="testimonial-slide${index === 0 ? " active" : ""}" data-slide-index="${index}">
-          <header class="testimonial-head">
-            <span class="testimonial-avatar" aria-hidden="true">${escapeHtml(authorInitials)}</span>
-            <div class="testimonial-meta">
-              <p class="testimonial-author">${escapeHtml(item.author)}</p>
-              <p class="testimonial-role">${escapeHtml(item.role || "")}</p>
+  const techCategory = page.categories?.[0];
+  const categoryCard = techCategory
+    ? `
+      <article class="program-card reveal program-card-tech-home" style="--delay:0ms">
+        <img class="program-card-media" src="${safeUrl(techCategory.image)}" alt="${escapeAttr(techCategory.title)}" />
+        <div class="program-card-content">
+          <h3>${escapeHtml(techCategory.title)}</h3>
+          <p>${escapeHtml(techCategory.text)}</p>
+          <a class="btn btn-outline" href="${safeUrl(techCategory.url)}">${escapeHtml(techCategory.ctaLabel || "En savoir plus")}</a>
+        </div>
+      </article>
+    `
+    : "";
+  const categoryImageCard = techCategory?.videoAside
+    ? `
+      <article class="program-card reveal program-card-tech-aside" style="--delay:80ms" aria-hidden="true">
+        <video class="program-card-media-aside-standalone" autoplay muted loop playsinline preload="metadata">
+          <source src="${safeUrl(techCategory.videoAside)}" type="video/mp4" />
+        </video>
+      </article>
+    `
+    : techCategory?.imageAside
+    ? `
+      <article class="program-card reveal program-card-tech-aside" style="--delay:80ms" aria-hidden="true">
+        <img class="program-card-media-aside-standalone" src="${safeUrl(techCategory.imageAside)}" alt="${escapeAttr(techCategory.title)} illustration" />
+      </article>
+    `
+    : "";
+  const categoryCardCompact = techCategory
+    ? `
+      <article class="program-card reveal program-card-compact program-card-tech-home" style="--delay:0ms">
+        <img class="program-card-media" src="${safeUrl(techCategory.image)}" alt="${escapeAttr(techCategory.title)}" />
+        <div class="program-card-content">
+          <h3>${escapeHtml(techCategory.title)}</h3>
+        </div>
+      </article>
+    `
+    : "";
+  const categoryPreviews = `
+    <div class="program-grid-home program-grid-home-preview" data-home-preview>
+      <div class="program-stack program-stack-combined program-stack-combined-tech reveal">
+        ${categoryCard}
+      </div>
+      ${categoryImageCard}
+    </div>
+  `;
+  const categories = `
+    <div class="program-grid-home program-grid-home-single">
+      <div class="program-stack program-stack-combined program-stack-combined-tech reveal" data-program-panel data-panel-key="tech" tabindex="0" aria-label="Afficher Tech For Competitivity">
+        <div class="program-flip-card" data-program-flip="tech">
+          <div class="program-flip-card-inner">
+            <div class="program-flip-face program-flip-front">
+              ${categoryCardCompact}
+              ${techHomeIntroCard ? renderSingleProgramIntroCard(techHomeIntroCard, "program-intro-card-home-embedded") : ""}
             </div>
-            ${
-              companyName
-                ? `
-              <div class="testimonial-company">
-                ${logoNode}
-                <span class="testimonial-company-name">${escapeHtml(companyName)}</span>
-              </div>
-            `
-                : ""
-            }
-          </header>
-          <blockquote>"${escapeHtml(item.quote)}"</blockquote>
+            <div class="program-flip-face program-flip-back">
+              ${techFormBack}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  const homeSchedule = (page.techSchedule || [])
+    .map((item, index) => {
+      const isFinal = /finale/i.test(item.city || "");
+      const isFolder = /sur dossier/i.test(item.city || "");
+      const dateLabel = `${isFinal ? "🏁" : isFolder ? "📁" : "📍"} ${escapeHtml(item.date)}`;
+      return `
+        <article class="timeline-item timeline-item-tech ${isFinal ? "timeline-item-final" : "timeline-item-regional"} reveal" style="--delay:${index * 90}ms">
+          <p class="timeline-date">${dateLabel}</p>
+          <h3>${escapeHtml(item.city)}</h3>
+          <p>${escapeHtml(item.text)}</p>
+          ${
+            item.video
+              ? `
+          <video class="timeline-card-image" autoplay muted loop playsinline preload="metadata">
+            <source src="${safeUrl(item.video)}" type="video/mp4" />
+          </video>
+          `
+              : ""
+          }
+          ${item.image ? `<img class="timeline-card-image" src="${safeUrl(item.image)}" alt="${escapeAttr(item.city)}" />` : ""}
         </article>
       `;
     })
     .join("");
+  const testimonials = (page.testimonials || [])
+    .map(
+      (item, index) => `
+        <article class="testimonial-slide${index === 0 ? " active" : ""}" data-slide-index="${index}">
+          <blockquote>"${escapeHtml(item.quote)}"</blockquote>
+          <p class="testimonial-author">${escapeHtml(item.author)}</p>
+          <p>${escapeHtml(item.role)}</p>
+        </article>
+      `,
+    )
+    .join("");
 
   return `
+    <div class="home-intro" data-home-intro aria-hidden="true">
+      <div class="home-intro-frost"></div>
+    </div>
     ${hero}
-    ${homeVideo}
-    <section class="section section-soft">
+    <section class="section">
+      <div class="container">
+        ${categoryPreviews}
+      </div>
+    </section>
+    <section id="experience-digital-inpulse" class="section section-soft section-experience">
       <div class="container">
         ${renderSectionHead(page.introTitle || "", page.introText || "", { centered: true })}
         <div class="feature-grid">${pillars}</div>
       </div>
     </section>
-    <section class="section">
+    <section id="parcours-candidature" class="section">
       <div class="container">
         ${renderSectionHead(page.categoriesTitle || "", page.categoriesText || "", { centered: true })}
-        <div class="program-grid">${categories}</div>
+        ${categories}
       </div>
     </section>
+    ${
+      homeSchedule
+        ? `
+    <section class="section">
+      <div class="container">
+        ${renderSectionHead(page.techScheduleTitle || "", "", { centered: true })}
+        <div class="timeline timeline-horizontal">${homeSchedule}</div>
+      </div>
+    </section>
+    `
+        : ""
+    }
+    ${homeVideo}
     <section class="section section-testimonials">
       <div class="container">
         ${renderSectionHead(page.testimonialsTitle || "", "", { centered: true })}
         <div class="testimonial-slider reveal" data-testimonial-slider>
+          <button class="slider-btn prev" type="button" data-slide-prev aria-label="Temoignage precedent">‹</button>
           <div class="testimonial-track">${testimonials}</div>
-          <div class="testimonial-controls">
-            <button class="slider-btn prev" type="button" data-slide-prev aria-label="Temoignage precedent">‹</button>
-            <button class="slider-btn next" type="button" data-slide-next aria-label="Temoignage suivant">›</button>
-          </div>
+          <button class="slider-btn next" type="button" data-slide-next aria-label="Temoignage suivant">›</button>
         </div>
       </div>
     </section>
@@ -418,42 +520,88 @@ function renderProgram(page, programKey) {
   const checklist = (page.checklist || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
   const schedule = (page.schedule || [])
     .map(
-      (item, index) => `
-        <article class="timeline-item reveal" style="--delay:${index * 90}ms">
-          <p class="timeline-date">${escapeHtml(item.date)}</p>
+      (item, index) => {
+        const isTech = programKey === "tech_for_competitivity";
+        const isFinal = /finale/i.test(item.city || "");
+        const isFolder = /sur dossier/i.test(item.city || "");
+        const timelineClass = isTech
+          ? `timeline-item timeline-item-tech ${isFinal ? "timeline-item-final" : "timeline-item-regional"}`
+          : "timeline-item";
+        const dateLabel = isTech ? `${isFinal ? "🏁" : isFolder ? "📁" : "📍"} ${escapeHtml(item.date)}` : escapeHtml(item.date);
+
+        return `
+        <article class="${timelineClass} reveal" style="--delay:${index * 90}ms">
+          <p class="timeline-date">${dateLabel}</p>
           <h3>${escapeHtml(item.city)}</h3>
           <p>${escapeHtml(item.text)}</p>
+          ${
+            item.video
+              ? `
+          <video class="timeline-card-image" autoplay muted loop playsinline preload="metadata">
+            <source src="${safeUrl(item.video)}" type="video/mp4" />
+          </video>
+          `
+              : ""
+          }
+          ${item.image ? `<img class="timeline-card-image" src="${safeUrl(item.image)}" alt="${escapeAttr(item.city)}" />` : ""}
         </article>
-      `,
+      `;
+      },
     )
     .join("");
   const areas = buildProgramAreas(programKey);
+  const layoutClass = programKey === "tech_for_competitivity" ? " split-layout-single" : "";
+  const introCard = renderProgramIntroCard(page.introCard, page.womenIntroCard, programKey);
+  const introCardHasCriteria =
+    programKey === "tech_for_competitivity" &&
+    (page.introCard?.eligibilityItems?.length || page.introCard?.evaluationItems?.length);
 
   return `
     ${hero}
+    ${introCard}
     <section class="section">
-      <div class="container split-layout">
+      <div class="container split-layout${layoutClass}">
+        ${
+          programKey === "tech_for_competitivity"
+            ? ""
+            : introCardHasCriteria
+              ? ""
+              : `
         <article class="content-block reveal">
           ${renderSectionHead(page.themeTitle || "", page.themeText || "", { compact: true })}
           <ul class="check-list">${checklist}</ul>
         </article>
+        `
+        }
+        ${
+          programKey === "tech_for_competitivity"
+            ? ""
+            : `
         <article class="highlight-card reveal">
           <img src="${safeUrl(page.themeImage)}" alt="${escapeAttr(page.themeTitle || "")}" />
           <h3>${escapeHtml(page.scheduleTitle || "")}</h3>
           <p>${escapeHtml(page.scheduleText || "")}</p>
         </article>
+        `
+        }
       </div>
     </section>
+    ${
+      programKey === "tech_for_competitivity"
+        ? ""
+        : `
     <section class="section section-dark">
       <div class="container">
         ${renderSectionHead("Champs d'application", "", { centered: true, light: true })}
         <div class="scope-grid">${areas}</div>
       </div>
     </section>
+    `
+    }
     <section class="section">
       <div class="container">
         ${renderSectionHead(page.scheduleTitle || "", "", { centered: true })}
-        <div class="timeline">${schedule}</div>
+        <div class="timeline${programKey === "tech_for_competitivity" ? " timeline-horizontal" : ""}">${schedule}</div>
       </div>
     </section>
     <section id="form" class="section">
@@ -464,6 +612,116 @@ function renderProgram(page, programKey) {
         </div>
       </div>
     </section>
+  `;
+}
+
+function renderProgramIntroCard(card = {}, womenCard = null, programKey) {
+  if (programKey !== "tech_for_competitivity" || !card) {
+    return "";
+  }
+
+  return `
+    <section class="section section-tech-intro">
+      <div class="container">
+        <div class="program-intro-grid">
+          ${renderSingleProgramIntroCard(card)}
+          ${womenCard ? renderSingleProgramIntroCard(womenCard) : ""}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderSingleProgramIntroCard(card = {}, extraClass = "") {
+  const points = (card.points || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const eligibilityItems = (card.eligibilityItems || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const evaluationItems = (card.evaluationItems || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const applicationItems = (card.applicationItems || [])
+    .map((item) => `<li class="program-intro-application-item">${escapeHtml(item)}</li>`)
+    .join("");
+  const cta =
+    card.ctaLabel && card.ctaUrl
+      ? `<div class="program-intro-actions"><a class="btn btn-outline" href="${safeUrl(card.ctaUrl)}">${escapeHtml(card.ctaLabel)}</a></div>`
+      : "";
+  const renderIconTitle = (title, icon) => {
+    if (!title) {
+      return "";
+    }
+    const cleanedTitle = escapeHtml(String(title).replace(/^[^\p{L}\p{N}]+/u, "").trim());
+    const iconMap = {
+      flash: "/assets/media/pages/flash.png",
+      wrench: "/assets/media/pages/wrench.png",
+      check: "/assets/media/pages/check.png",
+    };
+    const iconMarkup = icon ? `<img class="program-intro-title-icon program-intro-title-icon-${escapeAttr(icon)}" src="${safeUrl(iconMap[icon])}" alt="" aria-hidden="true" />` : "";
+    return `<p class="program-intro-highlight-title">${iconMarkup}<span>${cleanedTitle}</span></p>`;
+  };
+
+  return `
+    <article class="program-intro-card reveal${extraClass ? ` ${extraClass}` : ""}">
+      ${card.text ? `<p class="program-intro-text">${escapeHtml(card.text)}</p>` : ""}
+      ${points ? `<ul class="program-intro-list">${points}</ul>` : ""}
+      ${
+        card.highlightTitle || card.highlightText
+          ? `
+            <div class="program-intro-highlight program-intro-highlight-profile">
+              ${renderIconTitle(card.highlightTitle, "flash")}
+              ${card.highlightText ? `<p class="program-intro-highlight-text">${escapeHtml(card.highlightText)}</p>` : ""}
+            </div>
+          `
+          : ""
+      }
+      ${
+        card.eligibilityTitle || card.eligibilityText || eligibilityItems
+          ? `
+            <div class="program-intro-highlight program-intro-highlight-eligibility">
+              ${renderIconTitle(card.eligibilityTitle, "wrench")}
+              ${card.eligibilityText ? `<p class="program-intro-highlight-text">${escapeHtml(card.eligibilityText)}</p>` : ""}
+              ${eligibilityItems ? `<ul class="program-intro-points">${eligibilityItems}</ul>` : ""}
+            </div>
+          `
+          : ""
+      }
+      ${
+        card.evaluationTitle || evaluationItems
+          ? `
+            <div class="program-intro-highlight program-intro-highlight-evaluation">
+              ${renderIconTitle(card.evaluationTitle, "check")}
+              ${evaluationItems ? `<ul class="program-intro-points">${evaluationItems}</ul>` : ""}
+            </div>
+          `
+          : ""
+      }
+      ${cta}
+      ${
+        card.applicationTitle || applicationItems
+          ? `
+            <div class="program-intro-highlight program-intro-highlight-application">
+              ${card.applicationTitle ? `<p class="program-intro-highlight-title">${escapeHtml(card.applicationTitle)}</p>` : ""}
+              ${applicationItems ? `<ul class="program-intro-application-grid">${applicationItems}</ul>` : ""}
+            </div>
+          `
+          : ""
+      }
+    </article>
+  `;
+}
+
+function renderProgramFlipBack(form = {}, programKey) {
+  const isWomen = programKey === "women_for_innovation";
+  const label = isWomen ? "Women For Innovation" : "Tech For Competitivity";
+  return `
+    <article class="program-intro-card program-intro-card-home-embedded program-intro-card-form-back">
+      <div class="program-form-back-head">
+        <p class="program-form-back-kicker">Formulaire</p>
+        <button class="btn btn-outline btn-sm" type="button" data-program-flip-close>Retour</button>
+      </div>
+      <h3 class="program-form-back-title">Je candidate</h3>
+      <p class="program-form-back-text">Complétez ce formulaire pour transmettre votre candidature au parcours ${label}.</p>
+      <div class="program-form-back-body">
+        ${buildProgramForm(form, programKey)}
+      </div>
+    </article>
   `;
 }
 
@@ -481,7 +739,10 @@ function renderLegal(page) {
 }
 
 function renderHero(hero = {}, options = {}) {
-  const style = hero.image ? ` style="--hero-image: url('${escapeAttr(hero.image)}')"` : "";
+  const style = hero.image
+    ? isHomeStyle(options.variant === "home", hero.image)
+    : "";
+  const visual = renderHeroVisual(hero, options);
   const primaryAction =
     hero.ctaLabel && hero.ctaUrl ? `<a class="btn btn-light" href="${safeUrl(hero.ctaUrl)}">${escapeHtml(hero.ctaLabel)}</a>` : "";
   const secondary = options.secondaryAction;
@@ -493,11 +754,13 @@ function renderHero(hero = {}, options = {}) {
 
   return `
     <section class="hero${isHome ? " hero-home" : ""}"${style}>
+      ${visual}
       <div class="container hero-grid${side ? " with-side" : ""}">
         <div class="hero-copy reveal">
           ${hero.eyebrow ? `<p class="hero-eyebrow">${escapeHtml(hero.eyebrow)}</p>` : ""}
           <h1>${escapeHtml(hero.title || "")}</h1>
           <p>${escapeHtml(hero.subtitle || "")}</p>
+          ${hero.highlight ? `<p class="hero-highlight">${escapeHtml(hero.highlight)}</p>` : ""}
           ${actions}
         </div>
         ${side}
@@ -506,15 +769,38 @@ function renderHero(hero = {}, options = {}) {
   `;
 }
 
+function renderHeroVisual(hero = {}, options = {}) {
+  const isHome = options.variant === "home";
+  if (!isHome) {
+    return "";
+  }
+  if (hero.video) {
+    return `
+      <div class="hero-home-visual hero-home-visual-video" aria-hidden="true">
+        <video autoplay muted loop playsinline preload="metadata">
+          <source src="${safeUrl(hero.video)}" type="video/mp4" />
+        </video>
+      </div>
+    `;
+  }
+  if (hero.image) {
+    return '<div class="hero-home-visual" aria-hidden="true"></div>';
+  }
+  return "";
+}
+
+function isHomeStyle(isHome, image) {
+  if (isHome) {
+    return ` style="--hero-visual-image: url('${escapeAttr(image)}')"`;
+  }
+  return ` style="--hero-image: url('${escapeAttr(image)}')"`;
+}
+
 function renderHomePrograms() {
   return `
-    <a class="home-program-card" href="/tech-for-competitivity/">
-      <img src="${safeUrl(BRAND_ASSETS.homeProgramLogos.tech)}" alt="Tech For Competitivity" />
-      <p>Innovation pour la competitivite technologique, industrielle et economique.</p>
-    </a>
-    <a class="home-program-card" href="/women-for-innovation/">
-      <img src="${safeUrl(BRAND_ASSETS.homeProgramLogos.women)}" alt="Women For Innovation" />
-      <p>Une categorie dediee aux femmes qui entreprennent dans la tech.</p>
+    <a class="home-program-card home-program-card-tech" href="/tech-for-competitivity/">
+      <img src="${safeUrl("/assets/media/pages/dip-btransparent-hero-tech.png")}" alt="Tech For Competitivity" />
+      <p>La mobilité intelligente : pour une mobilité urbaine, durable & inclusive</p>
     </a>
   `;
 }
@@ -532,15 +818,19 @@ function renderHomeVideo(video) {
 
   return `
     <section class="section section-video${hideOnMobile ? " hide-on-mobile" : ""}">
-      <div class="container home-video-layout">
-        <article class="home-video-copy reveal">
-          <p class="hero-eyebrow">Video</p>
-          <h2>${escapeHtml(video.title || "Digital InPulse en video")}</h2>
-          ${video.text ? `<p>${escapeHtml(video.text)}</p>` : ""}
-        </article>
-        <article class="home-video-frame reveal">
-          ${media}
-        </article>
+      <div class="container">
+        ${renderSectionHead(video.text || "", "", { centered: true })}
+        <div class="home-video-layout home-video-layout-expanded">
+          <article class="home-video-frame reveal">
+            ${media}
+          </article>
+          <article class="home-video-frame home-carousel-frame reveal" aria-label="Carrousel a venir">
+            <div class="home-carousel-placeholder">
+              <span>Carrousel photos</span>
+              <p>Contenu a venir</p>
+            </div>
+          </article>
+        </div>
       </div>
     </section>
   `;
@@ -762,7 +1052,16 @@ function buildProgramForm(form, programKey) {
             <label for="${idPrefix}-impact">En quoi votre entreprise repond aux enjeux du concours ? *</label>
             <textarea id="${idPrefix}-impact" name="impact_statement" required></textarea>
           </div>
-          ${buildTechStackField(idPrefix)}
+          <div class="field">
+            <label for="${idPrefix}-tech-stack">Technologies utilisees</label>
+            <select id="${idPrefix}-tech-stack" name="tech_stack" multiple>
+              <option>Intelligence artificielle</option>
+              <option>Cloud</option>
+              <option>Blockchain</option>
+              <option>AR/VR</option>
+              <option>IoT</option>
+            </select>
+          </div>
           <div class="field">
             <label for="${idPrefix}-source">Comment avez-vous connu le concours ? *</label>
             <select id="${idPrefix}-source" name="source" required>
@@ -831,41 +1130,6 @@ function buildProgramForm(form, programKey) {
   `;
 }
 
-function buildTechStackField(idPrefix) {
-  const options = ["Intelligence artificielle", "Cloud", "Blockchain", "AR/VR", "IoT"];
-  const optionNodes = options
-    .map((label, index) => {
-      const id = `${idPrefix}-tech-option-${index + 1}`;
-      return `
-        <label class="multi-option" for="${id}">
-          <input id="${id}" data-multi-select-option type="checkbox" value="${escapeAttr(label)}" />
-          <span>${escapeHtml(label)}</span>
-        </label>
-      `;
-    })
-    .join("");
-
-  return `
-    <div class="field multi-select" data-multi-select data-field-name="tech_stack">
-      <label for="${idPrefix}-tech-stack-trigger">Technologies utilisees</label>
-      <button
-        id="${idPrefix}-tech-stack-trigger"
-        class="multi-select-trigger"
-        data-multi-select-trigger
-        type="button"
-        aria-haspopup="listbox"
-        aria-expanded="false"
-      >
-        Selectionner une ou plusieurs technologies
-      </button>
-      <div class="multi-select-menu" data-multi-select-menu role="listbox" aria-multiselectable="true">
-        ${optionNodes}
-      </div>
-      <div class="multi-select-values" data-multi-select-values></div>
-    </div>
-  `;
-}
-
 function wireHeader() {
   const header = document.querySelector("[data-site-header]");
   const button = document.querySelector("[data-menu-toggle]");
@@ -901,187 +1165,33 @@ function wireHeader() {
   });
 }
 
-function wireDynamicEnhancements() {
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  wireScrollProgress();
-  wireInteractiveCards(prefersReducedMotion);
-  if (!prefersReducedMotion) {
-    wireHeroParallax();
-  }
-}
-
-function wireMultiSelectFields() {
-  const groups = [...document.querySelectorAll("[data-multi-select]")];
-  if (!groups.length) {
-    return;
-  }
-
-  const closeGroup = (group) => {
-    const trigger = group.querySelector("[data-multi-select-trigger]");
-    group.classList.remove("open");
-    if (trigger) {
-      trigger.setAttribute("aria-expanded", "false");
-    }
-  };
-
-  const closeAll = (except = null) => {
-    for (const group of groups) {
-      if (group === except) {
-        continue;
-      }
-      closeGroup(group);
-    }
-  };
-
-  for (const group of groups) {
-    const fieldName = String(group.dataset.fieldName || "").trim();
-    const trigger = group.querySelector("[data-multi-select-trigger]");
-    const valuesHost = group.querySelector("[data-multi-select-values]");
-    const options = [...group.querySelectorAll("[data-multi-select-option]")];
-    if (!fieldName || !trigger || !valuesHost || !options.length) {
-      continue;
-    }
-
-    const sync = () => {
-      const selected = options.filter((option) => option.checked).map((option) => option.value);
-      valuesHost.replaceChildren();
-      for (const value of selected) {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = fieldName;
-        input.value = value;
-        valuesHost.appendChild(input);
-      }
-
-      const label =
-        selected.length === 0
-          ? "Selectionner une ou plusieurs technologies"
-          : `${selected.length} technologie(s) selectionnee(s)`;
-      trigger.textContent = label;
-      trigger.classList.toggle("has-value", selected.length > 0);
-    };
-
-    group.syncMultiSelect = sync;
-    sync();
-
-    trigger.addEventListener("click", () => {
-      const nextState = !group.classList.contains("open");
-      closeAll(group);
-      group.classList.toggle("open", nextState);
-      trigger.setAttribute("aria-expanded", String(nextState));
-    });
-
-    for (const option of options) {
-      option.addEventListener("change", sync);
-    }
-
-    group.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        closeGroup(group);
-      }
-    });
-  }
-
-  document.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof Node)) {
-      closeAll();
-      return;
-    }
-    const inside = groups.some((group) => group.contains(target));
-    if (!inside) {
-      closeAll();
-    }
-  });
-}
-
 function wireScrollProgress() {
-  const progressBar = document.querySelector("[data-scroll-progress]");
-  if (!progressBar) {
+  const target = document.querySelector("[data-scroll-progress-target]");
+  if (!target) {
     return;
   }
 
-  const updateProgress = () => {
-    const scrollMax = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    const ratio = Math.min(1, Math.max(0, window.scrollY / scrollMax));
-    progressBar.style.setProperty("--progress-scale", ratio.toFixed(4));
+  let ticking = false;
+
+  const update = () => {
+    const doc = document.documentElement;
+    const max = Math.max(doc.scrollHeight - window.innerHeight, 0);
+    const progress = max > 0 ? Math.min(window.scrollY / max, 1) : 0;
+    target.style.setProperty("--scroll-progress", progress.toFixed(4));
+    ticking = false;
   };
 
-  updateProgress();
-  window.addEventListener("scroll", updateProgress, { passive: true });
-  window.addEventListener("resize", updateProgress);
-}
-
-function wireHeroParallax() {
-  const hero = document.querySelector(".hero");
-  if (!hero) {
-    return;
-  }
-
-  const updateShift = () => {
-    const shift = Math.min(42, window.scrollY * 0.08);
-    hero.style.setProperty("--hero-shift", `${shift.toFixed(2)}px`);
-  };
-
-  updateShift();
-  window.addEventListener("scroll", updateShift, { passive: true });
-
-  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-    return;
-  }
-
-  hero.addEventListener("mousemove", (event) => {
-    const rect = hero.getBoundingClientRect();
-    if (!rect.width || !rect.height) {
+  const requestUpdate = () => {
+    if (ticking) {
       return;
     }
-    const x = ((event.clientX - rect.left) / rect.width) * 100;
-    const y = ((event.clientY - rect.top) / rect.height) * 100;
-    hero.style.setProperty("--hero-spot-x", `${Math.min(100, Math.max(0, x)).toFixed(2)}%`);
-    hero.style.setProperty("--hero-spot-y", `${Math.min(100, Math.max(0, y)).toFixed(2)}%`);
-  });
+    ticking = true;
+    window.requestAnimationFrame(update);
+  };
 
-  hero.addEventListener("mouseleave", () => {
-    hero.style.setProperty("--hero-spot-x", "86%");
-    hero.style.setProperty("--hero-spot-y", "16%");
-  });
-}
-
-function wireInteractiveCards(prefersReducedMotion = false) {
-  const cards = [
-    ...document.querySelectorAll(
-      ".feature-card, .program-card, .timeline-item, .scope-card, .home-program-card, .highlight-card, .benefit-card, .alumni-panel",
-    ),
-  ];
-  if (!cards.length) {
-    return;
-  }
-
-  for (const card of cards) {
-    card.classList.add("interactive-card");
-  }
-
-  if (prefersReducedMotion || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-    return;
-  }
-
-  for (const card of cards) {
-    card.addEventListener("mousemove", (event) => {
-      const rect = card.getBoundingClientRect();
-      if (!rect.width || !rect.height) {
-        return;
-      }
-      const x = (event.clientX - rect.left) / rect.width - 0.5;
-      const y = (event.clientY - rect.top) / rect.height - 0.5;
-      card.style.setProperty("--tilt-y", `${(x * 5).toFixed(2)}deg`);
-      card.style.setProperty("--tilt-x", `${(-y * 4).toFixed(2)}deg`);
-    });
-
-    card.addEventListener("mouseleave", () => {
-      card.style.setProperty("--tilt-y", "0deg");
-      card.style.setProperty("--tilt-x", "0deg");
-    });
-  }
+  update();
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate);
 }
 
 function wireReveals() {
@@ -1180,7 +1290,6 @@ function wireApplicationForms() {
         }
 
         form.reset();
-        resetFormEnhancements(form);
         setFormFeedback(
           feedback,
           `Candidature envoyee avec succes. Reference: ${String(responseBody.reference || "DIP-UNKNOWN")}.`,
@@ -1194,22 +1303,219 @@ function wireApplicationForms() {
   }
 }
 
-function resetFormEnhancements(form) {
-  const groups = [...form.querySelectorAll("[data-multi-select]")];
-  for (const group of groups) {
-    const options = [...group.querySelectorAll("[data-multi-select-option]")];
-    for (const option of options) {
-      option.checked = false;
-    }
-    if (typeof group.syncMultiSelect === "function") {
-      group.syncMultiSelect();
-    }
-    group.classList.remove("open");
-    const trigger = group.querySelector("[data-multi-select-trigger]");
-    if (trigger) {
-      trigger.setAttribute("aria-expanded", "false");
-    }
+function wireProgramPanels() {
+  const wrappers = document.querySelectorAll("[data-program-panels]");
+  if (!wrappers.length) {
+    return;
   }
+
+  const media = window.matchMedia("(min-width: 941px)");
+
+  wrappers.forEach((wrapper) => {
+    const panels = wrapper.querySelectorAll("[data-program-panel]");
+    const setActive = (key) => {
+      if (!media.matches) {
+        wrapper.classList.remove("active-tech", "active-women");
+        return;
+      }
+      wrapper.classList.toggle("active-tech", key === "tech");
+      wrapper.classList.toggle("active-women", key === "women");
+    };
+
+    panels.forEach((panel) => {
+      panel.addEventListener("click", (event) => {
+        if (!media.matches) {
+          return;
+        }
+        if (wrapper.querySelector(".is-flipped")) {
+          return;
+        }
+        if (event.target.closest("a, button, input, select, textarea, label") || panel.classList.contains("is-flipped")) {
+          return;
+        }
+        const key = panel.dataset.panelKey || "tech";
+        const isAlreadyActive =
+          (key === "tech" && wrapper.classList.contains("active-tech")) ||
+          (key === "women" && wrapper.classList.contains("active-women"));
+        setActive(isAlreadyActive ? "" : key);
+      });
+
+      panel.addEventListener("keydown", (event) => {
+        if (!media.matches) {
+          return;
+        }
+        if (wrapper.querySelector(".is-flipped")) {
+          return;
+        }
+        if (event.key !== "Enter" && event.key !== " ") {
+          return;
+        }
+        event.preventDefault();
+        const key = panel.dataset.panelKey || "tech";
+        const isAlreadyActive =
+          (key === "tech" && wrapper.classList.contains("active-tech")) ||
+          (key === "women" && wrapper.classList.contains("active-women"));
+        setActive(isAlreadyActive ? "" : key);
+      });
+    });
+
+    media.addEventListener("change", () => {
+      if (!media.matches) {
+        setActive("tech");
+      }
+    });
+  });
+}
+
+function wireProgramFlipCards() {
+  const media = window.matchMedia("(min-width: 941px)");
+  const cards = document.querySelectorAll("[data-program-flip]");
+  if (!cards.length) {
+    return;
+  }
+
+  const syncMobile = () => {
+    cards.forEach((card) => {
+      if (!media.matches) {
+        card.classList.remove("is-flipped");
+        const panel = card.closest("[data-program-panel]");
+        panel?.classList.remove("is-flipped");
+        const wrapper = card.closest("[data-program-panels]");
+        wrapper?.classList.remove("active-tech", "active-women");
+      }
+    });
+  };
+
+  cards.forEach((card) => {
+    const panel = card.closest("[data-program-panel]");
+    const wrapper = card.closest("[data-program-panels]");
+    const openTrigger = card.querySelector(".program-intro-actions .btn");
+    const closeTrigger = card.querySelector("[data-program-flip-close]");
+    let switchTimer = null;
+    let scrollTimer = null;
+
+    const setFlipped = (state) => {
+      if (!media.matches) {
+        return;
+      }
+      card.classList.add("is-switching");
+      window.clearTimeout(switchTimer);
+      window.clearTimeout(scrollTimer);
+      card.classList.toggle("is-flipped", state);
+      panel?.classList.toggle("is-flipped", state);
+      if (wrapper) {
+        if (state) {
+          wrapper.classList.toggle("active-tech", panel?.dataset.panelKey === "tech");
+          wrapper.classList.toggle("active-women", panel?.dataset.panelKey === "women");
+        } else {
+          wrapper.classList.remove("active-tech", "active-women");
+        }
+      }
+      if (state && panel) {
+        scrollTimer = window.setTimeout(() => {
+          const top = panel.getBoundingClientRect().top + window.scrollY - 96;
+          window.scrollTo({
+            top: Math.max(0, top),
+            behavior: "smooth",
+          });
+        }, 180);
+      }
+      switchTimer = window.setTimeout(() => {
+        card.classList.remove("is-switching");
+      }, 220);
+    };
+
+    openTrigger?.addEventListener("click", (event) => {
+      if (!media.matches) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      setFlipped(true);
+    });
+
+    closeTrigger?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setFlipped(false);
+    });
+  });
+
+  syncMobile();
+  media.addEventListener("change", syncMobile);
+}
+
+function wireHomeIntro() {
+  if (document.body.dataset.currentPage !== "home") {
+    return;
+  }
+  const intro = document.querySelector("[data-home-intro]");
+  if (!intro) {
+    return;
+  }
+
+  document.body.classList.add("home-intro-active");
+
+  window.setTimeout(() => {
+    intro.classList.add("is-leaving");
+    document.body.classList.remove("home-intro-active");
+    window.setTimeout(() => {
+      intro.remove();
+    }, 620);
+  }, 760);
+}
+
+function wireHomePreviewDrift() {
+  if (document.body.dataset.currentPage !== "home") {
+    return;
+  }
+
+  const media = window.matchMedia("(min-width: 941px)");
+  const cards = document.querySelectorAll(".program-grid-home-preview .program-card-tech-home, .program-grid-home-preview .program-card-tech-aside");
+  if (!cards.length) {
+    return;
+  }
+
+  const resetCard = (card) => {
+    card.style.setProperty("--card-rotate-x", "0deg");
+    card.style.setProperty("--card-rotate-y", "0deg");
+    card.style.setProperty("--card-shift-x", "0px");
+    card.style.setProperty("--card-shift-y", "0px");
+  };
+
+  const bindCard = (card) => {
+    resetCard(card);
+
+    card.addEventListener("mousemove", (event) => {
+      if (!media.matches) {
+        return;
+      }
+      const rect = card.getBoundingClientRect();
+      const px = (event.clientX - rect.left) / rect.width;
+      const py = (event.clientY - rect.top) / rect.height;
+      const rotateY = (px - 0.5) * 8;
+      const rotateX = (0.5 - py) * 8;
+      const shiftX = (px - 0.5) * 10;
+      const shiftY = (py - 0.5) * 8;
+
+      card.style.setProperty("--card-rotate-x", `${rotateX.toFixed(2)}deg`);
+      card.style.setProperty("--card-rotate-y", `${rotateY.toFixed(2)}deg`);
+      card.style.setProperty("--card-shift-x", `${shiftX.toFixed(2)}px`);
+      card.style.setProperty("--card-shift-y", `${shiftY.toFixed(2)}px`);
+    });
+
+    card.addEventListener("mouseleave", () => {
+      resetCard(card);
+    });
+  };
+
+  cards.forEach(bindCard);
+
+  media.addEventListener("change", () => {
+    if (!media.matches) {
+      cards.forEach(resetCard);
+    }
+  });
 }
 
 async function buildSubmissionPayload(form) {
@@ -1323,25 +1629,6 @@ function findInvalidFile(form) {
     }
   }
   return null;
-}
-
-function extractCompanyName(roleText) {
-  const value = String(roleText || "");
-  if (!value.includes(",")) {
-    return "";
-  }
-  return value.split(",").slice(1).join(",").trim();
-}
-
-function textInitials(text) {
-  const tokens = String(text || "")
-    .split(/[\s-]+/)
-    .filter(Boolean)
-    .slice(0, 2);
-  if (!tokens.length) {
-    return "DI";
-  }
-  return tokens.map((token) => token.charAt(0).toUpperCase()).join("");
 }
 
 function socialIconLabel(label) {
