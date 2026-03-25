@@ -709,7 +709,7 @@ function renderSingleProgramIntroCard(card = {}, extraClass = "") {
 
 function renderProgramFlipBack(form = {}, programKey) {
   const isWomen = programKey === "women_for_innovation";
-  const label = isWomen ? "Women For Innovation" : "Tech For Competitivity";
+  const label = isWomen ? "Women For Innovation" : "Smart Mobility";
   return `
     <article class="program-intro-card program-intro-card-home-embedded program-intro-card-form-back">
       <div class="program-form-back-head">

@@ -116,18 +116,18 @@ img {
   position: fixed;
   inset: 0 0 auto 0;
   z-index: 120;
-  padding-top: 0.8rem;
+  padding-top: 0.55rem;
   transition: background-color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .header-main {
   --scroll-progress: 0;
-  min-height: 68px;
+  min-height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.58rem 1rem;
+  padding: 0.42rem 0.9rem;
   border-radius: 0;
   border: 1px solid transparent;
   background: transparent;
@@ -170,7 +170,7 @@ img {
 }
 
 .header-shell.is-sticky {
-  padding-top: 0.55rem;
+  padding-top: 0.35rem;
 }
 
 .header-shell.is-sticky .header-main {
@@ -207,15 +207,15 @@ img {
   display: block;
   height: auto;
   width: auto;
-  max-height: 120px;
+  max-height: 92px;
 }
 
 .brand-logo-sticky-dip {
-  max-width: 450px;
+  max-width: 340px;
 }
 
 .brand-logo-sticky-mobility {
-  max-width: 258px;
+  max-width: 188px;
 }
 
 .header-shell.is-sticky .brand-logo-light {
@@ -234,7 +234,7 @@ img {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.14rem;
+  padding: 0.08rem;
   border-radius: 999px;
   background: transparent;
   transition: background-color 0.25s ease;
@@ -246,12 +246,12 @@ img {
 
 .nav-link {
   font-family: "Poppins", Arial, sans-serif;
-  font-size: 0.79rem;
+  font-size: 0.76rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: rgba(255, 255, 255, 0.92);
-  padding: 0.42rem 0.78rem;
+  padding: 0.34rem 0.66rem;
   border-radius: 999px;
   background: transparent;
   box-shadow: none;
