@@ -23,7 +23,9 @@ const BRAND_ASSETS = {
   logoDark: "/assets/media/brand/logo-dark.png",
   logoStickyDip: "/assets/media/brand/sticky-dip-black.png",
   logoStickyMobility: "/assets/media/brand/sticky-smart-mobility.png",
+  heroFooterVideo: "/assets/media/video/headervideo.mp4",
   footerTexture: "/assets/media/brand/footer-texture.png",
+  footerPartnerMaddyness: "/assets/media/brand/footer-maddyness-white.png",
   footerPartnerLogos: {
     "Comite Richelieu": "/assets/media/brand/partner-comite-richelieu.png",
     CCIFC: "/assets/media/brand/partner-ccifc.png",
@@ -75,6 +77,7 @@ async function bootstrap() {
   wireProgramFlipCards();
   wireHomePreviewDrift();
   wireScrollProgress();
+  wireHeroCounters();
 }
 
 async function fetchContent() {
@@ -172,22 +175,32 @@ function renderFooter(content) {
     })
     .join("");
 
-  const partners = (footer.partners || [])
-    .map((item) => {
+  const partners = (footer.partners || []).map((item) => {
       const logo = BRAND_ASSETS.footerPartnerLogos[item.name] || "";
       if (logo) {
         return `<a class="partner-logo" href="${safeUrl(item.url)}" target="_blank" rel="noopener noreferrer"><img src="${safeUrl(logo)}" alt="${escapeAttr(item.name)}" /></a>`;
       }
       return `<a class="partner-chip" href="${safeUrl(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.name)}</a>`;
-    })
-    .join("");
+    });
+  const featuredPartner = partners[0] || "";
+  const secondaryPartners = partners.slice(1).join("");
+  const maddynessPartner = `<a class="partner-logo partner-logo-maddyness" href="https://maddyness.com" target="_blank" rel="noopener noreferrer"><img src="${safeUrl(BRAND_ASSETS.footerPartnerMaddyness)}" alt="Maddyness" /></a>`;
 
   host.classList.add("site-footer");
   host.style.setProperty("--footer-texture", `url('${BRAND_ASSETS.footerTexture}')`);
   host.innerHTML = `
+    <div class="footer-video-shell" aria-hidden="true">
+      <video autoplay muted loop playsinline preload="metadata">
+        <source src="${safeUrl(BRAND_ASSETS.heroFooterVideo)}" type="video/mp4" />
+      </video>
+    </div>
     <div class="container footer-partners-wrap">
-      <h4 class="footer-partners-title">Nos partenaires</h4>
-      <div class="footer-partners">${partners}</div>
+      <div class="footer-partners-head">
+        <h4 class="footer-partners-title">Nos partenaires</h4>
+        <div class="footer-partner-featured">${featuredPartner}</div>
+      </div>
+      <div class="footer-partners">${secondaryPartners}</div>
+      <div class="footer-partners-extra">${maddynessPartner}</div>
     </div>
     <div class="container footer-grid">
       <section class="footer-column">
@@ -301,7 +314,7 @@ function renderHome(page, techIntroCard = null, womenIntroCard = null) {
         <img class="program-card-media" src="${safeUrl(techCategory.image)}" alt="${escapeAttr(techCategory.title)}" />
         <div class="program-card-content">
           <h3>${escapeHtml(techCategory.title)}</h3>
-          <p>${escapeHtml(techCategory.text)}</p>
+          <p>${formatInlineGradientEmphasis(techCategory.text)}</p>
           <a class="btn btn-outline" href="${safeUrl(techCategory.url)}">${escapeHtml(techCategory.ctaLabel || "En savoir plus")}</a>
         </div>
       </article>
@@ -758,9 +771,9 @@ function renderHero(hero = {}, options = {}) {
       <div class="container hero-grid${side ? " with-side" : ""}">
         <div class="hero-copy reveal">
           ${hero.eyebrow ? `<p class="hero-eyebrow">${escapeHtml(hero.eyebrow)}</p>` : ""}
-          <h1>${escapeHtml(hero.title || "")}</h1>
+          <h1>${formatHeroCounters(hero.title || "")}</h1>
           <p>${escapeHtml(hero.subtitle || "")}</p>
-          ${hero.highlight ? `<p class="hero-highlight">${escapeHtml(hero.highlight)}</p>` : ""}
+          ${hero.highlight ? `<p class="hero-highlight">${formatHeroCounters(hero.highlight)}</p>` : ""}
           ${actions}
         </div>
         ${side}
@@ -819,7 +832,7 @@ function renderHomeVideo(video) {
   return `
     <section class="section section-video${hideOnMobile ? " hide-on-mobile" : ""}">
       <div class="container">
-        ${renderSectionHead(video.text || "", "", { centered: true })}
+        ${renderSectionHead(video.title || "", video.text || "", { centered: true })}
         <div class="home-video-layout home-video-layout-expanded">
           <article class="home-video-frame reveal">
             ${media}
@@ -943,7 +956,7 @@ function buildProgramForm(form, programKey) {
             <input id="${idPrefix}-last-name" name="last_name" required />
           </div>
           <div class="field">
-            <label for="${idPrefix}-first-name">Prenom *</label>
+            <label for="${idPrefix}-first-name">Prénom *</label>
             <input id="${idPrefix}-first-name" name="first_name" required />
           </div>
           <div class="field">
@@ -951,14 +964,14 @@ function buildProgramForm(form, programKey) {
             <input id="${idPrefix}-email" name="email" type="email" required />
           </div>
           <div class="field">
-            <label for="${idPrefix}-phone">Telephone portable *</label>
+            <label for="${idPrefix}-phone">Téléphone portable *</label>
             <input id="${idPrefix}-phone" name="phone" type="tel" required />
           </div>
           <div class="field">
-            <label for="${idPrefix}-region">Region de candidature *</label>
+            <label for="${idPrefix}-region">Région de candidature *</label>
             <select id="${idPrefix}-region" name="region" required>
-              <option value="">Selectionner</option>
-              <option>Ile-de-France</option>
+              <option value="">Sélectionner</option>
+              <option>Île-de-France</option>
               <option>Nord-Est</option>
               <option>Sud-Est</option>
               <option>Nord-Ouest</option>
@@ -992,18 +1005,18 @@ function buildProgramForm(form, programKey) {
             <input id="${idPrefix}-website" name="website" type="url" required />
           </div>
           <div class="field">
-            <label for="${idPrefix}-founded">Date de creation *</label>
+            <label for="${idPrefix}-founded">Date de création *</label>
             <input id="${idPrefix}-founded" name="founded_at" type="date" required />
           </div>
           <div class="field">
-            <label for="${idPrefix}-sector">Secteur d'activite *</label>
+            <label for="${idPrefix}-sector">Secteur d’activité *</label>
             <input id="${idPrefix}-sector" name="sector" required />
           </div>
           <div class="field">
-            <label for="${idPrefix}-stage">Stade d'evolution *</label>
+            <label for="${idPrefix}-stage">Stade d’évolution *</label>
             <select id="${idPrefix}-stage" name="stage" required>
-              <option value="">Selectionner</option>
-              <option>Amorcage</option>
+              <option value="">Sélectionner</option>
+              <option>Amorçage</option>
               <option>Croissance</option>
               <option>Scale-up</option>
             </select>
@@ -1013,17 +1026,17 @@ function buildProgramForm(form, programKey) {
             <input id="${idPrefix}-rev-2024" name="revenue_2024" type="number" min="0" />
           </div>
           <div class="field">
-            <label for="${idPrefix}-rev-2025">CA previsionnel 2025</label>
+            <label for="${idPrefix}-rev-2025">CA prévisionnel 2025</label>
             <input id="${idPrefix}-rev-2025" name="revenue_2025" type="number" min="0" />
           </div>
           <div class="field">
-            <label for="${idPrefix}-employees">Nombre de salaries</label>
+            <label for="${idPrefix}-employees">Nombre de salariés</label>
             <input id="${idPrefix}-employees" name="employees" type="number" min="0" />
           </div>
           <div class="field">
             <label for="${idPrefix}-pitch-en">Pouvez-vous pitcher en anglais ? *</label>
             <select id="${idPrefix}-pitch-en" name="pitch_english" required>
-              <option value="">Selectionner</option>
+              <option value="">Sélectionner</option>
               <option>Oui</option>
               <option>Non</option>
             </select>
@@ -1032,7 +1045,7 @@ function buildProgramForm(form, programKey) {
             isWomen
               ? `
             <div class="field full">
-              <label for="${idPrefix}-video">${escapeHtml(form.videoField || "Lien vers votre video de presentation")}</label>
+              <label for="${idPrefix}-video">${escapeHtml(form.videoField || "Lien vers votre vidéo de présentation")}</label>
               <input id="${idPrefix}-video" name="video_url" type="url" />
             </div>
           `
@@ -1045,15 +1058,15 @@ function buildProgramForm(form, programKey) {
         <legend>Projet</legend>
         <div class="form-grid">
           <div class="field full">
-            <label for="${idPrefix}-summary">Presentation de votre entreprise et de votre projet *</label>
+            <label for="${idPrefix}-summary">Présentation de votre entreprise et de votre projet *</label>
             <textarea id="${idPrefix}-summary" name="summary" required></textarea>
           </div>
           <div class="field full">
-            <label for="${idPrefix}-impact">En quoi votre entreprise repond aux enjeux du concours ? *</label>
+            <label for="${idPrefix}-impact">En quoi votre entreprise répond aux enjeux du concours ? *</label>
             <textarea id="${idPrefix}-impact" name="impact_statement" required></textarea>
           </div>
           <div class="field">
-            <label for="${idPrefix}-tech-stack">Technologies utilisees</label>
+            <label for="${idPrefix}-tech-stack">Technologies utilisées</label>
             <select id="${idPrefix}-tech-stack" name="tech_stack" multiple>
               <option>Intelligence artificielle</option>
               <option>Cloud</option>
@@ -1065,11 +1078,11 @@ function buildProgramForm(form, programKey) {
           <div class="field">
             <label for="${idPrefix}-source">Comment avez-vous connu le concours ? *</label>
             <select id="${idPrefix}-source" name="source" required>
-              <option value="">Selectionner</option>
+              <option value="">Sélectionner</option>
               <option>Maddyness</option>
-              <option>Comite Richelieu</option>
+              <option>Comité Richelieu</option>
               <option>Huawei</option>
-              <option>Partenaire regional</option>
+              <option>Partenaire régional</option>
               <option>Autre</option>
             </select>
           </div>
@@ -1084,31 +1097,31 @@ function buildProgramForm(form, programKey) {
             <input id="${idPrefix}-kbis" name="kbis" type="file" data-max-size="10485760" accept=".pdf,.png,.jpg,.jpeg,.webp" required />
           </div>
           <div class="field">
-            <label for="${idPrefix}-deck">Presentation entreprise/projet (max 10 MB) *</label>
+            <label for="${idPrefix}-deck">Présentation entreprise/projet (max 10 MB) *</label>
             <input id="${idPrefix}-deck" name="deck" type="file" data-max-size="10485760" accept=".pdf,.ppt,.pptx,.doc,.docx,.png,.jpg,.jpeg,.webp" required />
           </div>
         </div>
       </fieldset>
 
       <fieldset>
-        <legend>Conformite</legend>
+        <legend>Conformité</legend>
         <div class="form-grid">
           <div class="field full">
-            <label for="${idPrefix}-conflict">Conflit d'interets avec Huawei France ?</label>
+            <label for="${idPrefix}-conflict">Conflit d’intérêts avec Huawei France ?</label>
             <select id="${idPrefix}-conflict" name="conflict">
-              <option value="">Selectionner</option>
+              <option value="">Sélectionner</option>
               <option>Non</option>
               <option>Oui</option>
             </select>
           </div>
           <div class="field full">
-            <label for="${idPrefix}-conflict-details">Details (si applicable)</label>
+            <label for="${idPrefix}-conflict-details">Détails (si applicable)</label>
             <textarea id="${idPrefix}-conflict-details" name="conflict_details"></textarea>
           </div>
           <div class="field full">
             <label class="inline-check">
               <input type="checkbox" name="terms" required />
-              Je confirme avoir pris connaissance et accepte les conditions de participation, les mentions RGPD et le reglement du concours.
+              Je confirme avoir pris connaissance et accepte les conditions de participation, les mentions RGPD et le règlement du concours.
             </label>
           </div>
         </div>
@@ -1120,11 +1133,11 @@ function buildProgramForm(form, programKey) {
         <button class="btn btn-primary" type="submit">${escapeHtml(form.submitLabel || "Envoyer la candidature")}</button>
         ${
           form.regulationUrl
-            ? `<a class="btn btn-outline" href="${safeUrl(form.regulationUrl)}" target="_blank" rel="noopener">${escapeHtml(form.regulationLabel || "Voir le reglement")}</a>`
+            ? `<a class="btn btn-outline" href="${safeUrl(form.regulationUrl)}" target="_blank" rel="noopener">${escapeHtml(form.regulationLabel || "Voir le règlement")}</a>`
             : ""
         }
       </div>
-      <p class="help">${escapeHtml(form.notice || "Le back-end de soumission sera connecte dans une etape suivante.")}</p>
+      <p class="help">${escapeHtml(form.notice || "Le back-end de soumission sera connecté dans une étape suivante.")}</p>
       <p class="form-feedback" data-form-feedback role="status" aria-live="polite"></p>
     </form>
   `;
@@ -1368,23 +1381,10 @@ function wireProgramPanels() {
 }
 
 function wireProgramFlipCards() {
-  const media = window.matchMedia("(min-width: 941px)");
   const cards = document.querySelectorAll("[data-program-flip]");
   if (!cards.length) {
     return;
   }
-
-  const syncMobile = () => {
-    cards.forEach((card) => {
-      if (!media.matches) {
-        card.classList.remove("is-flipped");
-        const panel = card.closest("[data-program-panel]");
-        panel?.classList.remove("is-flipped");
-        const wrapper = card.closest("[data-program-panels]");
-        wrapper?.classList.remove("active-tech", "active-women");
-      }
-    });
-  };
 
   cards.forEach((card) => {
     const panel = card.closest("[data-program-panel]");
@@ -1395,16 +1395,13 @@ function wireProgramFlipCards() {
     let scrollTimer = null;
 
     const setFlipped = (state) => {
-      if (!media.matches) {
-        return;
-      }
       card.classList.add("is-switching");
       window.clearTimeout(switchTimer);
       window.clearTimeout(scrollTimer);
       card.classList.toggle("is-flipped", state);
       panel?.classList.toggle("is-flipped", state);
       if (wrapper) {
-        if (state) {
+        if (state && window.matchMedia("(min-width: 941px)").matches) {
           wrapper.classList.toggle("active-tech", panel?.dataset.panelKey === "tech");
           wrapper.classList.toggle("active-women", panel?.dataset.panelKey === "women");
         } else {
@@ -1413,7 +1410,8 @@ function wireProgramFlipCards() {
       }
       if (state && panel) {
         scrollTimer = window.setTimeout(() => {
-          const top = panel.getBoundingClientRect().top + window.scrollY - 96;
+          const offset = window.matchMedia("(min-width: 941px)").matches ? 96 : 72;
+          const top = panel.getBoundingClientRect().top + window.scrollY - offset;
           window.scrollTo({
             top: Math.max(0, top),
             behavior: "smooth",
@@ -1426,9 +1424,6 @@ function wireProgramFlipCards() {
     };
 
     openTrigger?.addEventListener("click", (event) => {
-      if (!media.matches) {
-        return;
-      }
       event.preventDefault();
       event.stopPropagation();
       setFlipped(true);
@@ -1440,9 +1435,6 @@ function wireProgramFlipCards() {
       setFlipped(false);
     });
   });
-
-  syncMobile();
-  media.addEventListener("change", syncMobile);
 }
 
 function wireHomeIntro() {
@@ -1673,9 +1665,48 @@ function escapeAttr(value) {
   return escapeHtml(value).replace(/`/g, "&#96;");
 }
 
+function formatInlineGradientEmphasis(value) {
+  return escapeHtml(value).replace(/--(.*?)--/g, '<strong class="gradient-inline-emphasis">$1</strong>');
+}
+
+function formatHeroCounters(value) {
+  const escaped = escapeHtml(value);
+  return escaped
+    .replace(/\+100(?!\d)/g, '<span class="hero-counter" data-counter-target="100" data-counter-prefix="+">0</span>')
+    .replace(/\+10(?!\d)/g, "+10");
+}
+
 function safeUrl(value) {
   if (!value) {
     return "#";
   }
   return escapeAttr(value);
+}
+
+function wireHeroCounters() {
+  const counters = Array.from(document.querySelectorAll("[data-counter-target]"));
+  if (!counters.length) {
+    return;
+  }
+
+  window.setTimeout(() => {
+    counters.forEach((node) => {
+      const target = Number(node.getAttribute("data-counter-target") || "0");
+      const prefix = node.getAttribute("data-counter-prefix") || "";
+      const start = performance.now();
+      const duration = target >= 100 ? 4200 : 1900;
+
+      const tick = (now) => {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(target * eased);
+        node.textContent = `${prefix}${current}`;
+        if (progress < 1) {
+          requestAnimationFrame(tick);
+        }
+      };
+
+      requestAnimationFrame(tick);
+    });
+  }, 1550);
 }

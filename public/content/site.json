@@ -72,9 +72,9 @@
   "pages": {
     "home": {
       "hero": {
-        "eyebrow": "10ème édition",
-        "title": "10 ans d’audace, un seul cap : la performance.",
-        "subtitle": "Depuis 2014, nous propulsons les startups françaises vers le succès international. Que vous soyez à Lille, Lyon ou Marseille, Digital InPulse vient à vous pour transformer votre innovation en réussite à l'international, cap sur l'Asie !",
+        "eyebrow": "",
+        "title": "+10 ans d’audace, un seul cap : la performance.",
+        "subtitle": "Depuis 2014, nous propulsons les startups françaises vers le succès international. Digital InPulse vous aide à transformer votre innovation en réussite à l'international, cap sur l'Asie !",
         "highlight": "+100 startups propulsées à l’international",
         "video": "/assets/media/video/headervideo.mp4",
         "ctaLabel": "Découvrir le concours",
@@ -85,14 +85,14 @@
         }
       },
         "video": {
-          "title": "L'edition 2025 en video",
-          "text": "Plongez au cœur de l’écosystème Digital InPulse : un concentré d’innovation, d’expertise et d’énergie brute à découvrir en vidéo.",
-          "url": "/assets/media/video/digital-inpulse-2025.mp4",
+        "title": "Plongez au cœur de l’écosystème Digital InPulse",
+        "text": "Un concentré d’innovation, d’expertise et d’énergie brute à découvrir en vidéo.",
+          "url": "https://www.youtube.com/watch?v=YIa1_QzXNqw",
           "poster": "/assets/media/pages/header24.png",
           "mobileVisibility": "on"
         },
         "introTitle": "L'Expérience Digital InPulse",
-      "introText": "Bien plus qu'un programme, une roadmap complète vers le leadership international",
+      "introText": "",
       "pillars": [
         {
           "title": "Un réseau",
@@ -120,7 +120,7 @@
       "categories": [
         {
           "title": "Smart Mobility",
-          "text": "La mobilité intelligente : pour une mobilité urbaine, durable & inclusive",
+          "text": "Parce que la technologie doit être un moteur de progrès pour nos territoires, Huawei s’engage à travers cette nouvelle thématique à propulser les solutions qui réinventent notre façon de nous déplacer, d'échanger et de connecter nos villes. De la --mobilité urbaine intelligente-- (véhicules connectés, gestion du trafic) à des transports plus --durables-- et décarbonés, en passant par des solutions technologiques favorisant une mobilité inclusive et accessible à tous, nous valorisons les projets qui dessinent l'avenir de nos déplacements.",
           "image": "/assets/media/pages/dip-cb-150-transparent.png",
           "videoAside": "/assets/media/video/cardvideo3.mp4",
           "url": "#parcours-candidature",
@@ -320,11 +320,11 @@
         ],
       "form": {
         "title": "Candidatez - Tech For Competitivity",
-        "description": "Mettez a jour ce bloc et ce formulaire a tout moment depuis /admin.",
+        "description": "Mettez à jour ce bloc et ce formulaire à tout moment depuis /admin.",
         "submitLabel": "Envoyer la candidature",
-        "regulationLabel": "Voir le reglement",
+        "regulationLabel": "Voir le règlement",
         "regulationUrl": "/assets/media/documents/reglement-dip-2025.pdf",
-        "notice": "Le branchement du back-end d'envoi sera connecte selon votre choix d'outil (API, CRM ou no-code)."
+        "notice": "Le branchement du back-end d'envoi sera connecté selon votre choix d'outil (API, CRM ou no-code)."
       }
     },
     "women_for_innovation": {
@@ -376,9 +376,9 @@
       "form": {
         "title": "Candidatez - Women For Innovation",
         "description": "Ajoutez ou modifiez textes et visuels via le back-office GitHub en quelques minutes.",
-        "videoField": "Lien vers votre video de presentation",
+        "videoField": "Lien vers votre vidéo de présentation",
         "submitLabel": "Envoyer la candidature",
-        "regulationLabel": "Voir le reglement",
+        "regulationLabel": "Voir le règlement",
         "regulationUrl": "/assets/media/documents/reglement-dip-2025.pdf",
         "notice": "Vous pourrez ajuster ce contenu la veille du lancement sans modifier le code source."
       }
