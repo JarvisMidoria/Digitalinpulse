@@ -21,10 +21,11 @@ const LEGAL_KEYS = new Set([
 const BRAND_ASSETS = {
   logoLight: "/assets/media/brand/logo-light.png",
   logoDark: "/assets/media/brand/logo-dark.png",
-  logoStickyDip: "/assets/media/brand/sticky-dip-black.png",
-  logoStickyMobility: "/assets/media/brand/sticky-smart-mobility.png",
+  logoStickyDip: "/assets/media/brand/sticky-dip-transparent.png",
+  logoStickyMobility: "/assets/media/brand/sticky-center-mobility.png",
   heroFooterVideo: "/assets/media/video/headervideo.mp4",
   footerTexture: "/assets/media/brand/footer-texture.png",
+  footerFeaturedPartner: "/assets/media/brand/footer-comite-richelieu-sahar-white.png",
   footerPartnerMaddyness: "/assets/media/brand/footer-maddyness-white.png",
   footerPartnerLogos: {
     "Comite Richelieu": "/assets/media/brand/partner-comite-richelieu.png",
@@ -72,6 +73,7 @@ async function bootstrap() {
   wireHeader();
   wireReveals();
   wireTestimonialSlider();
+  wireHomeCarousel();
   wireApplicationForms();
   wireProgramPanels();
   wireProgramFlipCards();
@@ -130,9 +132,11 @@ function renderNavigation(content, currentKey) {
           <img class="brand-logo brand-logo-dark" src="${safeUrl(BRAND_ASSETS.logoDark)}" alt="${escapeAttr(meta.siteName || "Digital InPulse")}" />
           <span class="brand-sticky-group" aria-hidden="true">
             <img class="brand-logo-sticky brand-logo-sticky-dip" src="${safeUrl(BRAND_ASSETS.logoStickyDip)}" alt="" />
-            <img class="brand-logo-sticky brand-logo-sticky-mobility" src="${safeUrl(BRAND_ASSETS.logoStickyMobility)}" alt="" />
           </span>
         </a>
+        <div class="header-sticky-center" aria-hidden="true">
+          <img class="brand-logo-sticky brand-logo-sticky-center" src="${safeUrl(BRAND_ASSETS.logoStickyMobility)}" alt="" />
+        </div>
         <nav class="desktop-nav" aria-label="Navigation principale">
           ${desktopLinks}
         </nav>
@@ -182,7 +186,7 @@ function renderFooter(content) {
       }
       return `<a class="partner-chip" href="${safeUrl(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.name)}</a>`;
     });
-  const featuredPartner = partners[0] || "";
+  const featuredPartner = `<a class="partner-logo partner-logo-featured" href="https://www.comite-richelieu.org/" target="_blank" rel="noopener noreferrer"><img src="${safeUrl(BRAND_ASSETS.footerFeaturedPartner)}" alt="Comité Richelieu x Sahar" /></a>`;
   const secondaryPartners = partners.slice(1).join("");
   const maddynessPartner = `<a class="partner-logo partner-logo-maddyness" href="https://maddyness.com" target="_blank" rel="noopener noreferrer"><img src="${safeUrl(BRAND_ASSETS.footerPartnerMaddyness)}" alt="Maddyness" /></a>`;
 
@@ -374,7 +378,7 @@ function renderHome(page, techIntroCard = null, womenIntroCard = null) {
     .map((item, index) => {
       const isFinal = /finale/i.test(item.city || "");
       const isFolder = /sur dossier/i.test(item.city || "");
-      const dateLabel = `${isFinal ? "🏁" : isFolder ? "📁" : "📍"} ${escapeHtml(item.date)}`;
+      const dateLabel = `${isFinal ? "🥇" : isFolder ? "📂" : "📍"} ${escapeHtml(item.date)}`;
       return `
         <article class="timeline-item timeline-item-tech ${isFinal ? "timeline-item-final" : "timeline-item-regional"} reveal" style="--delay:${index * 90}ms">
           <p class="timeline-date">${dateLabel}</p>
@@ -540,7 +544,7 @@ function renderProgram(page, programKey) {
         const timelineClass = isTech
           ? `timeline-item timeline-item-tech ${isFinal ? "timeline-item-final" : "timeline-item-regional"}`
           : "timeline-item";
-        const dateLabel = isTech ? `${isFinal ? "🏁" : isFolder ? "📁" : "📍"} ${escapeHtml(item.date)}` : escapeHtml(item.date);
+        const dateLabel = isTech ? `${isFinal ? "🥇" : isFolder ? "📂" : "📍"} ${escapeHtml(item.date)}` : escapeHtml(item.date);
 
         return `
         <article class="${timelineClass} reveal" style="--delay:${index * 90}ms">
@@ -828,6 +832,22 @@ function renderHomeVideo(video) {
     return "";
   }
   const hideOnMobile = shouldHideVideoOnMobile(video);
+  const carouselImages = (video.carouselImages || [])
+    .map(
+      (item, index) => `
+        <figure class="home-carousel-slide${index === 0 ? " active" : ""}" data-home-carousel-slide="${index}">
+          <img src="${safeUrl(item)}" alt="Photo Digital InPulse ${index + 1}" loading="lazy" />
+        </figure>
+      `,
+    )
+    .join("");
+  const carouselDots = (video.carouselImages || [])
+    .map(
+      (_, index) => `
+        <button class="home-carousel-dot${index === 0 ? " active" : ""}" type="button" data-home-carousel-dot="${index}" aria-label="Afficher la photo ${index + 1}"></button>
+      `,
+    )
+    .join("");
 
   return `
     <section class="section section-video${hideOnMobile ? " hide-on-mobile" : ""}">
@@ -837,10 +857,12 @@ function renderHomeVideo(video) {
           <article class="home-video-frame reveal">
             ${media}
           </article>
-          <article class="home-video-frame home-carousel-frame reveal" aria-label="Carrousel a venir">
-            <div class="home-carousel-placeholder">
-              <span>Carrousel photos</span>
-              <p>Contenu a venir</p>
+          <article class="home-video-frame home-carousel-frame reveal" aria-label="Carrousel photos" data-home-carousel>
+            <div class="home-carousel-track">
+              ${carouselImages}
+            </div>
+            <div class="home-carousel-dots">
+              ${carouselDots}
             </div>
           </article>
         </div>
@@ -1261,6 +1283,56 @@ function wireTestimonialSlider() {
   slider.addEventListener("mouseleave", () => {
     timer = window.setInterval(() => setActive(index + 1), 6000);
   });
+}
+
+function wireHomeCarousel() {
+  const carousel = document.querySelector("[data-home-carousel]");
+  if (!carousel) {
+    return;
+  }
+  const slides = [...carousel.querySelectorAll("[data-home-carousel-slide]")];
+  const dots = [...carousel.querySelectorAll("[data-home-carousel-dot]")];
+  if (!slides.length) {
+    return;
+  }
+
+  let index = 0;
+  let timer = null;
+
+  const setActive = (nextIndex) => {
+    index = (nextIndex + slides.length) % slides.length;
+    slides.forEach((slide, slideIndex) => {
+      slide.classList.toggle("active", slideIndex === index);
+    });
+    dots.forEach((dot, dotIndex) => {
+      dot.classList.toggle("active", dotIndex === index);
+    });
+  };
+
+  const start = () => {
+    timer = window.setInterval(() => setActive(index + 1), 3200);
+  };
+
+  const stop = () => {
+    if (timer) {
+      window.clearInterval(timer);
+      timer = null;
+    }
+  };
+
+  dots.forEach((dot, dotIndex) => {
+    dot.addEventListener("click", () => {
+      setActive(dotIndex);
+      stop();
+      start();
+    });
+  });
+
+  carousel.addEventListener("mouseenter", stop);
+  carousel.addEventListener("mouseleave", start);
+
+  setActive(0);
+  start();
 }
 
 function wireApplicationForms() {

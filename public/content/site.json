@@ -89,6 +89,14 @@
         "text": "Un concentré d’innovation, d’expertise et d’énergie brute à découvrir en vidéo.",
           "url": "https://www.youtube.com/watch?v=YIa1_QzXNqw",
           "poster": "/assets/media/pages/header24.png",
+          "carouselImages": [
+            "/assets/media/pages/carousel-finale-first.webp",
+            "/assets/media/pages/carousel-voyage.jpg",
+            "/assets/media/pages/carousel-ecosysteme.jpg",
+            "/assets/media/pages/carousel-alumni.jpg",
+            "/assets/media/pages/carousel-huawei.jpg",
+            "/assets/media/pages/carousel-digital-inpulse.jpg"
+          ],
           "mobileVisibility": "on"
         },
         "introTitle": "L'Expérience Digital InPulse",
@@ -120,7 +128,7 @@
       "categories": [
         {
           "title": "Smart Mobility",
-          "text": "Parce que la technologie doit être un moteur de progrès pour nos territoires, Huawei s’engage à travers cette nouvelle thématique à propulser les solutions qui réinventent notre façon de nous déplacer, d'échanger et de connecter nos villes. De la --mobilité urbaine intelligente-- (véhicules connectés, gestion du trafic) à des transports plus --durables-- et décarbonés, en passant par des solutions technologiques favorisant une mobilité inclusive et accessible à tous, nous valorisons les projets qui dessinent l'avenir de nos déplacements.",
+          "text": "Parce que la technologie doit être un moteur de progrès pour nos territoires, Huawei s’engage à travers cette nouvelle thématique à propulser les solutions qui réinventent notre façon de nous déplacer, d'échanger et de connecter nos villes. De la --mobilité urbaine intelligente-- (véhicules connectés, gestion du trafic) à des transports plus --durables-- et --décarbonés--, en passant par des solutions technologiques favorisant une mobilité inclusive et accessible à tous, nous valorisons les projets qui dessinent l'avenir de nos déplacements.",
           "image": "/assets/media/pages/dip-cb-150-transparent.png",
           "videoAside": "/assets/media/video/cardvideo3.mp4",
           "url": "#parcours-candidature",
@@ -297,7 +305,7 @@
       "themeTitle": "Critères d'Éligibilité",
       "themeText": "Pour postuler, votre structure doit répondre à ces trois piliers :",
       "themeImage": "/assets/media/pages/tech-theme.webp",
-      "scheduleTitle": "Dates et auditions",
+      "scheduleTitle": "Dates clés",
       "scheduleText": "Les start-ups pré-sélectionnées participent aux auditions en régions puis à la finale nationale.",
       "checklist": [
         "Entreprise française immatriculée avant le 1er janvier 2025.",
@@ -307,15 +315,15 @@
         "schedule": [
           {
             "city": "Sur dossier",
-            "date": "Juin-juillet 2026",
+            "date": "Avril-mai 2026",
             "text": "Les start-ups candidates seront sélectionnées sur dossier.",
             "video": "/assets/media/video/cardvideo1.mp4"
           },
           {
-            "city": "Finale nationale - Paris",
+            "city": "Grande Finale - Paris",
             "date": "Septembre (TBC)",
-            "text": "Pitch final des start-ups finalistes et remise de prix.",
-            "image": "/assets/media/pages/finale-paris.webp"
+            "text": "Pitch des starts-ups retenues et remise de prix.",
+            "video": "/assets/media/video/cardvideo2.mp4"
           }
         ],
       "form": {
@@ -343,7 +351,7 @@
       "themeTitle": "Creer un prix dedie aux femmes entrepreneures",
       "themeText": "Le parcours met en avant les fondatrices, co-fondatrices et dirigeantes qui portent des projets technologiques ambitieux.",
       "themeImage": "/assets/media/pages/home-women-card.webp",
-      "scheduleTitle": "Calendrier de la categorie",
+      "scheduleTitle": "Dates clés",
       "scheduleText": "Les candidates retenues participent a des auditions regionales puis a une remise de prix nationale a Paris.",
       "checklist": [
         "Start-up francaise creee avant le 1er janvier 2025",
