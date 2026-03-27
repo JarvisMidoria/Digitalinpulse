@@ -3074,6 +3074,23 @@ body :where(
     font-size: clamp(1.45rem, 8vw, 2rem);
   }
 
+  .home-video-layout,
+  .home-video-layout-expanded {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .home-video-frame {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+  }
+
+  .home-carousel-frame {
+    min-height: 240px;
+  }
+
   .form-grid,
   .scope-grid,
   .feature-grid {
