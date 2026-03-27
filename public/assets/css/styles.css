@@ -768,7 +768,7 @@ img {
   font-family: "Poppins", Arial, sans-serif;
   font-size: clamp(1.65rem, 2.6vw, 2.25rem);
   line-height: 1.2;
-  color: #1f3560;
+  color: #000000;
 }
 
 .home-video-copy p {
@@ -903,7 +903,7 @@ img {
   font-family: "Poppins", Arial, sans-serif;
   font-size: clamp(1.8rem, 3.5vw, 2.7rem);
   line-height: 1.18;
-  color: #1f3560;
+  color: #000000;
 }
 
 .section-head p {
@@ -1006,7 +1006,7 @@ img {
   margin: 0;
   font-family: "Poppins", Arial, sans-serif;
   font-size: 1.07rem;
-  color: #1e3156;
+  color: #000000;
 }
 
 .feature-card p {
@@ -1574,7 +1574,7 @@ img {
 .program-card-content h3 {
   margin: -0.35rem 0 0;
   font-family: "Poppins", Arial, sans-serif;
-  color: #1f3560;
+  color: #000000;
   font-size: 1.13rem;
 }
 
@@ -1595,7 +1595,7 @@ img {
   border-color: rgba(219, 102, 194, 0.44);
   background:
     linear-gradient(135deg, rgba(239, 116, 174, 0.1), rgba(182, 61, 255, 0.12));
-  color: #1f3560;
+  color: #000000;
   box-shadow: 0 8px 18px rgba(201, 72, 148, 0.08);
 }
 
@@ -1610,7 +1610,7 @@ img {
   border-color: rgba(149, 157, 255, 0.42);
   background:
     linear-gradient(135deg, rgba(163, 151, 255, 0.08), rgba(188, 162, 255, 0.12));
-  color: #1f3560;
+  color: #000000;
   box-shadow: 0 8px 18px rgba(149, 157, 255, 0.08);
 }
 
@@ -1644,7 +1644,7 @@ img {
 
 .testimonial-slide blockquote {
   margin: 0;
-  color: #1f3560;
+  color: #000000;
   font-size: clamp(1.04rem, 1.7vw, 1.22rem);
   line-height: 1.55;
 }
@@ -1656,7 +1656,7 @@ img {
 
 .testimonial-author {
   font-family: "Poppins", Arial, sans-serif;
-  color: #1f3560;
+  color: #000000;
   font-weight: 700;
 }
 
@@ -1669,7 +1669,7 @@ img {
   border-radius: 999px;
   border: 1px solid rgba(31, 53, 96, 0.16);
   background: #fff;
-  color: #1f3560;
+  color: #000000;
   font-size: 1.4rem;
   line-height: 1;
   padding: 0;
@@ -1770,7 +1770,7 @@ img {
 
 .program-intro-text {
   margin: 0;
-  color: #27406b;
+  color: #000000;
   font-size: 1rem;
   line-height: 1.75;
   text-align: center;
@@ -1847,7 +1847,7 @@ img {
 .program-intro-highlight-title {
   margin: 0;
   font-family: "Poppins", Arial, sans-serif;
-  color: #1f3560;
+  color: #000000;
   font-size: 1.02rem;
   font-weight: 700;
   display: inline-flex;
@@ -1993,7 +1993,7 @@ img {
   margin: 0.55rem 0 0;
   font-family: "Poppins", Arial, sans-serif;
   font-size: 1.35rem;
-  color: #1f3560;
+  color: #000000;
 }
 
 .program-form-back-text {
@@ -2082,7 +2082,7 @@ img {
 .highlight-card h3 {
   margin: 0.9rem 1rem 0;
   font-family: "Poppins", Arial, sans-serif;
-  color: #1f3560;
+  color: #000000;
   font-size: 1.12rem;
 }
 
@@ -2350,7 +2350,7 @@ img {
 .benefit-card-content h3 {
   margin: 0;
   font-family: "Poppins", Arial, sans-serif;
-  color: #1f3560;
+  color: #000000;
   font-size: 1.02rem;
 }
 
@@ -2370,7 +2370,7 @@ img {
 .alumni-panel h3 {
   margin: 0;
   font-family: "Poppins", Arial, sans-serif;
-  color: #1f3560;
+  color: #000000;
   font-size: clamp(1.35rem, 2.1vw, 1.9rem);
 }
 
@@ -2454,7 +2454,7 @@ img {
   font-family: "Poppins", Arial, sans-serif;
   font-size: 0.92rem;
   font-weight: 600;
-  color: #1f3560;
+  color: #000000;
 }
 
 .form-grid {
@@ -2542,7 +2542,7 @@ textarea:focus {
 .form-feedback {
   margin: 0;
   min-height: 1.2rem;
-  color: #1f3560;
+  color: #000000;
   font-size: 0.86rem;
 }
 
@@ -3292,4 +3292,8 @@ body :where(
 
 .gradient-inline-emphasis {
   color: transparent !important;
+}
+
+body :where(.section-head h2, .home-video-copy h2) {
+  color: #000000 !important;
 }

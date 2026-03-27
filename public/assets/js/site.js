@@ -1166,6 +1166,7 @@ function wireHeader() {
   const button = document.querySelector("[data-menu-toggle]");
   const mobileNav = document.querySelector("[data-mobile-nav]");
   const links = [...document.querySelectorAll("[data-nav-link]")];
+  const topAnchors = [...document.querySelectorAll('a[href="#site-top"]')];
   if (!header || !button || !mobileNav) {
     return;
   }
@@ -1194,6 +1195,15 @@ function wireHeader() {
       button.setAttribute("aria-expanded", "false");
     }
   });
+
+  for (const anchor of topAnchors) {
+    anchor.addEventListener("click", (event) => {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      header.classList.remove("open");
+      button.setAttribute("aria-expanded", "false");
+    });
+  }
 }
 
 function wireScrollProgress() {
