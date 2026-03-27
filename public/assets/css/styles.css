@@ -1684,6 +1684,21 @@ img {
   right: 0.8rem;
 }
 
+.testimonial-coming {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: linear-gradient(160deg, #fff, #f7fbff);
+  box-shadow: var(--shadow-soft);
+  font-family: "Poppins", Arial, sans-serif;
+  font-size: clamp(1.35rem, 2.2vw, 1.8rem);
+  font-weight: 600;
+  color: #000000;
+  text-align: center;
+}
+
 .split-layout {
   display: grid;
   gap: 1rem;

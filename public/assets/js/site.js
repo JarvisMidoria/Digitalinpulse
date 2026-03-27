@@ -125,18 +125,18 @@ function renderNavigation(content, currentKey) {
     .join("");
 
   host.innerHTML = `
-    <div class="header-shell" data-site-header>
+    <div class="header-shell" data-site-header id="site-top">
       <div class="container header-main" data-scroll-progress-target>
-        <a class="brand" href="/" aria-label="${escapeAttr(meta.siteName || "Digital InPulse")}">
+        <a class="brand" href="#site-top" aria-label="${escapeAttr(meta.siteName || "Digital InPulse")}">
           <img class="brand-logo brand-logo-light" src="${safeUrl(BRAND_ASSETS.logoLight)}" alt="${escapeAttr(meta.siteName || "Digital InPulse")}" />
           <img class="brand-logo brand-logo-dark" src="${safeUrl(BRAND_ASSETS.logoDark)}" alt="${escapeAttr(meta.siteName || "Digital InPulse")}" />
           <span class="brand-sticky-group" aria-hidden="true">
             <img class="brand-logo-sticky brand-logo-sticky-dip" src="${safeUrl(BRAND_ASSETS.logoStickyDip)}" alt="" />
           </span>
         </a>
-        <div class="header-sticky-center" aria-hidden="true">
+        <a class="header-sticky-center" href="#site-top" aria-label="Retour en haut de page">
           <img class="brand-logo-sticky brand-logo-sticky-center" src="${safeUrl(BRAND_ASSETS.logoStickyMobility)}" alt="" />
-        </div>
+        </a>
         <nav class="desktop-nav" aria-label="Navigation principale">
           ${desktopLinks}
         </nav>
@@ -448,11 +448,7 @@ function renderHome(page, techIntroCard = null, womenIntroCard = null) {
     <section class="section section-testimonials">
       <div class="container">
         ${renderSectionHead(page.testimonialsTitle || "", "", { centered: true })}
-        <div class="testimonial-slider reveal" data-testimonial-slider>
-          <button class="slider-btn prev" type="button" data-slide-prev aria-label="Temoignage precedent">‹</button>
-          <div class="testimonial-track">${testimonials}</div>
-          <button class="slider-btn next" type="button" data-slide-next aria-label="Temoignage suivant">›</button>
-        </div>
+        <div class="testimonial-coming reveal">À venir</div>
       </div>
     </section>
   `;
