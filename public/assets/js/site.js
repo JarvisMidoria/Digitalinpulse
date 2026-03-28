@@ -343,7 +343,7 @@ function renderHome(page, techIntroCard = null, womenIntroCard = null) {
       <article class="program-card reveal program-card-compact program-card-tech-home" style="--delay:0ms">
         <img class="program-card-media" src="${safeUrl(techCategory.image)}" alt="${escapeAttr(techCategory.title)}" />
         <div class="program-card-content">
-          <h3>${escapeHtml(techCategory.title)}</h3>
+          <h3>${escapeHtml(techCategory.compactTitle || techCategory.title)}</h3>
         </div>
       </article>
     `
