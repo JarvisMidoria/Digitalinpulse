@@ -4,21 +4,13 @@
     "tagline": "Programme de soutien aux start-ups de la French Tech - Edition 2025",
     "primaryColor": "#223160",
     "accentColor": "#46c1ee",
-    "contactEmail": "digitalinpulse@comite-richelieu.org",
+    "contactEmail": "digitalinpulse@maddyness.com",
     "copyright": "©2026 Digital InPulse. Tous droits reserves."
   },
   "navigation": [
     {
       "label": "Accueil",
       "url": "/"
-    },
-    {
-      "label": "Le concours",
-      "url": "#experience-digital-inpulse"
-    },
-    {
-      "label": "L'accompagnement",
-      "url": "#experience-digital-inpulse"
     }
   ],
   "footer": {
@@ -73,9 +65,9 @@
     "home": {
       "hero": {
         "eyebrow": "",
-        "title": "+10 ans d’audace, un seul cap : la performance.",
-        "subtitle": "Depuis 2014, nous propulsons les startups françaises vers le succès international. Digital InPulse vous aide à transformer votre innovation en réussite à l'international, cap sur l'Asie !",
-        "highlight": "+100 startups propulsées à l’international",
+        "title": "Plus de 10 ans de soutien aux start-ups françaises",
+        "subtitle": "Huawei organise chaque année le concours Digital InPulse afin de soutenir le développement des entreprises françaises innovantes. Ce programme leur offre un accompagnement privilégié au cœur de l’écosystème technologique chinois.",
+        "highlight": "+ 100 start-ups françaises épaulées depuis 2014",
         "video": "/assets/media/video/headervideo.mp4",
         "ctaLabel": "Découvrir le concours",
         "ctaUrl": "#parcours-candidature",
@@ -99,36 +91,28 @@
           ],
           "mobileVisibility": "on"
         },
-        "introTitle": "L'Expérience Digital InPulse",
+        "introTitle": "3 Raisons de candidater à Digital InPulse 2026",
       "introText": "",
       "pillars": [
         {
-          "title": "Un réseau",
-          "text": "Connectez-vous à la puissance de frappe d'un écosystème unique : partenaires stratégiques, alumni inspirants et experts business de haut vol."
+          "title": "Un concours national",
+          "text": "Pour cette nouvelle édition, le concours Digital InPulse prend une dimension nationale.\n\nLes start-ups candidates seront sélectionnées sur dossier. À l’issue de cette première étape, dix start-ups seront retenues pour participer à une grande finale organisée à Paris à l’automne 2026. Elles y défendront leur projet devant un jury composé de professionnels de l’innovation, d’experts du secteur et d’anciens lauréats du programme.\n\nCette ultime phase permettra de sélectionner les cinq start-ups lauréates de l’édition 2026."
         },
         {
-          "title": "Un programme",
-          "text": "Un calendrier stratégique conçu pour les entrepreneurs : postulez en quelques clics, pitchez avec impact."
+          "title": "Une voyage d'immersion en Chine",
+          "text": "Les cinq entreprises lauréates du concours Digital InPulse 2026 seront invitées à découvrir la Région de la Grande Baie, dans le sud de la Chine, lors d’un voyage d’affaires qui se tiendra en janvier 2027.\n\nLa région de la Grande Baie, autour de Hong Kong, Shenzhen et Guangzhou, est un centre névralgique pour l'innovation internationale et un écosystème dynamique dans lequel s’épanouissent les grandes entreprises chinoises de haute technologie.\n\nCe voyage d’affaires, c’est la valeur ajoutée du programme Digital InPulse."
         },
         {
-          "title": "Un accompagnement",
-          "text": "De l'atelier de pitch à une semaine d'immersion à Hong Kong, Shenzhen et Canton, un suivi à haute intensité pour transformer votre projet en succès international."
-        },
-        {
-          "title": "Une expertise",
-          "text": "Un accès direct à nos experts Cloud, IoT et Mobile pour sécuriser votre stack et accélérer votre industrialisation."
-        },
-        {
-          "title": "Des territoires",
-          "text": "Une présence multi-régions pour dénicher et propulser les pépites là où elles se trouvent."
+          "title": "Un réseau dynamique",
+          "text": "Guidées par nos équipes et accueillies par les CCI locales, les start-ups rencontreront des partenaires et des clients potentiels afin de confronter leur modèle à la réalité du marché chinois.\n\nCes échanges avec des institutionnels, des incubateurs, des grandes entreprises chinoises et des acteurs français installés sur place permettent aux entrepreneurs d’explorer de nouvelles opportunités, de mieux comprendre les tendances et d’enrichir leur stratégie.\n\nDe retour en France, elles intègreront un réseau d'anciens lauréats pour obtenir et partager des conseils et des bonnes pratiques."
         }
       ],
         "categoriesTitle": "Le parcours de candidature",
         "categoriesText": "",
       "categories": [
         {
-          "title": "Smart Mobility",
-          "text": "Parce que la technologie doit être un moteur de progrès pour nos territoires, Huawei s’engage à travers cette nouvelle thématique à propulser les solutions qui réinventent notre façon de nous déplacer, d'échanger et de connecter nos villes. De la --mobilité urbaine intelligente-- (véhicules connectés, gestion du trafic) à des transports plus --durables-- et --décarbonés--, en passant par des solutions technologiques favorisant une mobilité inclusive et accessible à tous, nous valorisons les projets qui dessinent l'avenir de nos déplacements.",
+          "title": "Thématique 2026 : Smart mobility",
+          "text": "Digital InPulse propose, cette année, de mettre à l’honneur l’enjeu majeur de la --mobilité intelligente-- à travers des projets qui réinventent notre façon de nous --déplacer--, d'--échanger-- et de --connecter-- nos villes.",
           "image": "/assets/media/pages/dip-cb-150-transparent.png",
           "videoAside": "/assets/media/video/cardvideo3.mp4",
           "url": "#parcours-candidature",
@@ -261,22 +245,22 @@
           "Mobilité durable (électrification, solutions bas carbone)",
           "Mobilité inclusive et accessible (solutions technologiques facilitant l’autonomie)."
         ],
-        "highlightTitle": "⚡ Êtes-vous la pépite que nous cherchons ?",
-        "highlightText": "Le profil idéal : Vous ne vous contentez pas d'innover, vous transformez l'économie réelle.",
+        "highlightTitle": "⚡ Le profil idéal",
+        "highlightText": "Un projet mature\nUne solution numérique innovante\nUn business model structuré",
         "eligibilityTitle": "🔧 Critères d’Éligibilité",
-        "eligibilityText": "Pour postuler, votre structure doit répondre à ces trois piliers :",
+        "eligibilityText": "",
         "eligibilityItems": [
-          "Entreprise française immatriculée avant le 1er janvier 2025.",
-          "Étape de la Preuve de Concept (POC) franchie et validée.",
-          "Un plan de déploiement international concret, avec un cap marqué vers la Chine."
+          "Entreprise française immatriculée avant le 1er janvier 2026",
+          "Étape de la Preuve de Concept (POC) franchie et validée",
+          "Un plan de déploiement international concret"
         ],
         "evaluationTitle": "✅ Critères d’évaluation",
         "evaluationItems": [
-          "Votre solution répond-elle au défi de la compétitivité 2026 ?",
-          "Le caractère unique et disruptif de votre technologie.",
-          "Viabilité du business model et réalisme de votre trajectoire.",
+          "Votre solution répond-elle aux défis de la mobilité intelligente ?",
+          "Caractère original et novateur du projet et/ou de la technologie",
+          "La qualité du business plan, la faisabilité économique et la viabilité de l’entreprise",
           "Capacité à passer immédiatement de l'innovation à l'exécution.",
-          "Pertinence et ambition de votre déploiement à l'international.",
+          "Pertinence et ambition de votre déploiement à l'international",
           "Expertise, vision et leadership des fondateurs (présence d'un dirigeant au pitch requise)."
         ]
       },
@@ -314,16 +298,22 @@
       ],
         "schedule": [
           {
-            "city": "Sur dossier",
-            "date": "Avril-mai 2026",
+            "city": "Candidatures ouvertes jusqu’au 30 juin 2026",
+            "date": "Candidatures ouvertes jusqu’au 30 juin 2026",
             "text": "Les start-ups candidates seront sélectionnées sur dossier.",
             "video": "/assets/media/video/cardvideo1.mp4"
           },
           {
-            "city": "Grande Finale - Paris",
-            "date": "Septembre (TBC)",
-            "text": "Pitch des starts-ups retenues et remise de prix.",
+            "city": "Grande finale à Paris en septembre 2026",
+            "date": "",
+            "text": "Les 10 start-ups retenues sur dossier seront invitées à pitcher devant un jury d’experts ; les 5 entreprises lauréates seront annoncées après délibération.",
             "video": "/assets/media/video/cardvideo2.mp4"
+          },
+          {
+            "city": "Voyage d’affaires en Chine en janvier 2027",
+            "date": "",
+            "text": "Nos 5 start-ups lauréates embarqueront pour un voyage d’affaires à la découverte de la Région de la Grande Baie, un écosystème technologique qui relie Hong Kong, Shenzhen et Guangzhou.",
+            "image": "/assets/media/pages/timeline-voyage-chine.jpg"
           }
         ],
       "form": {

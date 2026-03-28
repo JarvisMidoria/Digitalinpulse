@@ -80,6 +80,7 @@ async function bootstrap() {
   wireHomePreviewDrift();
   wireScrollProgress();
   wireHeroCounters();
+  wireAutoplayVideos();
 }
 
 async function fetchContent() {
@@ -186,7 +187,6 @@ function renderFooter(content) {
       }
       return `<a class="partner-chip" href="${safeUrl(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.name)}</a>`;
     });
-  const featuredPartner = `<a class="partner-logo partner-logo-featured" href="https://www.comite-richelieu.org/" target="_blank" rel="noopener noreferrer"><img src="${safeUrl(BRAND_ASSETS.footerFeaturedPartner)}" alt="Comité Richelieu x Sahar" /></a>`;
   const secondaryPartners = partners.slice(1).join("");
   const maddynessPartner = `<a class="partner-logo partner-logo-maddyness" href="https://maddyness.com" target="_blank" rel="noopener noreferrer"><img src="${safeUrl(BRAND_ASSETS.footerPartnerMaddyness)}" alt="Maddyness" /></a>`;
 
@@ -201,7 +201,6 @@ function renderFooter(content) {
     <div class="container footer-partners-wrap">
       <div class="footer-partners-head">
         <h4 class="footer-partners-title">Nos partenaires</h4>
-        <div class="footer-partner-featured">${featuredPartner}</div>
       </div>
       <div class="footer-partners">${secondaryPartners}</div>
       <div class="footer-partners-extra">${maddynessPartner}</div>
@@ -306,7 +305,7 @@ function renderHome(page, techIntroCard = null, womenIntroCard = null) {
       (item, index, items) => `
         <article class="feature-card reveal${items.length % 2 === 1 && index === items.length - 1 ? " feature-card-centered" : ""}" style="--delay:${index * 80}ms">
           <h3>${escapeHtml(item.title)}</h3>
-          <p>${escapeHtml(item.text)}</p>
+          <p>${formatMultilineText(item.text)}</p>
         </article>
       `,
     )
@@ -377,8 +376,8 @@ function renderHome(page, techIntroCard = null, womenIntroCard = null) {
   const homeSchedule = (page.techSchedule || [])
     .map((item, index) => {
       const isFinal = /finale/i.test(item.city || "");
-      const isFolder = /sur dossier/i.test(item.city || "");
-      const dateLabel = `${isFinal ? "🥇" : isFolder ? "📂" : "📍"} ${escapeHtml(item.date)}`;
+      const isFolder = /candidatures ouvertes/i.test(item.city || "") || /sur dossier/i.test(item.city || "");
+      const dateLabel = isFolder ? "📂" : `${isFinal ? "🥇" : "✈️"} ${escapeHtml(item.date)}`;
       return `
         <article class="timeline-item timeline-item-tech ${isFinal ? "timeline-item-final" : "timeline-item-regional"} reveal" style="--delay:${index * 90}ms">
           <p class="timeline-date">${dateLabel}</p>
@@ -394,6 +393,7 @@ function renderHome(page, techIntroCard = null, womenIntroCard = null) {
               : ""
           }
           ${item.image ? `<img class="timeline-card-image" src="${safeUrl(item.image)}" alt="${escapeAttr(item.city)}" />` : ""}
+          ${item.mediaPlaceholder ? `<div class="timeline-card-image timeline-card-image-placeholder" aria-hidden="true"></div>` : ""}
         </article>
       `;
     })
@@ -540,7 +540,7 @@ function renderProgram(page, programKey) {
         const timelineClass = isTech
           ? `timeline-item timeline-item-tech ${isFinal ? "timeline-item-final" : "timeline-item-regional"}`
           : "timeline-item";
-        const dateLabel = isTech ? `${isFinal ? "🥇" : isFolder ? "📂" : "📍"} ${escapeHtml(item.date)}` : escapeHtml(item.date);
+        const dateLabel = isTech ? `${isFinal ? "🥇" : isFolder ? "📂" : "✈️"} ${escapeHtml(item.date)}` : escapeHtml(item.date);
 
         return `
         <article class="${timelineClass} reveal" style="--delay:${index * 90}ms">
@@ -557,6 +557,7 @@ function renderProgram(page, programKey) {
               : ""
           }
           ${item.image ? `<img class="timeline-card-image" src="${safeUrl(item.image)}" alt="${escapeAttr(item.city)}" />` : ""}
+          ${item.mediaPlaceholder ? `<div class="timeline-card-image timeline-card-image-placeholder" aria-hidden="true"></div>` : ""}
         </article>
       `;
       },
@@ -679,7 +680,7 @@ function renderSingleProgramIntroCard(card = {}, extraClass = "") {
           ? `
             <div class="program-intro-highlight program-intro-highlight-profile">
               ${renderIconTitle(card.highlightTitle, "flash")}
-              ${card.highlightText ? `<p class="program-intro-highlight-text">${escapeHtml(card.highlightText)}</p>` : ""}
+              ${card.highlightText ? `<p class="program-intro-highlight-text">${formatMultilineText(card.highlightText)}</p>` : ""}
             </div>
           `
           : ""
@@ -689,8 +690,8 @@ function renderSingleProgramIntroCard(card = {}, extraClass = "") {
           ? `
             <div class="program-intro-highlight program-intro-highlight-eligibility">
               ${renderIconTitle(card.eligibilityTitle, "wrench")}
-              ${card.eligibilityText ? `<p class="program-intro-highlight-text">${escapeHtml(card.eligibilityText)}</p>` : ""}
-              ${eligibilityItems ? `<ul class="program-intro-points">${eligibilityItems}</ul>` : ""}
+              ${card.eligibilityText ? `<p class="program-intro-highlight-text">${formatMultilineText(card.eligibilityText)}</p>` : ""}
+              ${eligibilityItems ? `<ul class="program-intro-points program-intro-points-wrench">${eligibilityItems}</ul>` : ""}
             </div>
           `
           : ""
@@ -700,7 +701,7 @@ function renderSingleProgramIntroCard(card = {}, extraClass = "") {
           ? `
             <div class="program-intro-highlight program-intro-highlight-evaluation">
               ${renderIconTitle(card.evaluationTitle, "check")}
-              ${evaluationItems ? `<ul class="program-intro-points">${evaluationItems}</ul>` : ""}
+              ${evaluationItems ? `<ul class="program-intro-points program-intro-points-check">${evaluationItems}</ul>` : ""}
             </div>
           `
           : ""
@@ -884,7 +885,7 @@ function renderVideoMedia(video) {
   }
 
   const poster = video.poster ? ` poster="${safeUrl(video.poster)}"` : "";
-  return `<video controls preload="metadata"${poster}><source src="${safeUrl(url)}" />Votre navigateur ne supporte pas la lecture video.</video>`;
+  return `<video autoplay muted loop playsinline preload="metadata"${poster}><source src="${safeUrl(url)}" />Votre navigateur ne supporte pas la lecture video.</video>`;
 }
 
 function extractYoutubeId(url) {
@@ -1747,10 +1748,14 @@ function formatInlineGradientEmphasis(value) {
   return escapeHtml(value).replace(/--(.*?)--/g, '<strong class="gradient-inline-emphasis">$1</strong>');
 }
 
+function formatMultilineText(value) {
+  return escapeHtml(value).replace(/\n{2,}/g, "<br /><br />").replace(/\n/g, "<br />");
+}
+
 function formatHeroCounters(value) {
   const escaped = escapeHtml(value);
   return escaped
-    .replace(/\+100(?!\d)/g, '<span class="hero-counter" data-counter-target="100" data-counter-prefix="+">0</span>')
+    .replace(/\+\s*100(?!\d)/g, '<span class="hero-counter" data-counter-target="100" data-counter-prefix="+">0</span>')
     .replace(/\+10(?!\d)/g, "+10");
 }
 
@@ -1787,4 +1792,50 @@ function wireHeroCounters() {
       requestAnimationFrame(tick);
     });
   }, 1550);
+}
+
+function wireAutoplayVideos() {
+  const videos = Array.from(document.querySelectorAll("video"));
+  if (!videos.length) {
+    return;
+  }
+
+  const playVideo = (video) => {
+    video.muted = true;
+    video.defaultMuted = true;
+    video.loop = true;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.setAttribute("muted", "");
+    video.setAttribute("autoplay", "");
+    video.setAttribute("loop", "");
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
+
+    const playAttempt = video.play();
+    if (playAttempt && typeof playAttempt.catch === "function") {
+      playAttempt.catch(() => {});
+    }
+  };
+
+  for (const video of videos) {
+    playVideo(video);
+    video.addEventListener("loadedmetadata", () => playVideo(video), { passive: true });
+    video.addEventListener("canplay", () => playVideo(video), { passive: true });
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") {
+      return;
+    }
+    for (const video of videos) {
+      playVideo(video);
+    }
+  });
+
+  window.addEventListener("pageshow", () => {
+    for (const video of videos) {
+      playVideo(video);
+    }
+  });
 }
