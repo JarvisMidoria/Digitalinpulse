@@ -81,6 +81,7 @@ async function bootstrap() {
   wireScrollProgress();
   wireHeroCounters();
   wireAutoplayVideos();
+  wireDocumentPreviews();
 }
 
 async function fetchContent() {
@@ -170,12 +171,12 @@ function renderFooter(content) {
   const footer = content.footer || {};
 
   const legalLinks = (footer.legalLinks || [])
-    .map((item) => `<li><a href="${safeUrl(item.url)}">${escapeHtml(item.label)}</a></li>`)
+    .map((item) => `<li><a href="${safeUrl(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.label)}</a></li>`)
     .join("");
 
   const socials = (footer.socials || [])
     .map((item) => {
-      const icon = socialIconLabel(item.label || "");
+      const icon = socialIconLabel(item.label || "", item.url || "");
       return `<a class="social-link" href="${safeUrl(item.url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(item.label || "")}"><span>${icon}</span>${escapeHtml(item.label || "")}</a>`;
     })
     .join("");
@@ -1702,8 +1703,8 @@ function findInvalidFile(form) {
   return null;
 }
 
-function socialIconLabel(label) {
-  const lower = String(label || "").toLowerCase();
+function socialIconLabel(label, url = "") {
+  const lower = `${String(label || "").toLowerCase()} ${String(url || "").toLowerCase()}`;
   if (lower.includes("linkedin")) {
     return "in";
   }
@@ -1839,3 +1840,5 @@ function wireAutoplayVideos() {
     }
   });
 }
+
+function wireDocumentPreviews() {}

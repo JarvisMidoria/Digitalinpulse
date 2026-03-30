@@ -20,20 +20,16 @@
         "url": "/mentions-legales/"
       },
       {
-        "label": "Conditions d'utilisation",
-        "url": "/conditions-generales-dutilisation/"
-      },
-      {
         "label": "Politique cookies",
         "url": "/politique-relative-a-lutilisation-des-cookies/"
       },
       {
         "label": "Politique de confidentialite",
-        "url": "/politique-de-confidentialite/"
+        "url": "/assets/media/documents/reglement-dip-2026.pdf"
       },
       {
         "label": "Reglement du concours",
-        "url": "/assets/media/documents/reglement-dip-2025.pdf"
+        "url": "/assets/media/documents/reglement-dip-2026.pdf"
       }
     ],
     "partners": [
@@ -52,11 +48,11 @@
     ],
     "socials": [
       {
-        "label": "Twitter Huawei France",
+        "label": "Huawei France",
         "url": "https://twitter.com/HuaweiFr"
       },
       {
-        "label": "LinkedIn Digital InPulse Alumni",
+        "label": "Digital InPulse Alumni",
         "url": "https://www.linkedin.com/in/digital-inpulse-club-alumni-108400169/"
       }
     ]
