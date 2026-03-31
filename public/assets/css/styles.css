@@ -1273,19 +1273,52 @@ img {
 }
 
 .program-stack-combined-tech .program-intro-list li {
-  text-align: left;
-  padding-left: 2rem;
+  width: 100%;
+  max-width: min(100%, 42rem);
+  margin: 0 auto;
+  text-align: center;
 }
 
 .program-stack-combined-tech .program-intro-list li::before {
-  position: absolute;
-  left: 0;
-  top: 0.36rem;
+  display: none;
+}
+
+.program-stack-combined-tech .program-intro-list-copy {
   display: block;
+}
+
+.program-stack-combined-tech .program-intro-list-title-row {
+  display: inline-block;
+  position: relative;
+  max-width: 100%;
+}
+
+.program-stack-combined-tech .program-intro-list-bullet {
   width: 1.05rem;
   height: 1.05rem;
-  margin-right: 0;
-  transform: none;
+  position: absolute;
+  left: -1.35rem;
+  top: 0.08rem;
+  background-image: url("/assets/media/pages/pain-point.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.program-stack-combined-tech .program-intro-list-title {
+  display: block;
+  text-align: center;
+}
+
+.program-stack-combined-tech .program-intro-list-detail {
+  display: block;
+  margin-top: 0.15rem;
+  text-align: center;
+}
+
+.program-stack-combined-tech .program-intro-list .gradient-inline-emphasis {
+  display: inline-block;
+  margin-bottom: 0;
 }
 
 .program-flip-card {
@@ -1800,6 +1833,18 @@ img {
   color: #526887;
   line-height: 1.6;
   text-align: left;
+}
+
+.program-intro-list-copy {
+  display: block;
+}
+
+.program-intro-list-title {
+  display: block;
+}
+
+.program-intro-list-detail {
+  display: block;
 }
 
 .program-intro-list li::before {

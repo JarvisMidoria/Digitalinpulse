@@ -383,7 +383,7 @@ function renderHome(page, techIntroCard = null, womenIntroCard = null) {
         <article class="timeline-item timeline-item-tech ${isFinal ? "timeline-item-final" : "timeline-item-regional"} reveal" style="--delay:${index * 90}ms">
           <p class="timeline-date">${dateLabel}</p>
           <h3>${escapeHtml(item.city)}</h3>
-          <p>${escapeHtml(item.text)}</p>
+          ${item.text ? `<p>${escapeHtml(item.text)}</p>` : ""}
           ${
             item.video
               ? `
@@ -648,9 +648,29 @@ function renderProgramIntroCard(card = {}, womenCard = null, programKey) {
 }
 
 function renderSingleProgramIntroCard(card = {}, extraClass = "") {
-  const points = (card.points || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
-  const eligibilityItems = (card.eligibilityItems || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
-  const evaluationItems = (card.evaluationItems || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const points = (card.points || [])
+    .map((item) => {
+      const [title, ...rest] = String(item || "").split("\n");
+      const detail = rest.join("\n").trim();
+      return `
+        <li>
+          <span class="program-intro-list-copy">
+            <span class="program-intro-list-title-row">
+              <span class="program-intro-list-bullet" aria-hidden="true"></span>
+              <span class="program-intro-list-title">${formatInlineGradientEmphasis(title)}</span>
+            </span>
+            ${detail ? `<span class="program-intro-list-detail">${formatRichMultilineText(detail)}</span>` : ""}
+          </span>
+        </li>
+      `;
+    })
+    .join("");
+  const eligibilityItems = (card.eligibilityItems || [])
+    .map((item) => `<li>${formatRichMultilineText(item)}</li>`)
+    .join("");
+  const evaluationItems = (card.evaluationItems || [])
+    .map((item) => `<li>${formatRichMultilineText(item)}</li>`)
+    .join("");
   const applicationItems = (card.applicationItems || [])
     .map((item) => `<li class="program-intro-application-item">${escapeHtml(item)}</li>`)
     .join("");
@@ -787,7 +807,7 @@ function renderHero(hero = {}, options = {}) {
         <div class="hero-copy reveal">
           ${hero.eyebrow ? `<p class="hero-eyebrow">${escapeHtml(hero.eyebrow)}</p>` : ""}
           <h1>${formatHeroCounters(hero.title || "")}</h1>
-          <p>${escapeHtml(hero.subtitle || "")}</p>
+          <p>${formatMultilineText(hero.subtitle || "")}</p>
           ${hero.highlight ? `<p class="hero-highlight">${formatHeroCounters(hero.highlight)}</p>` : ""}
           ${actions}
         </div>
@@ -1760,6 +1780,10 @@ function escapeAttr(value) {
 
 function formatInlineGradientEmphasis(value) {
   return escapeHtml(value).replace(/--(.*?)--/g, '<strong class="gradient-inline-emphasis">$1</strong>');
+}
+
+function formatRichMultilineText(value) {
+  return formatInlineGradientEmphasis(value).replace(/\n{2,}/g, "<br /><br />").replace(/\n/g, "<br />");
 }
 
 function formatMultilineText(value) {
