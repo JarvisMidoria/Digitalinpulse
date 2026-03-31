@@ -421,7 +421,7 @@ function renderHome(page, techIntroCard = null, womenIntroCard = null) {
         ${categoryPreviews}
       </div>
     </section>
-    <section id="experience-digital-inpulse" class="section section-soft section-experience">
+    <section id="raisons-candidater" class="section section-soft section-experience">
       <div class="container">
         ${renderSectionHead(page.introTitle || "", page.introText || "", { centered: true })}
         <div class="feature-grid">${pillars}</div>
@@ -436,7 +436,7 @@ function renderHome(page, techIntroCard = null, womenIntroCard = null) {
     ${
       homeSchedule
         ? `
-    <section class="section">
+    <section id="dates-cles" class="section">
       <div class="container">
         ${renderSectionHead(page.techScheduleTitle || "", "", { centered: true })}
         <div class="timeline timeline-horizontal">${homeSchedule}</div>
@@ -758,12 +758,25 @@ function renderHero(hero = {}, options = {}) {
     ? isHomeStyle(options.variant === "home", hero.image)
     : "";
   const visual = renderHeroVisual(hero, options);
-  const primaryAction =
-    hero.ctaLabel && hero.ctaUrl ? `<a class="btn btn-light" href="${safeUrl(hero.ctaUrl)}">${escapeHtml(hero.ctaLabel)}</a>` : "";
-  const secondary = options.secondaryAction;
-  const secondaryAction =
-    secondary?.label && secondary?.url ? `<a class="btn btn-outline-light" href="${safeUrl(secondary.url)}">${escapeHtml(secondary.label)}</a>` : "";
-  const actions = primaryAction || secondaryAction ? `<div class="hero-actions">${primaryAction}${secondaryAction}</div>` : "";
+  const actionsMarkup = Array.isArray(hero.actions) && hero.actions.length
+    ? hero.actions
+        .map((action) => {
+          if (!action?.label || !action?.url) {
+            return "";
+          }
+          const buttonClass = action.variant === "light" ? "btn btn-light" : "btn btn-outline-light";
+          return `<a class="${buttonClass}" href="${safeUrl(action.url)}">${escapeHtml(action.label)}</a>`;
+        })
+        .join("")
+    : (() => {
+        const primaryAction =
+          hero.ctaLabel && hero.ctaUrl ? `<a class="btn btn-light" href="${safeUrl(hero.ctaUrl)}">${escapeHtml(hero.ctaLabel)}</a>` : "";
+        const secondary = options.secondaryAction;
+        const secondaryAction =
+          secondary?.label && secondary?.url ? `<a class="btn btn-outline-light" href="${safeUrl(secondary.url)}">${escapeHtml(secondary.label)}</a>` : "";
+        return `${primaryAction}${secondaryAction}`;
+      })();
+  const actions = actionsMarkup ? `<div class="hero-actions">${actionsMarkup}</div>` : "";
   const side = options.sideContent ? `<aside class="hero-side reveal">${options.sideContent}</aside>` : "";
   const isHome = options.variant === "home";
 
@@ -848,7 +861,7 @@ function renderHomeVideo(video) {
     .join("");
 
   return `
-    <section class="section section-video${hideOnMobile ? " hide-on-mobile" : ""}">
+    <section id="edition-2025" class="section section-video${hideOnMobile ? " hide-on-mobile" : ""}">
       <div class="container">
         ${renderSectionHead(video.title || "", video.text || "", { centered: true })}
         <div class="home-video-layout home-video-layout-expanded">

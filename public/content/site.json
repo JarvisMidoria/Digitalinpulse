@@ -65,12 +65,28 @@
         "subtitle": "Huawei organise chaque année le concours Digital InPulse afin de soutenir le développement des entreprises françaises innovantes. Ce programme leur offre un accompagnement privilégié au cœur de l’écosystème technologique chinois.",
         "highlight": "+ 100 start-ups françaises épaulées depuis 2014",
         "video": "/assets/media/video/headervideo.mp4",
-        "ctaLabel": "Découvrir le concours",
-        "ctaUrl": "#parcours-candidature",
-        "secondaryAction": {
-          "label": "Je candidate",
-          "url": "#parcours-candidature"
-        }
+        "actions": [
+          {
+            "label": "Découvrir le concours",
+            "url": "#raisons-candidater",
+            "variant": "light"
+          },
+          {
+            "label": "Je candidate",
+            "url": "#parcours-candidature",
+            "variant": "outline"
+          },
+          {
+            "label": "Calendrier",
+            "url": "#dates-cles",
+            "variant": "outline"
+          },
+          {
+            "label": "Edition 2025",
+            "url": "#edition-2025",
+            "variant": "outline"
+          }
+        ]
       },
         "video": {
         "title": "Plongez au cœur de l’écosystème Digital InPulse",
