@@ -2250,7 +2250,7 @@ img {
   border: 0;
   display: flex;
   flex-direction: column;
-  min-height: 575px;
+  min-height: 0;
 }
 
 .timeline-item-tech::after {
@@ -2363,6 +2363,7 @@ img {
   font-size: 1.52rem;
   line-height: 1.25;
   min-height: 3.8rem;
+  word-spacing: 0.12em;
 }
 
 .timeline-item-regional h3,
@@ -2371,20 +2372,59 @@ img {
 }
 
 .timeline-item-tech p {
+  margin-top: 0.68rem;
   font-size: 1.08rem;
-  line-height: 1.6;
+  line-height: 1.65;
+  font-weight: 500;
 }
 
 .timeline-card-image {
   display: block;
   width: 100%;
-  margin-top: auto;
-  padding-top: 1.1rem;
+  margin-top: 1rem;
+  padding-top: 0;
   border-radius: 14px;
   object-fit: cover;
   height: 260px;
   max-height: none;
   overflow: hidden;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 0.38rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.checkbox-group {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid rgba(24, 52, 104, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.96rem;
+  color: #111111;
+  cursor: pointer;
+}
+
+.checkbox-option input[type="checkbox"] {
+  margin: 0;
+  accent-color: #cf4dd8;
+}
+
+@media (min-width: 941px) {
+  .timeline-item-tech p {
+    min-height: 8.25rem;
+  }
 }
 
 .timeline-card-image-placeholder {

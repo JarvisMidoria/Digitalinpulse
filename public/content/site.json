@@ -131,7 +131,7 @@
         {
           "title": "Thématique 2026 : Smart mobility",
           "compactTitle": "Smart mobility",
-          "text": "Digital InPulse souhaite valoriser, cette année, des projets qui transforment la manière dont nous nous déplaçons, échangeons et connectons nos territoires.\n\nLes start-ups françaises qui inventent les solutions de mobilité de demain sont invitées à candidater, qu’il s’agisse de mobilité urbaine, durable ou inclusive.\n\nRejoignez l’aventure Digital InPulse et donnez une nouvelle dimension à votre projet entrepreneurial !",
+          "text": "Digital InPulse souhaite valoriser, cette année, des projets qui transforment la manière dont nous nous déplaçons, échangeons et connectons nos territoires. Les start-ups françaises qui inventent les solutions de mobilité de demain sont invitées à candidater, qu’il s’agisse de mobilité urbaine, durable ou inclusive.\n\nRejoignez l’aventure Digital InPulse et donnez une nouvelle dimension à votre projet entrepreneurial !",
           "image": "/assets/media/pages/dip-cb-150-transparent.png",
           "videoAside": "/assets/media/video/cardvideo3.mp4",
           "url": "#parcours-candidature",
@@ -317,21 +317,21 @@
       ],
         "schedule": [
           {
-            "city": "Les start-ups déposent leur candidature en ligne et sont sélectionnées sur dossier par des experts.",
-            "date": "Candidatures ouvertes jusqu’au 30 juin 2026",
-            "text": "",
+            "city": "📂 Avant le 30 juin, minuit",
+            "date": "",
+            "text": "Les start-ups déposent leurs candidatures en ligne et sont sélectionnés sur dossier par des experts.",
             "video": "/assets/media/video/cardvideo1.mp4"
           },
           {
-            "city": "Les dix start-ups retenues sont invitées à pitcher devant un jury : les cinq entreprises lauréates sont annoncées après délibérations.",
+            "city": "🥇 En septembre 2026",
             "date": "",
-            "text": "",
+            "text": "Les 10 start-ups retenues sont invités à pitcher devant un jury lors d’une grande finale.",
             "video": "/assets/media/video/cardvideo2.mp4"
           },
           {
-            "city": "Les cinq start-ups lauréates embarquent à la découverte de la Région de la Grande Baie.",
+            "city": "✈️ En janvier 2027",
             "date": "",
-            "text": "",
+            "text": "Les 5 start-ups lauréates s’envolent pour un voyage d’affaires au cœur de la Grande Baie, en Chine.",
             "video": "/assets/media/video/cardvideo3.mp4"
           }
         ],

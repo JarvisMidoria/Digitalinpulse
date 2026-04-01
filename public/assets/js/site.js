@@ -318,7 +318,7 @@ function renderHome(page, techIntroCard = null, womenIntroCard = null) {
         <img class="program-card-media" src="${safeUrl(techCategory.image)}" alt="${escapeAttr(techCategory.title)}" />
         <div class="program-card-content">
           <h3>${escapeHtml(techCategory.title)}</h3>
-          <p>${formatInlineGradientEmphasis(techCategory.text)}</p>
+          <p>${formatRichMultilineText(techCategory.text)}</p>
           <a class="btn btn-outline" href="${safeUrl(techCategory.url)}">${escapeHtml(techCategory.ctaLabel || "En savoir plus")}</a>
         </div>
       </article>
@@ -381,7 +381,7 @@ function renderHome(page, techIntroCard = null, womenIntroCard = null) {
       const dateLabel = isFolder ? "📂" : `${isFinal ? "🥇" : "✈️"} ${escapeHtml(item.date)}`;
       return `
         <article class="timeline-item timeline-item-tech ${isFinal ? "timeline-item-final" : "timeline-item-regional"} reveal" style="--delay:${index * 90}ms">
-          <p class="timeline-date">${dateLabel}</p>
+          ${item.date ? `<p class="timeline-date">${dateLabel}</p>` : ""}
           <h3>${escapeHtml(item.city)}</h3>
           ${item.text ? `<p>${escapeHtml(item.text)}</p>` : ""}
           ${
@@ -1020,17 +1020,6 @@ function buildProgramForm(form, programKey) {
             <label for="${idPrefix}-phone">Téléphone portable *</label>
             <input id="${idPrefix}-phone" name="phone" type="tel" required />
           </div>
-          <div class="field">
-            <label for="${idPrefix}-region">Région de candidature *</label>
-            <select id="${idPrefix}-region" name="region" required>
-              <option value="">Sélectionner</option>
-              <option>Île-de-France</option>
-              <option>Nord-Est</option>
-              <option>Sud-Est</option>
-              <option>Nord-Ouest</option>
-              <option>Sud-Ouest</option>
-            </select>
-          </div>
         </div>
       </fieldset>
 
@@ -1075,12 +1064,12 @@ function buildProgramForm(form, programKey) {
             </select>
           </div>
           <div class="field">
-            <label for="${idPrefix}-rev-2024">Chiffre d'affaires 2024</label>
-            <input id="${idPrefix}-rev-2024" name="revenue_2024" type="number" min="0" />
+            <label for="${idPrefix}-rev-2025">Chiffre d'affaires 2025</label>
+            <input id="${idPrefix}-rev-2025" name="revenue_2025" type="number" min="0" />
           </div>
           <div class="field">
-            <label for="${idPrefix}-rev-2025">CA prévisionnel 2025</label>
-            <input id="${idPrefix}-rev-2025" name="revenue_2025" type="number" min="0" />
+            <label for="${idPrefix}-rev-2026">CA prévisionnel 2026</label>
+            <input id="${idPrefix}-rev-2026" name="revenue_2026" type="number" min="0" />
           </div>
           <div class="field">
             <label for="${idPrefix}-employees">Nombre de salariés</label>
@@ -1120,13 +1109,14 @@ function buildProgramForm(form, programKey) {
           </div>
           <div class="field">
             <label for="${idPrefix}-tech-stack">Technologies utilisées</label>
-            <select id="${idPrefix}-tech-stack" name="tech_stack" multiple>
-              <option>Intelligence artificielle</option>
-              <option>Cloud</option>
-              <option>Blockchain</option>
-              <option>AR/VR</option>
-              <option>IoT</option>
-            </select>
+            <div id="${idPrefix}-tech-stack" class="checkbox-group" role="group" aria-label="Technologies utilisées">
+              <label class="checkbox-option"><input type="checkbox" name="tech_stack" value="Intelligence artificielle" /> <span>Intelligence artificielle</span></label>
+              <label class="checkbox-option"><input type="checkbox" name="tech_stack" value="Cloud" /> <span>Cloud</span></label>
+              <label class="checkbox-option"><input type="checkbox" name="tech_stack" value="Blockchain" /> <span>Blockchain</span></label>
+              <label class="checkbox-option"><input type="checkbox" name="tech_stack" value="AR/VR" /> <span>AR/VR</span></label>
+              <label class="checkbox-option"><input type="checkbox" name="tech_stack" value="IoT" /> <span>IoT</span></label>
+            </div>
+            <small class="field-hint">Vous pouvez sélectionner une ou plusieurs options.</small>
           </div>
           <div class="field">
             <label for="${idPrefix}-source">Comment avez-vous connu le concours ? *</label>
