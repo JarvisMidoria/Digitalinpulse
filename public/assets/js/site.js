@@ -1107,7 +1107,7 @@ function buildProgramForm(form, programKey) {
             <label for="${idPrefix}-impact">En quoi votre entreprise répond aux enjeux du concours ? *</label>
             <textarea id="${idPrefix}-impact" name="impact_statement" required></textarea>
           </div>
-          <div class="field">
+          <div class="field field-tech-stack">
             <label for="${idPrefix}-tech-stack">Technologies utilisées</label>
             <div id="${idPrefix}-tech-stack" class="checkbox-group" role="group" aria-label="Technologies utilisées">
               <label class="checkbox-option"><input type="checkbox" name="tech_stack" value="Intelligence artificielle" /> <span>Intelligence artificielle</span></label>
@@ -1118,7 +1118,7 @@ function buildProgramForm(form, programKey) {
             </div>
             <small class="field-hint">Vous pouvez sélectionner une ou plusieurs options.</small>
           </div>
-          <div class="field">
+          <div class="field field-source">
             <label for="${idPrefix}-source">Comment avez-vous connu le concours ? *</label>
             <select id="${idPrefix}-source" name="source" required>
               <option value="">Sélectionner</option>

@@ -2414,11 +2414,55 @@ img {
   font-size: 0.96rem;
   color: #111111;
   cursor: pointer;
+  justify-content: flex-start;
+  text-align: left;
 }
 
 .checkbox-option input[type="checkbox"] {
   margin: 0;
   accent-color: #cf4dd8;
+}
+
+.field-tech-stack,
+.field-source {
+  align-self: start;
+}
+
+.field-tech-stack .checkbox-group {
+  max-height: 148px;
+  overflow: auto;
+  align-content: start;
+  justify-items: start;
+  padding: 0.55rem 0.6rem;
+}
+
+.field-tech-stack .checkbox-option {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: start;
+  column-gap: 0.35rem;
+  row-gap: 0;
+  justify-content: start;
+  justify-items: start;
+  line-height: 1.3;
+}
+
+.field-source select {
+  min-height: 48px;
+  height: 48px;
+  align-self: start;
+}
+
+.field-tech-stack .checkbox-option span {
+  display: block;
+  text-align: left;
+}
+
+.field-tech-stack .checkbox-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  align-self: start;
 }
 
 @media (min-width: 941px) {
