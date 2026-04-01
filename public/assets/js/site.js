@@ -885,16 +885,24 @@ function renderHomeVideo(video) {
       <div class="container">
         ${renderSectionHead(video.title || "", video.text || "", { centered: true })}
         <div class="home-video-layout home-video-layout-expanded">
-          <article class="home-video-frame reveal">
-            ${media}
+          <article class="home-video-card reveal">
+            <div class="home-video-frame">
+              ${media}
+            </div>
+            <p class="home-video-caption">Voyage d’affaires de 2025</p>
           </article>
-          <article class="home-video-frame home-carousel-frame reveal" aria-label="Carrousel photos" data-home-carousel>
-            <div class="home-carousel-track">
-              ${carouselImages}
+          <article class="home-video-card reveal" aria-label="Carrousel photos">
+            <div class="home-video-frame home-carousel-frame" data-home-carousel>
+              <div class="home-carousel-track">
+                ${carouselImages}
+              </div>
+              <button class="home-carousel-arrow home-carousel-arrow-prev" type="button" data-home-carousel-prev aria-label="Photo précédente">‹</button>
+              <button class="home-carousel-arrow home-carousel-arrow-next" type="button" data-home-carousel-next aria-label="Photo suivante">›</button>
+              <div class="home-carousel-dots">
+                ${carouselDots}
+              </div>
             </div>
-            <div class="home-carousel-dots">
-              ${carouselDots}
-            </div>
+            <p class="home-video-caption">Photos de la Finale 2025</p>
           </article>
         </div>
       </div>
@@ -1323,12 +1331,15 @@ function wireHomeCarousel() {
   }
   const slides = [...carousel.querySelectorAll("[data-home-carousel-slide]")];
   const dots = [...carousel.querySelectorAll("[data-home-carousel-dot]")];
+  const prev = carousel.querySelector("[data-home-carousel-prev]");
+  const next = carousel.querySelector("[data-home-carousel-next]");
   if (!slides.length) {
     return;
   }
 
   let index = 0;
   let timer = null;
+  const SLIDE_DURATION_MS = 4000;
 
   const setActive = (nextIndex) => {
     index = (nextIndex + slides.length) % slides.length;
@@ -1341,7 +1352,10 @@ function wireHomeCarousel() {
   };
 
   const start = () => {
-    timer = window.setInterval(() => setActive(index + 1), 3200);
+    if (timer) {
+      return;
+    }
+    timer = window.setInterval(() => setActive(index + 1), SLIDE_DURATION_MS);
   };
 
   const stop = () => {
@@ -1359,8 +1373,23 @@ function wireHomeCarousel() {
     });
   });
 
+  prev?.addEventListener("click", () => {
+    setActive(index - 1);
+    stop();
+    start();
+  });
+
+  next?.addEventListener("click", () => {
+    setActive(index + 1);
+    stop();
+    start();
+  });
+
   carousel.addEventListener("mouseenter", stop);
-  carousel.addEventListener("mouseleave", start);
+  carousel.addEventListener("mouseleave", () => {
+    stop();
+    start();
+  });
 
   setActive(0);
   start();
