@@ -882,7 +882,7 @@ function renderHomeVideo(video) {
     .map(
       (item, index) => `
         <figure class="home-carousel-slide${index === 0 ? " active" : ""}" data-home-carousel-slide="${index}">
-          <img src="${safeUrl(item)}" alt="Photo Digital InPulse ${index + 1}" loading="lazy" />
+          <img src="${safeUrl(item)}" alt="Photo Digital InPulse ${index + 1}" loading="eager" />
         </figure>
       `,
     )
@@ -1354,6 +1354,8 @@ function wireTestimonialSlider() {
     dot.addEventListener("click", () => setActive(dotIndex));
   });
 
+  bindSwipe(slider, () => setActive(index - 1), () => setActive(index + 1));
+
   setActive(0);
 }
 
@@ -1406,17 +1408,22 @@ function wireHomeCarousel() {
     });
   });
 
-  prev?.addEventListener("click", () => {
+  const goPrev = () => {
     setActive(index - 1);
     stop();
     start();
-  });
+  };
 
-  next?.addEventListener("click", () => {
+  const goNext = () => {
     setActive(index + 1);
     stop();
     start();
-  });
+  };
+
+  prev?.addEventListener("click", goPrev);
+  next?.addEventListener("click", goNext);
+
+  bindSwipe(carousel, goPrev, goNext);
 
   carousel.addEventListener("mouseenter", stop);
   carousel.addEventListener("mouseleave", () => {
@@ -1426,6 +1433,67 @@ function wireHomeCarousel() {
 
   setActive(0);
   start();
+}
+
+function bindSwipe(target, onPrev, onNext) {
+  if (!target || typeof onPrev !== "function" || typeof onNext !== "function") {
+    return;
+  }
+  let startX = 0;
+  let startY = 0;
+  let isSwiping = false;
+
+  target.addEventListener(
+    "touchstart",
+    (event) => {
+      if (event.touches.length !== 1) {
+        return;
+      }
+      const touch = event.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      isSwiping = true;
+    },
+    { passive: true },
+  );
+
+  target.addEventListener(
+    "touchmove",
+    (event) => {
+      if (!isSwiping || event.touches.length !== 1) {
+        return;
+      }
+      const touch = event.touches[0];
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8) {
+        event.preventDefault();
+      }
+    },
+    { passive: false },
+  );
+
+  target.addEventListener(
+    "touchend",
+    (event) => {
+      if (!isSwiping) {
+        return;
+      }
+      const touch = event.changedTouches[0];
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
+      isSwiping = false;
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) {
+        return;
+      }
+      if (dx < 0) {
+        onNext();
+      } else {
+        onPrev();
+      }
+    },
+    { passive: true },
+  );
 }
 
 function wireApplicationForms() {
