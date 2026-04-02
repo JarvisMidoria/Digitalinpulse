@@ -403,10 +403,18 @@ function renderHome(page, techIntroCard = null, womenIntroCard = null) {
     .map(
       (item, index) => `
         <article class="testimonial-slide${index === 0 ? " active" : ""}" data-slide-index="${index}">
-          <blockquote>"${escapeHtml(item.quote)}"</blockquote>
-          <p class="testimonial-author">${escapeHtml(item.author)}</p>
-          <p>${escapeHtml(item.role)}</p>
+          <div class="testimonial-video-frame">
+            ${renderVideoMedia({ title: item.title || `Témoignage ${index + 1}`, url: item.url || "" })}
+          </div>
+          <p class="testimonial-video-title">${escapeHtml(item.title || "")}</p>
         </article>
+      `,
+    )
+    .join("");
+  const testimonialDots = (page.testimonials || [])
+    .map(
+      (_, index) => `
+        <button class="testimonial-dot${index === 0 ? " active" : ""}" type="button" data-testimonial-dot="${index}" aria-label="Afficher le témoignage ${index + 1}"></button>
       `,
     )
     .join("");
@@ -447,9 +455,16 @@ function renderHome(page, techIntroCard = null, womenIntroCard = null) {
     }
     ${homeVideo}
     <section class="section section-testimonials">
-      <div class="container">
+      <div class="container container-wide">
         ${renderSectionHead(page.testimonialsTitle || "", "", { centered: true })}
-        <div class="testimonial-coming reveal">À venir</div>
+        <div class="testimonial-slider reveal" data-testimonial-slider>
+          <button class="slider-btn prev" type="button" data-slide-prev aria-label="Témoignage précédent">‹</button>
+          <div class="testimonial-track">
+            ${testimonials}
+          </div>
+          <button class="slider-btn next" type="button" data-slide-next aria-label="Témoignage suivant">›</button>
+          <div class="testimonial-dots">${testimonialDots}</div>
+        </div>
       </div>
     </section>
   `;
@@ -889,7 +904,7 @@ function renderHomeVideo(video) {
             <div class="home-video-frame">
               ${media}
             </div>
-            <p class="home-video-caption">Voyage d’affaires de 2025</p>
+            <p class="home-video-caption">Voyage d’affaires 2025</p>
           </article>
           <article class="home-video-card reveal" aria-label="Carrousel photos">
             <div class="home-video-frame home-carousel-frame" data-home-carousel>
@@ -920,9 +935,10 @@ function renderVideoMedia(video) {
     return `<iframe src="${safeUrl(src)}" title="${title}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
   }
 
-  const vimeoId = extractVimeoId(url);
-  if (vimeoId) {
-    const src = `https://player.vimeo.com/video/${vimeoId}`;
+  const vimeoData = extractVimeoData(url);
+  if (vimeoData?.id) {
+    const privacyHash = vimeoData.hash ? `?h=${encodeURIComponent(vimeoData.hash)}` : "";
+    const src = `https://player.vimeo.com/video/${vimeoData.id}${privacyHash}`;
     return `<iframe src="${safeUrl(src)}" title="${title}" loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
   }
 
@@ -938,10 +954,16 @@ function extractYoutubeId(url) {
   return match?.[1] || "";
 }
 
-function extractVimeoId(url) {
+function extractVimeoData(url) {
   const value = String(url || "").trim();
-  const match = value.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
-  return match?.[1] || "";
+  const match = value.match(/vimeo\.com\/(?:video\/)?(\d+)(?:\/([A-Za-z0-9]+))?/i);
+  if (!match) {
+    return null;
+  }
+  return {
+    id: match[1] || "",
+    hash: match[2] || "",
+  };
 }
 
 function shouldHideVideoOnMobile(video) {
@@ -1302,6 +1324,7 @@ function wireTestimonialSlider() {
   const slides = [...slider.querySelectorAll(".testimonial-slide")];
   const prev = slider.querySelector("[data-slide-prev]");
   const next = slider.querySelector("[data-slide-next]");
+  const dots = [...slider.querySelectorAll("[data-testimonial-dot]")];
   if (!slides.length || !prev || !next) {
     return;
   }
@@ -1309,19 +1332,29 @@ function wireTestimonialSlider() {
   let index = 0;
   const setActive = (nextIndex) => {
     index = (nextIndex + slides.length) % slides.length;
+    const prevIndex = (index - 1 + slides.length) % slides.length;
+    const nextVisibleIndex = (index + 1) % slides.length;
     slides.forEach((slide, slideIndex) => {
       slide.classList.toggle("active", slideIndex === index);
+      slide.classList.toggle("is-prev", slideIndex === prevIndex);
+      slide.classList.toggle("is-next", slideIndex === nextVisibleIndex);
+      slide.classList.toggle(
+        "is-hidden",
+        slideIndex !== index && slideIndex !== prevIndex && slideIndex !== nextVisibleIndex,
+      );
+    });
+    dots.forEach((dot, dotIndex) => {
+      dot.classList.toggle("active", dotIndex === index);
     });
   };
 
   prev.addEventListener("click", () => setActive(index - 1));
   next.addEventListener("click", () => setActive(index + 1));
-
-  let timer = window.setInterval(() => setActive(index + 1), 6000);
-  slider.addEventListener("mouseenter", () => window.clearInterval(timer));
-  slider.addEventListener("mouseleave", () => {
-    timer = window.setInterval(() => setActive(index + 1), 6000);
+  dots.forEach((dot, dotIndex) => {
+    dot.addEventListener("click", () => setActive(dotIndex));
   });
+
+  setActive(0);
 }
 
 function wireHomeCarousel() {

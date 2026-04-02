@@ -145,22 +145,19 @@
           "ctaLabel": "En savoir plus"
         }
       ],
-      "testimonialsTitle": "Temoignages alumni",
+      "testimonialsTitle": "Digital InPulse 2021 : paroles d’alumni",
       "testimonials": [
         {
-          "quote": "Le programme nous a permis de rencontrer des partenaires strategiques en Asie.",
-          "author": "Fabien Astic",
-          "role": "Co-fondateur, ExactCure"
+          "title": "Greenly",
+          "url": "https://vimeo.com/709796613/62a45b7b60"
         },
         {
-          "quote": "La visibilite et les connexions obtenues ont accelere notre trajectoire internationale.",
-          "author": "Ruben Hallali",
-          "role": "CEO, HD Rain"
+          "title": "Alvie",
+          "url": "https://vimeo.com/709792662/4f3c33ba54"
         },
         {
-          "quote": "Le club alumni nous aide a garder un vrai flux d'echanges business utile toute l'annee.",
-          "author": "Frederic Metge",
-          "role": "Co-fondateur, Cosmo Connected"
+          "title": "Oghji",
+          "url": "https://vimeo.com/709797658/f87a14ec06"
         }
       ]
     },
