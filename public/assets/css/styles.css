@@ -796,6 +796,7 @@ img {
   border-radius: var(--radius-lg);
   border: 0;
   overflow: hidden;
+  clip-path: inset(0 round var(--radius-lg));
   box-shadow: var(--shadow-soft);
   background: #0f2346;
   aspect-ratio: 16 / 9;
@@ -856,6 +857,7 @@ img {
     linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(250, 247, 255, 0.96));
   position: relative;
   overflow: hidden;
+  border-radius: inherit;
 }
 
 .home-video-caption {
