@@ -797,6 +797,7 @@ img {
   border: 0;
   overflow: hidden;
   clip-path: inset(0 round var(--radius-lg));
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
   box-shadow: var(--shadow-soft);
   background: #0f2346;
   aspect-ratio: 16 / 9;
@@ -858,6 +859,7 @@ img {
   position: relative;
   overflow: hidden;
   border-radius: inherit;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 
 .home-video-caption {
