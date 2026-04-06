@@ -1,5 +1,6 @@
-const { requestGitHub, normalizeFileName, response, createHttpError } = require("./_github");
+const { normalizeFileName, response, createHttpError } = require("./_github");
 const { getSubmissionConfig, ensureAllowedOrigin, readHeader } = require("./_submissions");
+const { getSupabaseConfig, uploadObject, putJson } = require("./_supabase");
 
 const ALLOWED_PROGRAMS = new Set(["smart_mobility"]);
 const ALLOWED_CONTENT_TYPES = new Set([
@@ -27,6 +28,7 @@ exports.handler = async (event) => {
 
   try {
     const config = getSubmissionConfig();
+    const supabase = getSupabaseConfig();
     ensureAllowedOrigin(config, event);
 
     let payload = {};
@@ -48,7 +50,7 @@ exports.handler = async (event) => {
       const baseName = normalizeFileName(file.filename || `file-${index + 1}`).replace(/\.[^.]+$/, "");
       const fileName = `${String(index + 1).padStart(2, "0")}-${baseName || `file-${index + 1}`}.${extension}`;
       const filePath = `${basePath}/files/${fileName}`;
-      await writeGitHubFile(config, filePath, file.binary, `[FORM] ${reference} file ${index + 1}`);
+      await uploadObject(supabase, filePath, file.binary, file.contentType);
       storedFiles.push({
         fieldName: file.fieldName,
         filename: file.filename,
@@ -71,8 +73,7 @@ exports.handler = async (event) => {
         userAgent: normalized.userAgent || null,
       },
     };
-    const recordBody = `${JSON.stringify(record, null, 2)}\n`;
-    await writeGitHubFile(config, `${basePath}/submission.json`, Buffer.from(recordBody, "utf-8"), `[FORM] ${reference} submission`);
+    await putJson(supabase, `${basePath}/submission.json`, record);
 
     const notificationWarnings = await notifyIntegrations(config, record);
 
@@ -211,19 +212,6 @@ function normalizeFiles(rawFiles, maxFileSize) {
     });
   }
   return normalized;
-}
-
-async function writeGitHubFile(config, path, binary, message) {
-  const filePath = `/repos/${config.repo}/contents/${path}`;
-  await requestGitHub(config, filePath, "PUT", {
-    message,
-    content: binary.toString("base64"),
-    branch: config.branch,
-    committer: {
-      name: config.committerName,
-      email: config.committerEmail,
-    },
-  });
 }
 
 async function notifyIntegrations(config, record) {

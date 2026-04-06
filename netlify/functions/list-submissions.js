@@ -1,5 +1,6 @@
 const { getUserFromEvent, ensureAuthorizedEmail, response } = require("./_github");
 const { getSubmissionConfig, listSubmissionRecords } = require("./_submissions");
+const { getSupabaseConfig, listObjects, getObject } = require("./_supabase");
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "GET") {
@@ -17,7 +18,28 @@ exports.handler = async (event) => {
     const query = event.queryStringParameters || {};
     const limit = Number(query.limit || 120);
     const program = String(query.program || "").trim().toLowerCase();
-    const items = await listSubmissionRecords(config, { limit, program });
+    let items = [];
+    try {
+      const supabase = getSupabaseConfig();
+      const prefix = `${config.dataDir}/`;
+      const objects = await listObjects(supabase, prefix, limit, 0);
+      const submissions = objects
+        .map((item) => item.name)
+        .filter((name) => name && name.endsWith("/submission.json"))
+        .slice(0, limit);
+      const parsed = [];
+      for (const name of submissions) {
+        const raw = await getObject(supabase, name);
+        const record = JSON.parse(raw);
+        if (program && String(record.program || "").toLowerCase() !== program) {
+          continue;
+        }
+        parsed.push(record);
+      }
+      items = parsed;
+    } catch (_error) {
+      items = await listSubmissionRecords(config, { limit, program });
+    }
 
     return response(200, {
       ok: true,

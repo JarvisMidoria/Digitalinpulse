@@ -3,17 +3,18 @@ const { getConfig, requestGitHub, createHttpError } = require("./_github");
 const DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024;
 const DEFAULT_LIST_LIMIT = 100;
 const MAX_LIST_LIMIT = 500;
+const DEFAULT_DATA_DIR = "submissions";
 
 function getSubmissionConfig() {
   const base = getConfig();
   const maxFileSize = Number(process.env.SUBMISSIONS_MAX_FILE_SIZE || DEFAULT_MAX_FILE_SIZE);
-  const dataDir = normalizePathFragment(process.env.SUBMISSIONS_DATA_DIR || "submissions");
+  const dataDir = normalizePathFragment(process.env.SUBMISSIONS_DATA_DIR || DEFAULT_DATA_DIR);
 
   return {
     token: process.env.SUBMISSIONS_GITHUB_TOKEN || base.token,
     repo: process.env.SUBMISSIONS_GITHUB_REPO || base.repo,
     branch: process.env.SUBMISSIONS_GITHUB_BRANCH || base.branch,
-    dataDir: dataDir || "submissions",
+    dataDir: dataDir || DEFAULT_DATA_DIR,
     allowedEmails: base.allowedEmails,
     maxFileSize: Number.isFinite(maxFileSize) && maxFileSize > 0 ? maxFileSize : DEFAULT_MAX_FILE_SIZE,
     allowedOrigins: parseCsv(process.env.SUBMISSIONS_ALLOWED_ORIGINS || "").map((value) => value.toLowerCase().replace(/\/+$/, "")),
