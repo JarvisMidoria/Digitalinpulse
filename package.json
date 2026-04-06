@@ -1,0 +1,8 @@
+{
+  "name": "digital-inpulse-site",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "jszip": "^3.10.1"
+  }
+}

@@ -2,6 +2,8 @@ const CONTENT_ENDPOINT = "/content/site.json";
 const SAVE_ENDPOINT = "/.netlify/functions/save-content";
 const UPLOAD_ENDPOINT = "/.netlify/functions/upload-media";
 const LIST_SUBMISSIONS_ENDPOINT = "/.netlify/functions/list-submissions";
+const SUBMISSION_FILE_URL_ENDPOINT = "/.netlify/functions/submission-file-url";
+const EXPORT_SUBMISSIONS_ENDPOINT = "/.netlify/functions/export-submissions";
 const DRAFT_KEY = "dip_admin_draft_v2";
 
 const state = {
@@ -11,6 +13,7 @@ const state = {
   submissions: [],
   filteredSubmissions: [],
   submissionsLoaded: false,
+  selectedSubmissionReference: "",
 };
 
 const authScreen = document.getElementById("auth-screen");
@@ -24,6 +27,13 @@ const submissionsCount = document.getElementById("submissions-count");
 const submissionsTableBody = document.getElementById("submissions-table-body");
 const submissionsSearchInput = document.getElementById("submissions-search");
 const submissionsProgramFilter = document.getElementById("submissions-program-filter");
+const submissionsExportZipButton = document.getElementById("submissions-export-zip-btn");
+const submissionDetailNode = document.getElementById("submission-detail");
+const submissionDetailTitle = document.getElementById("submission-detail-title");
+const submissionDetailMeta = document.getElementById("submission-detail-meta");
+const submissionDetailFields = document.getElementById("submission-detail-fields");
+const submissionDetailFiles = document.getElementById("submission-detail-files");
+const submissionDetailExportButton = document.getElementById("submission-detail-export-btn");
 
 init();
 
@@ -101,8 +111,15 @@ function wireActions() {
   document.getElementById("apply-json-btn")?.addEventListener("click", applyRawJson);
   document.getElementById("submissions-refresh-btn")?.addEventListener("click", () => loadSubmissions(true));
   document.getElementById("submissions-export-btn")?.addEventListener("click", exportSubmissionsCsv);
+  submissionsExportZipButton?.addEventListener("click", exportSubmissionsZip);
   submissionsSearchInput?.addEventListener("input", applySubmissionsFilters);
   submissionsProgramFilter?.addEventListener("change", applySubmissionsFilters);
+  submissionDetailExportButton?.addEventListener("click", () => {
+    if (!state.selectedSubmissionReference) {
+      return;
+    }
+    exportSubmissionsZip([state.selectedSubmissionReference]);
+  });
 }
 
 async function enterEditorMode() {
@@ -380,6 +397,7 @@ function applySubmissionsFilters() {
   });
 
   renderSubmissions();
+  syncSubmissionDetail();
 }
 
 function renderSubmissions() {
@@ -397,9 +415,10 @@ function renderSubmissions() {
       const region = item.summary?.region || item.summary?.city || "-";
       const reference = item.reference || "-";
       const fileCount = Number(item.fileCount || 0);
+      const isSelected = reference && reference === state.selectedSubmissionReference;
 
       return `
-        <tr>
+        <tr${isSelected ? ' class="is-selected"' : ""}>
           <td>${escapeHtml(displayDate)}</td>
           <td><span class="chip">${escapeHtml(programLabel)}</span></td>
           <td>${escapeHtml(name)}</td>
@@ -408,15 +427,103 @@ function renderSubmissions() {
           <td>${escapeHtml(region)}</td>
           <td><span class="mono">${escapeHtml(reference)}</span></td>
           <td>${escapeHtml(String(fileCount))}</td>
+          <td class="actions-cell"><button type="button" class="btn btn-ghost btn-xs" data-submission-view="${escapeAttr(reference)}">Voir</button></td>
         </tr>
       `;
     })
     .join("");
 
+  submissionsTableBody.querySelectorAll("[data-submission-view]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.selectedSubmissionReference = button.dataset.submissionView || "";
+      renderSubmissions();
+      renderSubmissionDetail();
+    });
+  });
+
   if (submissionsCount) {
     const total = state.submissions.length;
     const shown = state.filteredSubmissions.length;
     submissionsCount.textContent = `${shown} candidature(s) affichee(s) / ${total} total.`;
+  }
+}
+
+function syncSubmissionDetail() {
+  const current = state.filteredSubmissions.find((item) => item.reference === state.selectedSubmissionReference);
+  if (!current) {
+    state.selectedSubmissionReference = state.filteredSubmissions[0]?.reference || "";
+  }
+  renderSubmissionDetail();
+}
+
+function renderSubmissionDetail() {
+  if (!submissionDetailNode) {
+    return;
+  }
+  const item = state.submissions.find((entry) => entry.reference === state.selectedSubmissionReference);
+  if (!item) {
+    submissionDetailNode.classList.add("hidden");
+    return;
+  }
+
+  submissionDetailNode.classList.remove("hidden");
+  if (submissionDetailTitle) {
+    submissionDetailTitle.textContent = `${item.summary?.name || "Candidature"} - ${item.reference || ""}`;
+  }
+  if (submissionDetailMeta) {
+    submissionDetailMeta.innerHTML = [
+      `<span class="chip">${escapeHtml(programToLabel(item.program))}</span>`,
+      `<span class="chip">${escapeHtml(formatDate(item.createdAt))}</span>`,
+      `<span class="chip">${escapeHtml(item.summary?.company || "Entreprise inconnue")}</span>`,
+      `<span class="chip">${escapeHtml(item.summary?.email || "Email inconnu")}</span>`,
+    ].join("");
+  }
+  if (submissionDetailFields) {
+    submissionDetailFields.innerHTML = Object.entries(item.fields || {})
+      .filter(([key]) => key !== "program" && key !== "website_confirm")
+      .map(([key, value]) => `
+        <div class="submission-detail-row">
+          <strong>${escapeHtml(humanizeFieldName(key))}</strong>
+          <span>${escapeHtml(formatFieldValue(value))}</span>
+        </div>
+      `)
+      .join("");
+  }
+  if (submissionDetailFiles) {
+    submissionDetailFiles.innerHTML = (item.files || [])
+      .map((file, index) => `
+        <div class="submission-detail-row">
+          <strong>${escapeHtml(file.filename || `Fichier ${index + 1}`)}</strong>
+          <span>${escapeHtml(file.contentType || "")} - ${escapeHtml(formatBytes(file.size || 0))}</span>
+          <a href="#" data-submission-file="${escapeAttr(file.path || "")}">Telecharger</a>
+        </div>
+      `)
+      .join("");
+
+    submissionDetailFiles.querySelectorAll("[data-submission-file]").forEach((link) => {
+      link.addEventListener("click", async (event) => {
+        event.preventDefault();
+        const path = link.dataset.submissionFile || "";
+        if (!path) {
+          return;
+        }
+        try {
+          const jwt = await state.user.jwt(true);
+          const responseFile = await fetch(`${SUBMISSION_FILE_URL_ENDPOINT}?path=${encodeURIComponent(path)}`, {
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+            },
+          });
+          const payload = await readJsonSafe(responseFile);
+          if (!responseFile.ok) {
+            throw new Error(payload.error || `Impossible de generer le lien (${responseFile.status})`);
+          }
+          window.open(payload.url, "_blank", "noopener");
+        } catch (error) {
+          setResult(`Erreur telechargement fichier: ${error.message}`, true);
+        }
+      });
+    });
   }
 }
 
@@ -484,6 +591,46 @@ function exportSubmissionsCsv() {
   setStatus("Export CSV genere");
 }
 
+async function exportSubmissionsZip(references = null) {
+  const selectedReferences = Array.isArray(references) && references.length
+    ? references
+    : state.filteredSubmissions.map((item) => item.reference).filter(Boolean);
+
+  if (!selectedReferences.length) {
+    setResult("Aucune candidature a exporter en ZIP.", true);
+    return;
+  }
+
+  try {
+    setStatus("Preparation du ZIP...");
+    const jwt = await state.user.jwt(true);
+    const responseZip = await fetch(EXPORT_SUBMISSIONS_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify({ references: selectedReferences }),
+    });
+    if (!responseZip.ok) {
+      const payload = await readJsonSafe(responseZip);
+      throw new Error(payload.error || `Echec export ZIP (${responseZip.status})`);
+    }
+
+    const blob = await responseZip.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `digital-inpulse-dossiers-${new Date().toISOString().slice(0, 10)}.zip`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setStatus("Export ZIP genere");
+  } catch (error) {
+    setResult(`Erreur export ZIP: ${error.message}`, true);
+    setStatus("Erreur export ZIP");
+  }
+}
+
 function getSubmissionField(item, key) {
   const value = item?.fields?.[key];
   if (Array.isArray(value)) {
@@ -514,6 +661,56 @@ function programToLabel(value) {
     return "Smart Mobility";
   }
   return value || "N/A";
+}
+
+function humanizeFieldName(value) {
+  const map = {
+    first_name: "Prenom",
+    last_name: "Nom",
+    email: "Email",
+    phone: "Telephone",
+    company: "Entreprise",
+    address: "Adresse",
+    postal_code: "Code postal",
+    city: "Ville",
+    website: "Site web",
+    founded_at: "Date de creation",
+    sector: "Secteur",
+    stage: "Stade",
+    revenue_2025: "CA 2025",
+    revenue_2026: "CA previsionnel 2026",
+    employees: "Nombre de salaries",
+    pitch_english: "Pitch en anglais",
+    summary: "Presentation entreprise / projet",
+    impact_statement: "Reponse aux enjeux",
+    tech_stack: "Technologies utilisees",
+    source: "Comment avez-vous connu le concours",
+    conflict: "Conflit d'interets",
+    conflict_details: "Details conflit",
+    terms: "Acceptation du reglement",
+  };
+  return map[value] || String(value || "").replace(/_/g, " ");
+}
+
+function formatFieldValue(value) {
+  if (Array.isArray(value)) {
+    return value.join(" | ");
+  }
+  if (typeof value === "boolean") {
+    return value ? "Oui" : "Non";
+  }
+  return String(value ?? "");
+}
+
+function formatBytes(value) {
+  const size = Number(value || 0);
+  if (size < 1024) {
+    return `${size} B`;
+  }
+  if (size < 1024 * 1024) {
+    return `${(size / 1024).toFixed(1)} KB`;
+  }
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function csvEscape(value) {

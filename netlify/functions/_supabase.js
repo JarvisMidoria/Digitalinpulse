@@ -75,6 +75,31 @@ async function getObject(config, objectPath) {
   return response.text();
 }
 
+async function getObjectBuffer(config, objectPath) {
+  const response = await supabaseFetch(config, `/storage/v1/object/${config.bucket}/${objectPath}`, {
+    method: "GET",
+  });
+  const arrayBuffer = await response.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
+
+async function createSignedUrl(config, objectPath, expiresIn = 900) {
+  const response = await supabaseFetch(
+    config,
+    `/storage/v1/object/sign/${config.bucket}/${objectPath}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ expiresIn }),
+    },
+  );
+  const payload = await response.json();
+  const signedPath = String(payload.signedURL || "");
+  return `${config.url}/storage/v1${signedPath}`;
+}
+
 module.exports = {
   getSupabaseConfig,
   uploadObject,
@@ -82,4 +107,6 @@ module.exports = {
   listObjects,
   removeObjects,
   getObject,
+  getObjectBuffer,
+  createSignedUrl,
 };

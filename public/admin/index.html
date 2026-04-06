@@ -259,6 +259,7 @@
               </label>
               <button type="button" id="submissions-refresh-btn" class="btn btn-ghost">Rafraichir</button>
               <button type="button" id="submissions-export-btn" class="btn btn-primary">Exporter CSV (Excel)</button>
+              <button type="button" id="submissions-export-zip-btn" class="btn btn-primary">Exporter dossiers ZIP</button>
             </div>
             <p id="submissions-count" class="notes">Aucune candidature chargee.</p>
             <div class="submissions-table-wrap">
@@ -273,11 +274,34 @@
                     <th>Region</th>
                     <th>Reference</th>
                     <th>Fichiers</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="submissions-table-body"></tbody>
               </table>
             </div>
+            <section id="submission-detail" class="submission-detail hidden">
+              <div class="submission-detail-head">
+                <div>
+                  <p class="preview-label">Dossier selectionne</p>
+                  <h3 id="submission-detail-title">Aucun dossier selectionne</h3>
+                </div>
+                <div class="actions">
+                  <button type="button" id="submission-detail-export-btn" class="btn btn-ghost">ZIP du dossier</button>
+                </div>
+              </div>
+              <div id="submission-detail-meta" class="submission-detail-meta"></div>
+              <div class="submission-detail-grid">
+                <article class="preview-card">
+                  <p class="preview-label">Champs</p>
+                  <div id="submission-detail-fields" class="submission-detail-list"></div>
+                </article>
+                <article class="preview-card">
+                  <p class="preview-label">Fichiers</p>
+                  <div id="submission-detail-files" class="submission-detail-list"></div>
+                </article>
+              </div>
+            </section>
           </section>
 
           <section id="panel-media" class="panel">
