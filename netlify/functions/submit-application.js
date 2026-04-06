@@ -20,6 +20,7 @@ const ALLOWED_CONTENT_TYPES = new Set([
 
 const MAX_FILES = 6;
 const MAX_FIELDS = 120;
+const RATE_LIMIT_WINDOW_SECONDS = 60;
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -41,6 +42,7 @@ exports.handler = async (event) => {
     const normalized = normalizeSubmission(payload, config);
     const timestamp = new Date();
     const createdAt = timestamp.toISOString();
+    await enforceRateLimit(supabase, event, normalized, timestamp);
     const reference = buildReference(normalized.program, timestamp);
     const basePath = `${config.dataDir}/${createdAt.slice(0, 4)}/${createdAt.slice(5, 7)}/${reference}`;
 
@@ -230,6 +232,55 @@ async function notifyIntegrations(config, record) {
   }
 
   return warnings;
+}
+
+async function enforceRateLimit(supabase, event, normalized, timestamp) {
+  const ip = extractClientIp(event);
+  const email = String(Array.isArray(normalized.fields.email) ? normalized.fields.email[0] : normalized.fields.email || "").toLowerCase();
+  const slot = Math.floor(timestamp.getTime() / (RATE_LIMIT_WINDOW_SECONDS * 1000));
+  const key = hashRateLimitKey(`${ip}::${email}::${slot}`);
+  const objectPath = `rate-limit/${normalized.program}/${key}.json`;
+
+  const responseRateLimit = await fetch(`${supabase.url}/storage/v1/object/${supabase.bucket}/${objectPath}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${supabase.serviceKey}`,
+      apikey: supabase.serviceKey,
+      "Content-Type": "application/json",
+      "x-upsert": "false",
+    },
+    body: JSON.stringify({
+      createdAt: timestamp.toISOString(),
+      ip,
+      email,
+    }),
+  });
+
+  if (responseRateLimit.status === 409) {
+    throw createHttpError(429, "Trop de tentatives. Merci de patienter une minute avant de renvoyer votre candidature.");
+  }
+  if (!responseRateLimit.ok) {
+    const text = await responseRateLimit.text();
+    throw new Error(`Rate limit storage failed: ${responseRateLimit.status} ${text}`);
+  }
+}
+
+function extractClientIp(event) {
+  const forwarded = String(readHeader(event, "x-forwarded-for") || "")
+    .split(",")[0]
+    .trim();
+  const netlifyIp = String(readHeader(event, "client-ip") || readHeader(event, "x-nf-client-connection-ip") || "").trim();
+  return forwarded || netlifyIp || "unknown";
+}
+
+function hashRateLimitKey(value) {
+  let hash = 2166136261;
+  const input = String(value || "");
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16);
 }
 
 async function sendEmailNotification(config, record) {

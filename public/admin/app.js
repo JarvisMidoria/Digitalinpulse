@@ -441,8 +441,8 @@ function exportSubmissionsCsv() {
     "source",
     "pitch_english",
     "employees",
-    "revenue_2024",
     "revenue_2025",
+    "revenue_2026",
     "summary",
     "impact_statement",
     "file_count",
@@ -464,8 +464,8 @@ function exportSubmissionsCsv() {
       getSubmissionField(item, "source"),
       getSubmissionField(item, "pitch_english"),
       getSubmissionField(item, "employees"),
-      getSubmissionField(item, "revenue_2024"),
       getSubmissionField(item, "revenue_2025"),
+      getSubmissionField(item, "revenue_2026"),
       getSubmissionField(item, "summary"),
       getSubmissionField(item, "impact_statement"),
       String(item.fileCount || 0),
@@ -510,11 +510,8 @@ function formatDate(value) {
 }
 
 function programToLabel(value) {
-  if (value === "tech_for_competitivity") {
-    return "Tech";
-  }
-  if (value === "women_for_innovation") {
-    return "Women";
+  if (value === "smart_mobility") {
+    return "Smart Mobility";
   }
   return value || "N/A";
 }

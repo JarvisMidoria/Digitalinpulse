@@ -22,15 +22,11 @@ exports.handler = async (event) => {
     try {
       const supabase = getSupabaseConfig();
       const prefix = `${config.dataDir}/`;
-      const objects = await listObjects(supabase, prefix, limit, 0);
-      const submissions = objects
-        .map((item) => item.name)
-        .filter((name) => name && name.endsWith("/submission.json"))
-        .slice(0, limit);
+      const submissions = await collectSubmissionPaths(supabase, prefix, limit);
       const parsed = [];
       for (const name of submissions) {
         const raw = await getObject(supabase, name);
-        const record = JSON.parse(raw);
+        const record = normalizeSubmissionRecord(JSON.parse(raw), name);
         if (program && String(record.program || "").toLowerCase() !== program) {
           continue;
         }
@@ -50,3 +46,76 @@ exports.handler = async (event) => {
     return response(Number(error.statusCode) || 500, { error: error.message });
   }
 };
+
+async function collectSubmissionPaths(supabase, prefix, limit) {
+  const queue = [prefix];
+  const results = [];
+
+  while (queue.length && results.length < limit) {
+    const currentPrefix = queue.shift();
+    const entries = await listObjects(supabase, currentPrefix, 200, 0);
+
+    for (const entry of entries) {
+      if (!entry?.name) {
+        continue;
+      }
+      const nextPath = `${currentPrefix}${entry.name}`;
+      if (entry.id === null) {
+        queue.push(`${nextPath}/`);
+        continue;
+      }
+      if (entry.name === "submission.json") {
+        results.push(nextPath);
+      }
+      if (results.length >= limit) {
+        break;
+      }
+    }
+  }
+
+  return results.sort((a, b) => b.localeCompare(a));
+}
+
+function normalizeSubmissionRecord(record, recordPath) {
+  const fields = record?.fields && typeof record.fields === "object" ? record.fields : {};
+  const files = Array.isArray(record?.files) ? record.files : [];
+  const firstName = toSingleValue(fields.first_name);
+  const lastName = toSingleValue(fields.last_name);
+
+  return {
+    reference: String(record?.reference || extractReferenceFromPath(recordPath) || ""),
+    createdAt: String(record?.createdAt || ""),
+    program: String(record?.program || ""),
+    fields,
+    files: files.map((file) => ({
+      fieldName: String(file?.fieldName || ""),
+      filename: String(file?.filename || ""),
+      contentType: String(file?.contentType || ""),
+      size: Number(file?.size || 0),
+      path: String(file?.path || ""),
+    })),
+    fileCount: files.length,
+    recordPath,
+    summary: {
+      name: [firstName, lastName].filter(Boolean).join(" ").trim(),
+      email: toSingleValue(fields.email),
+      company: toSingleValue(fields.company),
+      city: toSingleValue(fields.city),
+    },
+  };
+}
+
+function extractReferenceFromPath(path) {
+  const parts = String(path || "").split("/");
+  return parts[parts.length - 2] || "";
+}
+
+function toSingleValue(value) {
+  if (Array.isArray(value)) {
+    return String(value[0] || "");
+  }
+  if (value == null) {
+    return "";
+  }
+  return String(value);
+}

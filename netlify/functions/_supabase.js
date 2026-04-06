@@ -58,6 +58,16 @@ async function listObjects(config, prefix, limit = 100, offset = 0) {
   return response.json();
 }
 
+async function removeObjects(config, prefixes) {
+  return supabaseFetch(config, `/storage/v1/object/${config.bucket}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ prefixes }),
+  });
+}
+
 async function getObject(config, objectPath) {
   const response = await supabaseFetch(config, `/storage/v1/object/${config.bucket}/${objectPath}`, {
     method: "GET",
@@ -70,5 +80,6 @@ module.exports = {
   uploadObject,
   putJson,
   listObjects,
+  removeObjects,
   getObject,
 };
