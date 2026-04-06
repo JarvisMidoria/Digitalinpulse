@@ -256,11 +256,11 @@ async function enforceRateLimit(supabase, event, normalized, timestamp) {
     }),
   });
 
-  if (responseRateLimit.status === 409) {
-    throw createHttpError(429, "Trop de tentatives. Merci de patienter une minute avant de renvoyer votre candidature.");
-  }
   if (!responseRateLimit.ok) {
     const text = await responseRateLimit.text();
+    if (responseRateLimit.status === 409 || text.includes("\"Duplicate\"") || text.includes("already exists")) {
+      throw createHttpError(429, "Trop de tentatives. Merci de patienter une minute avant de renvoyer votre candidature.");
+    }
     throw new Error(`Rate limit storage failed: ${responseRateLimit.status} ${text}`);
   }
 }
