@@ -287,7 +287,7 @@ function renderPage(content, currentKey) {
 }
 
 function renderHome(page, techIntroCard = null, womenIntroCard = null) {
-  const techFormBack = page.techProgramForm ? renderProgramFlipBack(page.techProgramForm, "tech_for_competitivity") : "";
+  const techFormBack = page.techProgramForm ? renderProgramFlipBack(page.techProgramForm, "smart_mobility") : "";
   const techHomeIntroCard = techIntroCard
     ? {
         ...techIntroCard,

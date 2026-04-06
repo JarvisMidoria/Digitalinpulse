@@ -1,7 +1,7 @@
 const { requestGitHub, normalizeFileName, response, createHttpError } = require("./_github");
 const { getSubmissionConfig, ensureAllowedOrigin, readHeader } = require("./_submissions");
 
-const ALLOWED_PROGRAMS = new Set(["tech_for_competitivity", "women_for_innovation"]);
+const ALLOWED_PROGRAMS = new Set(["smart_mobility"]);
 const ALLOWED_CONTENT_TYPES = new Set([
   "application/pdf",
   "application/msword",
@@ -96,9 +96,12 @@ function normalizeSubmission(payload, config) {
   }
 
   const rawProgram = payload.program || payload.fields?.program;
-  const program = String(rawProgram || "")
+  let program = String(rawProgram || "")
     .trim()
     .toLowerCase();
+  if (program === "tech_for_competitivity") {
+    program = "smart_mobility";
+  }
   if (!ALLOWED_PROGRAMS.has(program)) {
     throw createHttpError(400, "Unknown program");
   }
@@ -309,7 +312,7 @@ async function sendCrmWebhook(config, record) {
 }
 
 function buildReference(program, date) {
-  const shortProgram = program === "women_for_innovation" ? "WFI" : "TFC";
+  const shortProgram = program === "smart_mobility" ? "SM" : "DIP";
   const day = date.toISOString().slice(0, 10).replace(/-/g, "");
   const random = Math.random().toString(36).slice(2, 8).toUpperCase();
   return `DIP-${shortProgram}-${day}-${random}`;
