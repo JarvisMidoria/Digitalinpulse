@@ -37,8 +37,26 @@ async function requestGitHub(config, path, method = "GET", body = null) {
   return response.json();
 }
 
-function getUserFromEvent(event) {
-  return event?.clientContext?.user || null;
+function getUserFromEvent(event, context) {
+  const directUser = event?.clientContext?.user || context?.clientContext?.user;
+  if (directUser) {
+    return directUser;
+  }
+
+  const rawNetlifyContext =
+    context?.clientContext?.custom?.netlify ||
+    event?.clientContext?.custom?.netlify;
+  if (!rawNetlifyContext) {
+    return null;
+  }
+
+  try {
+    const decoded = Buffer.from(String(rawNetlifyContext), "base64").toString("utf-8");
+    const parsed = JSON.parse(decoded);
+    return parsed?.user || null;
+  } catch (_error) {
+    return null;
+  }
 }
 
 function ensureAuthorizedEmail(config, user) {

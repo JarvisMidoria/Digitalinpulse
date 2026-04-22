@@ -16,14 +16,14 @@ const ALLOWED_CONTENT_TYPES = new Set([
   "image/svg+xml",
 ]);
 
-exports.handler = async (event) => {
+exports.handler = async (event, context) => {
   if (event.httpMethod !== "POST") {
     return response(405, { error: "Method not allowed" });
   }
 
   try {
     const config = getConfig();
-    const user = getUserFromEvent(event);
+    const user = getUserFromEvent(event, context);
     if (!user) {
       return response(401, { error: "Authentication required" });
     }

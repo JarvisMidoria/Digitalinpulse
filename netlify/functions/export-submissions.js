@@ -4,7 +4,7 @@ const { getUserFromEvent, ensureAuthorizedEmail, response } = require("./_github
 const { getSubmissionConfig } = require("./_submissions");
 const { getSupabaseConfig, listObjects, getObject, getObjectBuffer } = require("./_supabase");
 
-exports.handler = async (event) => {
+exports.handler = async (event, context) => {
   if (event.httpMethod !== "POST") {
     return response(405, { error: "Method not allowed" });
   }
@@ -12,7 +12,7 @@ exports.handler = async (event) => {
   try {
     const config = getSubmissionConfig();
     const supabase = getSupabaseConfig();
-    const user = getUserFromEvent(event);
+    const user = getUserFromEvent(event, context);
     if (!user) {
       return response(401, { error: "Authentication required" });
     }
