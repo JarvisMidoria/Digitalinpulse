@@ -36,7 +36,6 @@ const state = {
   filteredSubmissions: [],
   selectedSubmissionReference: "",
 };
-const isLocalDev = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 
 const authScreen = document.getElementById("auth-screen");
 const appRoot = document.getElementById("app");
@@ -63,16 +62,6 @@ function init() {
 }
 
 function wireIdentity() {
-  if (isLocalDev) {
-    state.user = {
-      async jwt() {
-        return "local-dev-token";
-      },
-    };
-    enterReaderMode();
-    return;
-  }
-
   if (!window.netlifyIdentity) {
     setStatus("Netlify Identity non disponible");
     return;
@@ -111,16 +100,10 @@ function wireIdentity() {
 
 function wireActions() {
   document.getElementById("login-btn")?.addEventListener("click", () => {
-    if (isLocalDev) {
-      return;
-    }
     window.netlifyIdentity?.open("login");
   });
 
   document.getElementById("logout-btn")?.addEventListener("click", () => {
-    if (isLocalDev) {
-      return;
-    }
     window.netlifyIdentity?.logout();
   });
 
@@ -344,11 +327,6 @@ async function downloadSubmissionBundle() {
   }
 
   try {
-    if (isLocalDev) {
-      window.location.href = `${EXPORT_SUBMISSIONS_ENDPOINT}?reference=${encodeURIComponent(state.selectedSubmissionReference)}`;
-      return;
-    }
-
     const jwt = await state.user.jwt(true);
     const response = await fetch(EXPORT_SUBMISSIONS_ENDPOINT, {
       method: "POST",
@@ -409,11 +387,6 @@ async function downloadAllSubmissions() {
   }
 
   try {
-    if (isLocalDev) {
-      window.location.href = `${EXPORT_SUBMISSIONS_ENDPOINT}?reference=${encodeURIComponent(references.join(","))}`;
-      return;
-    }
-
     const jwt = await state.user.jwt(true);
     const response = await fetch(EXPORT_SUBMISSIONS_ENDPOINT, {
       method: "POST",
