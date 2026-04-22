@@ -6,7 +6,7 @@ const MAX_LIST_LIMIT = 500;
 const DEFAULT_DATA_DIR = "submissions";
 
 function getSubmissionConfig() {
-  const base = getConfig();
+  const base = getBaseSubmissionConfig();
   const maxFileSize = Number(process.env.SUBMISSIONS_MAX_FILE_SIZE || DEFAULT_MAX_FILE_SIZE);
   const dataDir = normalizePathFragment(process.env.SUBMISSIONS_DATA_DIR || DEFAULT_DATA_DIR);
 
@@ -26,6 +26,25 @@ function getSubmissionConfig() {
     committerName: process.env.SUBMISSIONS_COMMITTER_NAME || "Digital InPulse Bot",
     committerEmail: process.env.SUBMISSIONS_COMMITTER_EMAIL || "noreply@digitalinpulse.local",
   };
+}
+
+function getBaseSubmissionConfig() {
+  try {
+    return getConfig();
+  } catch (error) {
+    if (!String(error?.message || "").includes("GITHUB_TOKEN")) {
+      throw error;
+    }
+    return {
+      token: process.env.GITHUB_TOKEN || "",
+      repo: process.env.GITHUB_REPO || "JarvisMidoria/Digitalinpulse",
+      branch: process.env.GITHUB_BRANCH || "main",
+      allowedEmails: (process.env.ADMIN_ALLOWED_EMAILS || "")
+        .split(",")
+        .map((value) => value.trim().toLowerCase())
+        .filter(Boolean),
+    };
+  }
 }
 
 function ensureAllowedOrigin(config, event) {

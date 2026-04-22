@@ -10,12 +10,6 @@ exports.handler = async (event, context) => {
   try {
     const config = getSubmissionConfig();
     const user = await getUserFromEvent(event, context);
-    console.log("[list-submissions] auth", {
-      hasUser: Boolean(user),
-      email: user?.email || null,
-      hasAuthorization: Boolean(event?.headers?.authorization || event?.headers?.Authorization),
-      hasClientContextUser: Boolean(event?.clientContext?.user || context?.clientContext?.user),
-    });
     if (!user) {
       return response(401, { error: "Authentication required" });
     }
@@ -29,7 +23,6 @@ exports.handler = async (event, context) => {
       const supabase = getSupabaseConfig();
       const prefix = `${config.dataDir}/`;
       const submissions = await collectSubmissionPaths(supabase, prefix, limit);
-      console.log("[list-submissions] supabase-paths", { count: submissions.length, prefix, limit });
       const parsed = [];
       for (const name of submissions) {
         const raw = await getObject(supabase, name);
@@ -50,10 +43,6 @@ exports.handler = async (event, context) => {
       items,
     });
   } catch (error) {
-    console.error("[list-submissions] error", {
-      message: error.message,
-      stack: error.stack,
-    });
     return response(Number(error.statusCode) || 500, { error: error.message });
   }
 };

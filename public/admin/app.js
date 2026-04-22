@@ -1,49 +1,78 @@
-const CONTENT_ENDPOINT = "/content/site.json";
-const SAVE_ENDPOINT = "/.netlify/functions/save-content";
-const UPLOAD_ENDPOINT = "/.netlify/functions/upload-media";
 const LIST_SUBMISSIONS_ENDPOINT = "/.netlify/functions/list-submissions";
 const SUBMISSION_FILE_URL_ENDPOINT = "/.netlify/functions/submission-file-url";
 const EXPORT_SUBMISSIONS_ENDPOINT = "/.netlify/functions/export-submissions";
-const DRAFT_KEY = "dip_admin_draft_v2";
+const DELETE_SUBMISSION_ENDPOINT = "/.netlify/functions/delete-submission";
+const FIELD_LABELS = {
+  last_name: "Nom",
+  first_name: "Prénom",
+  email: "E-mail",
+  phone: "Téléphone portable",
+  company: "Nom de l'entreprise",
+  address: "Adresse",
+  postal_code: "Code postal",
+  city: "Ville",
+  website: "Site web",
+  founded_at: "Date de création",
+  sector: "Secteur d'activité",
+  stage: "Stade d'évolution",
+  revenue_2025: "Chiffre d'affaires 2025",
+  revenue_2026: "Chiffre d'affaires prévisionnel 2026",
+  employees: "Nombre de salariés",
+  pitch_english: "Pitch en anglais",
+  video_url: "Lien vidéo",
+  summary: "Présentation de l'entreprise et du projet",
+  impact_statement: "Réponse aux enjeux du concours",
+  tech_stack: "Technologies utilisées",
+  source: "Comment avez-vous connu le concours ?",
+  conflict: "Conflit d'intérêts avec Huawei France",
+  kbis: "Kbis",
+  deck: "Présentation entreprise/projet",
+  region: "Région",
+};
 
 const state = {
   user: null,
-  content: null,
-  original: null,
   submissions: [],
   filteredSubmissions: [],
-  submissionsLoaded: false,
   selectedSubmissionReference: "",
 };
+const isLocalDev = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 
 const authScreen = document.getElementById("auth-screen");
 const appRoot = document.getElementById("app");
 const statusText = document.getElementById("status-text");
-const publishResult = document.getElementById("publish-result");
-const rawJsonInput = document.getElementById("raw-json");
-const mediaFileInput = document.getElementById("media-file-input");
-const mediaUrlOutput = document.getElementById("media-url-output");
+const resultMessage = document.getElementById("result-message");
 const submissionsCount = document.getElementById("submissions-count");
 const submissionsTableBody = document.getElementById("submissions-table-body");
 const submissionsSearchInput = document.getElementById("submissions-search");
 const submissionsProgramFilter = document.getElementById("submissions-program-filter");
-const submissionsExportZipButton = document.getElementById("submissions-export-zip-btn");
+const submissionsDownloadAllButton = document.getElementById("submissions-download-all-btn");
 const submissionDetailNode = document.getElementById("submission-detail");
 const submissionDetailTitle = document.getElementById("submission-detail-title");
 const submissionDetailMeta = document.getElementById("submission-detail-meta");
 const submissionDetailFields = document.getElementById("submission-detail-fields");
 const submissionDetailFiles = document.getElementById("submission-detail-files");
-const submissionDetailExportButton = document.getElementById("submission-detail-export-btn");
+const submissionDetailDownloadButton = document.getElementById("submission-detail-download-btn");
+const submissionDetailDeleteButton = document.getElementById("submission-detail-delete-btn");
 
 init();
 
 function init() {
   wireIdentity();
-  wireSidebar();
   wireActions();
 }
 
 function wireIdentity() {
+  if (isLocalDev) {
+    state.user = {
+      async jwt() {
+        return "local-dev-token";
+      },
+    };
+    enterReaderMode();
+    return;
+  }
+
   if (!window.netlifyIdentity) {
     setStatus("Netlify Identity non disponible");
     return;
@@ -51,302 +80,75 @@ function wireIdentity() {
 
   window.netlifyIdentity.on("init", async (user) => {
     state.user = user;
-    if (user) {
-      await enterEditorMode();
-    } else {
+    if (!user) {
       showAuth();
       if (hasIdentityToken()) {
         window.netlifyIdentity.open();
       }
+      return;
     }
+    await enterReaderMode();
   });
 
   window.netlifyIdentity.on("login", async (user) => {
     state.user = user;
     window.netlifyIdentity.close();
-    await enterEditorMode();
+    await enterReaderMode();
   });
 
   window.netlifyIdentity.on("logout", () => {
     state.user = null;
     state.submissions = [];
     state.filteredSubmissions = [];
-    state.submissionsLoaded = false;
+    state.selectedSubmissionReference = "";
     showAuth();
     setStatus("Deconnecte");
+    setResult("");
   });
 
   window.netlifyIdentity.init();
 }
 
-function wireSidebar() {
-  const navItems = [...document.querySelectorAll(".nav-item")];
-  for (const item of navItems) {
-    item.addEventListener("click", () => {
-      navItems.forEach((node) => node.classList.remove("active"));
-      item.classList.add("active");
-      const panelTarget = item.dataset.panelTarget;
-      showPanel(panelTarget);
-      if (panelTarget === "panel-submissions") {
-        loadSubmissions();
-      }
-    });
-  }
-}
-
 function wireActions() {
   document.getElementById("login-btn")?.addEventListener("click", () => {
+    if (isLocalDev) {
+      return;
+    }
     window.netlifyIdentity?.open("login");
   });
 
   document.getElementById("logout-btn")?.addEventListener("click", () => {
+    if (isLocalDev) {
+      return;
+    }
     window.netlifyIdentity?.logout();
   });
 
-  document.getElementById("save-draft-btn")?.addEventListener("click", saveDraft);
-  document.getElementById("restore-draft-btn")?.addEventListener("click", restoreDraft);
-  document.getElementById("publish-btn")?.addEventListener("click", publishContent);
-  document.getElementById("upload-media-btn")?.addEventListener("click", uploadMedia);
-  document.getElementById("copy-media-url-btn")?.addEventListener("click", copyMediaUrl);
-  document.getElementById("apply-json-btn")?.addEventListener("click", applyRawJson);
-  document.getElementById("submissions-refresh-btn")?.addEventListener("click", () => loadSubmissions(true));
-  document.getElementById("submissions-export-btn")?.addEventListener("click", exportSubmissionsCsv);
-  submissionsExportZipButton?.addEventListener("click", exportSubmissionsZip);
+  document.getElementById("submissions-refresh-btn")?.addEventListener("click", () => {
+    loadSubmissions();
+  });
+  submissionsDownloadAllButton?.addEventListener("click", downloadAllSubmissions);
+  submissionDetailDownloadButton?.addEventListener("click", downloadSubmissionBundle);
+  submissionDetailDeleteButton?.addEventListener("click", deleteSubmission);
+
   submissionsSearchInput?.addEventListener("input", applySubmissionsFilters);
   submissionsProgramFilter?.addEventListener("change", applySubmissionsFilters);
-  submissionDetailExportButton?.addEventListener("click", () => {
-    if (!state.selectedSubmissionReference) {
-      return;
-    }
-    exportSubmissionsZip([state.selectedSubmissionReference]);
-  });
 }
 
-async function enterEditorMode() {
+async function enterReaderMode() {
   showApp();
-  setStatus("Chargement du contenu...");
+  setStatus("Chargement des candidatures...");
   setResult("");
-
-  try {
-    state.content = await fetchContent();
-    state.original = deepClone(state.content);
-    hydrateInputs();
-    bindInputs();
-    updateRawJson();
-    updatePreview();
-    setStatus("Pret");
-  } catch (error) {
-    setResult(`Erreur chargement contenu: ${error.message}`, true);
-    setStatus("Erreur de chargement");
-  }
+  await loadSubmissions();
 }
 
-async function fetchContent() {
-  const response = await fetch(CONTENT_ENDPOINT, { cache: "no-store" });
-  if (!response.ok) {
-    throw new Error(`Impossible de charger le contenu: ${response.status}`);
-  }
-  return response.json();
-}
-
-function hydrateInputs() {
-  const inputs = [...document.querySelectorAll("[data-path]")];
-  for (const input of inputs) {
-    const value = getByPath(state.content, input.dataset.path);
-    if (input.tagName === "TEXTAREA" || input.tagName === "INPUT" || input.tagName === "SELECT") {
-      input.value = value == null ? "" : String(value);
-    }
-  }
-}
-
-function bindInputs() {
-  const inputs = [...document.querySelectorAll("[data-path]")];
-  for (const input of inputs) {
-    if (input.dataset.bound === "true") {
-      continue;
-    }
-    input.dataset.bound = "true";
-    const handleUpdate = () => {
-      setByPath(state.content, input.dataset.path, input.value);
-      updateRawJson();
-      updatePreview();
-      setStatus("Modification locale non publiee");
-    };
-    input.addEventListener("input", handleUpdate);
-    input.addEventListener("change", handleUpdate);
-  }
-}
-
-function updateRawJson() {
-  if (!rawJsonInput) {
-    return;
-  }
-  rawJsonInput.value = JSON.stringify(state.content, null, 2);
-}
-
-function applyRawJson() {
-  if (!rawJsonInput) {
-    return;
-  }
-  try {
-    const parsed = JSON.parse(rawJsonInput.value);
-    state.content = parsed;
-    hydrateInputs();
-    updatePreview();
-    setStatus("JSON applique localement");
-    setResult("");
-  } catch (error) {
-    setResult(`JSON invalide: ${error.message}`, true);
-  }
-}
-
-function updatePreview() {
-  setText("preview-home-title", getByPath(state.content, "pages.home.hero.title"));
-  setText("preview-home-subtitle", getByPath(state.content, "pages.home.hero.subtitle"));
-  setText("preview-tech-title", getByPath(state.content, "pages.tech_for_competitivity.hero.title"));
-  setText("preview-tech-date", `Finale: ${getByPath(state.content, "pages.tech_for_competitivity.schedule[3].date")}`);
-  setText("preview-women-title", getByPath(state.content, "pages.women_for_innovation.hero.title"));
-  setText("preview-women-date", `Finale: ${getByPath(state.content, "pages.women_for_innovation.schedule[3].date")}`);
-  setText("preview-privacy-link", `Confidentialite: ${getByPath(state.content, "footer.legalLinks[3].url")}`);
-  setText("preview-rules-link", `Reglement: ${getByPath(state.content, "footer.legalLinks[4].url")}`);
-}
-
-function saveDraft() {
-  if (!state.content) {
-    return;
-  }
-  localStorage.setItem(DRAFT_KEY, JSON.stringify(state.content));
-  setStatus("Brouillon sauvegarde localement");
-  setResult("Brouillon local sauvegarde.");
-}
-
-function restoreDraft() {
-  const draft = localStorage.getItem(DRAFT_KEY);
-  if (!draft) {
-    setResult("Aucun brouillon local trouve.", true);
-    return;
-  }
-  try {
-    state.content = JSON.parse(draft);
-    hydrateInputs();
-    updateRawJson();
-    updatePreview();
-    setStatus("Brouillon restaure");
-    setResult("Brouillon local restaure.");
-  } catch (error) {
-    setResult(`Brouillon invalide: ${error.message}`, true);
-  }
-}
-
-async function publishContent() {
+async function loadSubmissions() {
   if (!state.user) {
     setResult("Session non authentifiee.", true);
     return;
   }
 
   try {
-    setStatus("Publication en cours...");
-    setResult("");
-
-    const jwt = await state.user.jwt(true);
-    const response = await fetch(SAVE_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${jwt}`,
-      },
-      body: JSON.stringify({
-        content: state.content,
-        source: "custom-admin",
-      }),
-    });
-
-    const payload = await readJsonSafe(response);
-    if (!response.ok) {
-      throw new Error(payload.error || `Echec de publication (${response.status})`);
-    }
-
-    state.original = deepClone(state.content);
-    const commitLabel = payload.commitUrl ? `Commit cree: ${payload.commitUrl}` : "Publication reussie.";
-    setResult(commitLabel);
-    setStatus("Publication reussie");
-  } catch (error) {
-    setResult(`Erreur publication: ${error.message}`, true);
-    setStatus("Erreur de publication");
-  }
-}
-
-async function uploadMedia() {
-  if (!state.user) {
-    setResult("Session non authentifiee.", true);
-    return;
-  }
-  const file = mediaFileInput?.files?.[0];
-  if (!file) {
-    setResult("Selectionnez un fichier media avant upload.", true);
-    return;
-  }
-  if (file.size > 10 * 1024 * 1024) {
-    setResult("Fichier trop volumineux (max 10 MB).", true);
-    return;
-  }
-
-  try {
-    setStatus("Upload media en cours...");
-    setResult("");
-
-    const base64 = await fileToBase64(file);
-    const jwt = await state.user.jwt(true);
-    const response = await fetch(UPLOAD_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${jwt}`,
-      },
-      body: JSON.stringify({
-        filename: file.name,
-        contentType: file.type || "application/octet-stream",
-        base64,
-      }),
-    });
-    const payload = await readJsonSafe(response);
-    if (!response.ok) {
-      throw new Error(payload.error || `Upload media impossible (${response.status})`);
-    }
-
-    mediaUrlOutput.value = payload.url || "";
-    setResult(`Media upload reussi: ${payload.url}`);
-    setStatus("Upload media reussi");
-  } catch (error) {
-    setResult(`Erreur upload: ${error.message}`, true);
-    setStatus("Erreur upload media");
-  }
-}
-
-async function copyMediaUrl() {
-  if (!mediaUrlOutput?.value) {
-    return;
-  }
-  try {
-    await navigator.clipboard.writeText(mediaUrlOutput.value);
-    setStatus("URL media copiee");
-  } catch (_error) {
-    setStatus("Impossible de copier automatiquement");
-  }
-}
-
-async function loadSubmissions(force = false) {
-  if (!state.user) {
-    setResult("Session non authentifiee.", true);
-    return;
-  }
-  if (state.submissionsLoaded && !force) {
-    applySubmissionsFilters();
-    return;
-  }
-
-  try {
-    setStatus("Chargement des candidatures...");
     const jwt = await state.user.jwt(true);
     const response = await fetch(`${LIST_SUBMISSIONS_ENDPOINT}?limit=300`, {
       method: "GET",
@@ -360,12 +162,17 @@ async function loadSubmissions(force = false) {
     }
 
     state.submissions = Array.isArray(payload.items) ? payload.items : [];
-    state.submissionsLoaded = true;
     applySubmissionsFilters();
     setStatus("Candidatures chargees");
+    setResult("");
   } catch (error) {
-    setResult(`Erreur candidatures: ${error.message}`, true);
+    state.submissions = [];
+    state.filteredSubmissions = [];
+    state.selectedSubmissionReference = "";
+    renderSubmissions();
+    renderSubmissionDetail();
     setStatus("Erreur chargement candidatures");
+    setResult(error.message || "Erreur de chargement.", true);
   }
 }
 
@@ -376,12 +183,13 @@ function applySubmissionsFilters() {
     .trim();
 
   state.filteredSubmissions = state.submissions.filter((item) => {
-    if (selectedProgram !== "all" && String(item.program) !== selectedProgram) {
+    if (selectedProgram !== "all" && String(item.program || "") !== selectedProgram) {
       return false;
     }
     if (!query) {
       return true;
     }
+
     const haystack = [
       item.reference,
       item.program,
@@ -396,8 +204,10 @@ function applySubmissionsFilters() {
     return haystack.includes(query);
   });
 
+  const current = state.filteredSubmissions.find((item) => item.reference === state.selectedSubmissionReference);
+  state.selectedSubmissionReference = current?.reference || state.filteredSubmissions[0]?.reference || "";
   renderSubmissions();
-  syncSubmissionDetail();
+  renderSubmissionDetail();
 }
 
 function renderSubmissions() {
@@ -405,33 +215,35 @@ function renderSubmissions() {
     return;
   }
 
-  submissionsTableBody.innerHTML = state.filteredSubmissions
-    .map((item) => {
-      const displayDate = formatDate(item.createdAt);
-      const programLabel = programToLabel(item.program);
-      const name = item.summary?.name || "-";
-      const email = item.summary?.email || "-";
-      const company = item.summary?.company || "-";
-      const region = item.summary?.region || item.summary?.city || "-";
-      const reference = item.reference || "-";
-      const fileCount = Number(item.fileCount || 0);
-      const isSelected = reference && reference === state.selectedSubmissionReference;
-
-      return `
-        <tr${isSelected ? ' class="is-selected"' : ""}>
-          <td>${escapeHtml(displayDate)}</td>
-          <td><span class="chip">${escapeHtml(programLabel)}</span></td>
-          <td>${escapeHtml(name)}</td>
-          <td>${escapeHtml(email)}</td>
-          <td>${escapeHtml(company)}</td>
-          <td>${escapeHtml(region)}</td>
-          <td><span class="mono">${escapeHtml(reference)}</span></td>
-          <td>${escapeHtml(String(fileCount))}</td>
-          <td class="actions-cell"><button type="button" class="btn btn-ghost btn-xs" data-submission-view="${escapeAttr(reference)}">Voir</button></td>
-        </tr>
-      `;
-    })
-    .join("");
+  if (!state.filteredSubmissions.length) {
+    submissionsTableBody.innerHTML = `
+      <tr>
+        <td colspan="9">Aucune candidature chargee.</td>
+      </tr>
+    `;
+  } else {
+    submissionsTableBody.innerHTML = state.filteredSubmissions
+      .map((item) => {
+        const reference = item.reference || "";
+        const isSelected = reference && reference === state.selectedSubmissionReference;
+        return `
+          <tr${isSelected ? ' class="is-selected"' : ""}>
+            <td>${escapeHtml(formatDate(item.createdAt))}</td>
+            <td><span class="chip">${escapeHtml(programToLabel(item.program))}</span></td>
+            <td>${escapeHtml(item.summary?.name || "-")}</td>
+            <td>${escapeHtml(item.summary?.email || "-")}</td>
+            <td>${escapeHtml(item.summary?.company || "-")}</td>
+            <td>${escapeHtml(item.summary?.region || item.summary?.city || "-")}</td>
+            <td><span class="mono">${escapeHtml(reference || "-")}</span></td>
+            <td>${escapeHtml(String(item.fileCount || 0))}</td>
+            <td class="actions-cell">
+              <button type="button" class="btn btn-ghost btn-xs" data-submission-view="${escapeAttr(reference)}">Voir</button>
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+  }
 
   submissionsTableBody.querySelectorAll("[data-submission-view]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -442,24 +254,15 @@ function renderSubmissions() {
   });
 
   if (submissionsCount) {
-    const total = state.submissions.length;
-    const shown = state.filteredSubmissions.length;
-    submissionsCount.textContent = `${shown} candidature(s) affichee(s) / ${total} total.`;
+    submissionsCount.textContent = `${state.filteredSubmissions.length} affichee(s) / ${state.submissions.length} total`;
   }
-}
-
-function syncSubmissionDetail() {
-  const current = state.filteredSubmissions.find((item) => item.reference === state.selectedSubmissionReference);
-  if (!current) {
-    state.selectedSubmissionReference = state.filteredSubmissions[0]?.reference || "";
-  }
-  renderSubmissionDetail();
 }
 
 function renderSubmissionDetail() {
   if (!submissionDetailNode) {
     return;
   }
+
   const item = state.submissions.find((entry) => entry.reference === state.selectedSubmissionReference);
   if (!item) {
     submissionDetailNode.classList.add("hidden");
@@ -467,275 +270,273 @@ function renderSubmissionDetail() {
   }
 
   submissionDetailNode.classList.remove("hidden");
-  if (submissionDetailTitle) {
-    submissionDetailTitle.textContent = `${item.summary?.name || "Candidature"} - ${item.reference || ""}`;
+  submissionDetailTitle.textContent = `${item.summary?.company || "Entreprise"} - ${item.reference || ""}`;
+  submissionDetailMeta.innerHTML = [
+    `<span class="chip">${escapeHtml(programToLabel(item.program))}</span>`,
+    `<span class="chip">${escapeHtml(formatDate(item.createdAt))}</span>`,
+    `<span class="chip">${escapeHtml(item.summary?.company || "Entreprise inconnue")}</span>`,
+  ].join("");
+  if (submissionDetailDownloadButton) {
+    submissionDetailDownloadButton.disabled = false;
   }
-  if (submissionDetailMeta) {
-    submissionDetailMeta.innerHTML = [
-      `<span class="chip">${escapeHtml(programToLabel(item.program))}</span>`,
-      `<span class="chip">${escapeHtml(formatDate(item.createdAt))}</span>`,
-      `<span class="chip">${escapeHtml(item.summary?.company || "Entreprise inconnue")}</span>`,
-      `<span class="chip">${escapeHtml(item.summary?.email || "Email inconnu")}</span>`,
-    ].join("");
+  if (submissionDetailDeleteButton) {
+    submissionDetailDeleteButton.disabled = false;
   }
-  if (submissionDetailFields) {
-    submissionDetailFields.innerHTML = Object.entries(item.fields || {})
-      .filter(([key]) => key !== "program" && key !== "website_confirm")
-      .map(([key, value]) => `
-        <div class="submission-detail-row">
-          <strong>${escapeHtml(humanizeFieldName(key))}</strong>
-          <span>${escapeHtml(formatFieldValue(value))}</span>
-        </div>
-      `)
-      .join("");
-  }
-  if (submissionDetailFiles) {
-    submissionDetailFiles.innerHTML = (item.files || [])
-      .map((file, index) => `
-        <div class="submission-detail-row">
-          <strong>${escapeHtml(file.filename || `Fichier ${index + 1}`)}</strong>
-          <span>${escapeHtml(file.contentType || "")} - ${escapeHtml(formatBytes(file.size || 0))}</span>
-          <a href="#" data-submission-file="${escapeAttr(file.path || "")}">Telecharger</a>
-        </div>
-      `)
-      .join("");
 
-    submissionDetailFiles.querySelectorAll("[data-submission-file]").forEach((link) => {
-      link.addEventListener("click", async (event) => {
-        event.preventDefault();
-        const path = link.dataset.submissionFile || "";
-        if (!path) {
-          return;
+  submissionDetailFields.innerHTML = Object.entries(item.fields || {})
+    .filter(([key]) => key !== "program" && key !== "website_confirm")
+    .map(([key, value]) => `
+      <div class="submission-detail-row">
+        <strong>${escapeHtml(humanizeFieldName(key))}</strong>
+        <span>${escapeHtml(formatFieldValue(value))}</span>
+      </div>
+    `)
+    .join("");
+
+  submissionDetailFiles.innerHTML = (item.files || [])
+    .map((file, index) => `
+      <div class="submission-detail-row">
+        <strong>${escapeHtml(file.filename || `Fichier ${index + 1}`)}</strong>
+        <span>${escapeHtml(file.contentType || "")} - ${escapeHtml(formatBytes(file.size || 0))}</span>
+        <a href="#" data-submission-file="${escapeAttr(file.path || "")}">Telecharger</a>
+      </div>
+    `)
+    .join("") || "<p class=\"muted\">Aucun fichier.</p>";
+
+  submissionDetailFiles.querySelectorAll("[data-submission-file]").forEach((link) => {
+    link.addEventListener("click", async (event) => {
+      event.preventDefault();
+      const path = link.dataset.submissionFile || "";
+      if (!path || !state.user) {
+        return;
+      }
+      try {
+        const jwt = await state.user.jwt(true);
+        const response = await fetch(`${SUBMISSION_FILE_URL_ENDPOINT}?path=${encodeURIComponent(path)}`, {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        });
+        const payload = await readJsonSafe(response);
+        if (!response.ok) {
+          throw new Error(payload.error || `Impossible de generer le lien (${response.status})`);
         }
-        try {
-          const jwt = await state.user.jwt(true);
-          const responseFile = await fetch(`${SUBMISSION_FILE_URL_ENDPOINT}?path=${encodeURIComponent(path)}`, {
-            headers: {
-              Authorization: `Bearer ${jwt}`,
-            },
-          });
-          const payload = await readJsonSafe(responseFile);
-          if (!responseFile.ok) {
-            throw new Error(payload.error || `Impossible de generer le lien (${responseFile.status})`);
-          }
-          window.open(payload.url, "_blank", "noopener");
-        } catch (error) {
-          setResult(`Erreur telechargement fichier: ${error.message}`, true);
+        if (payload.url) {
+          window.open(payload.url, "_blank", "noopener,noreferrer");
         }
-      });
+      } catch (error) {
+        setResult(error.message || "Erreur de telechargement.", true);
+      }
     });
-  }
-}
-
-function exportSubmissionsCsv() {
-  if (!state.filteredSubmissions.length) {
-    setResult("Aucune candidature a exporter.", true);
-    return;
-  }
-
-  const headers = [
-    "reference",
-    "created_at",
-    "program",
-    "name",
-    "email",
-    "phone",
-    "company",
-    "website",
-    "region",
-    "city",
-    "stage",
-    "source",
-    "pitch_english",
-    "employees",
-    "revenue_2025",
-    "revenue_2026",
-    "summary",
-    "impact_statement",
-    "file_count",
-  ];
-
-  const rows = state.filteredSubmissions.map((item) => {
-    return [
-      item.reference || "",
-      item.createdAt || "",
-      item.program || "",
-      item.summary?.name || "",
-      getSubmissionField(item, "email"),
-      getSubmissionField(item, "phone"),
-      getSubmissionField(item, "company"),
-      getSubmissionField(item, "website"),
-      getSubmissionField(item, "region"),
-      getSubmissionField(item, "city"),
-      getSubmissionField(item, "stage"),
-      getSubmissionField(item, "source"),
-      getSubmissionField(item, "pitch_english"),
-      getSubmissionField(item, "employees"),
-      getSubmissionField(item, "revenue_2025"),
-      getSubmissionField(item, "revenue_2026"),
-      getSubmissionField(item, "summary"),
-      getSubmissionField(item, "impact_statement"),
-      String(item.fileCount || 0),
-    ];
   });
-
-  const csv = [headers.join(";"), ...rows.map((row) => row.map(csvEscape).join(";"))].join("\n");
-  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const date = new Date().toISOString().slice(0, 10);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `digital-inpulse-candidatures-${date}.csv`;
-  link.click();
-  URL.revokeObjectURL(url);
-  setStatus("Export CSV genere");
 }
 
-async function exportSubmissionsZip(references = null) {
-  const selectedReferences = Array.isArray(references) && references.length
-    ? references
-    : state.filteredSubmissions.map((item) => item.reference).filter(Boolean);
-
-  if (!selectedReferences.length) {
-    setResult("Aucune candidature a exporter en ZIP.", true);
+async function downloadSubmissionBundle() {
+  if (!state.user || !state.selectedSubmissionReference) {
     return;
+  }
+
+  const button = submissionDetailDownloadButton;
+  const previousLabel = button?.textContent || "";
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Preparation...";
   }
 
   try {
-    setStatus("Preparation du ZIP...");
+    if (isLocalDev) {
+      window.location.href = `${EXPORT_SUBMISSIONS_ENDPOINT}?reference=${encodeURIComponent(state.selectedSubmissionReference)}`;
+      return;
+    }
+
     const jwt = await state.user.jwt(true);
-    const responseZip = await fetch(EXPORT_SUBMISSIONS_ENDPOINT, {
+    const response = await fetch(EXPORT_SUBMISSIONS_ENDPOINT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${jwt}`,
       },
-      body: JSON.stringify({ references: selectedReferences }),
+      body: JSON.stringify({
+        references: [state.selectedSubmissionReference],
+      }),
     });
-    if (!responseZip.ok) {
-      const payload = await readJsonSafe(responseZip);
-      throw new Error(payload.error || `Echec export ZIP (${responseZip.status})`);
+    if (!response.ok) {
+      const payload = await readJsonSafe(response);
+      throw new Error(payload.error || `Export impossible (${response.status})`);
     }
 
-    const blob = await responseZip.blob();
+    const blob = await response.blob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `digital-inpulse-dossiers-${new Date().toISOString().slice(0, 10)}.zip`;
+    link.download = getDownloadFilename(response, `${buildSubmissionArchiveName(item)}.zip`);
+    link.style.display = "none";
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
-    setStatus("Export ZIP genere");
+    window.setTimeout(() => {
+      link.remove();
+      URL.revokeObjectURL(url);
+    }, 1000);
   } catch (error) {
-    setResult(`Erreur export ZIP: ${error.message}`, true);
-    setStatus("Erreur export ZIP");
+    setResult(error.message || "Erreur export dossier.", true);
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = previousLabel || "Telecharger le dossier complet";
+    }
   }
 }
 
-function getSubmissionField(item, key) {
-  const value = item?.fields?.[key];
-  if (Array.isArray(value)) {
-    return value.join(" | ");
+async function downloadAllSubmissions() {
+  if (!state.filteredSubmissions.length) {
+    setResult("Aucune candidature a telecharger.", true);
+    return;
   }
-  if (value == null) {
-    return "";
+
+  const references = state.filteredSubmissions
+    .map((item) => String(item.reference || "").trim())
+    .filter(Boolean);
+  if (!references.length) {
+    setResult("Aucune candidature a telecharger.", true);
+    return;
   }
-  if (typeof value === "boolean") {
-    return value ? "true" : "false";
+
+  const button = submissionsDownloadAllButton;
+  const previousLabel = button?.textContent || "";
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Preparation...";
   }
-  return String(value);
+
+  try {
+    if (isLocalDev) {
+      window.location.href = `${EXPORT_SUBMISSIONS_ENDPOINT}?reference=${encodeURIComponent(references.join(","))}`;
+      return;
+    }
+
+    const jwt = await state.user.jwt(true);
+    const response = await fetch(EXPORT_SUBMISSIONS_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify({ references }),
+    });
+    if (!response.ok) {
+      const payload = await readJsonSafe(response);
+      throw new Error(payload.error || `Export impossible (${response.status})`);
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = getDownloadFilename(response, "digital-inpulse-candidatures.zip");
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    window.setTimeout(() => {
+      link.remove();
+      URL.revokeObjectURL(url);
+    }, 1000);
+  } catch (error) {
+    setResult(error.message || "Erreur export candidatures.", true);
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = previousLabel || "Tout telecharger";
+    }
+  }
 }
 
-function formatDate(value) {
-  if (!value) {
-    return "-";
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return String(value);
-  }
-  return `${date.toLocaleDateString("fr-FR")} ${date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`;
+function buildSubmissionArchiveName(item) {
+  const company = String(item?.summary?.company || "Entreprise").replace(/[\\/:*?"<>|]/g, "-").trim() || "Entreprise";
+  const reference = String(item?.reference || "submission").replace(/[\\/:*?"<>|]/g, "-").trim() || "submission";
+  return `${company} (${reference})`;
 }
 
-function programToLabel(value) {
-  if (value === "smart_mobility") {
-    return "Smart Mobility";
+function getDownloadFilename(response, fallback) {
+  const header = response.headers.get("Content-Disposition") || response.headers.get("content-disposition") || "";
+  const match = header.match(/filename="?([^"]+)"?/i);
+  if (match?.[1]) {
+    return match[1];
   }
-  return value || "N/A";
+  return fallback;
 }
 
-function humanizeFieldName(value) {
-  const map = {
-    first_name: "Prenom",
-    last_name: "Nom",
-    email: "Email",
-    phone: "Telephone",
-    company: "Entreprise",
-    address: "Adresse",
-    postal_code: "Code postal",
-    city: "Ville",
-    website: "Site web",
-    founded_at: "Date de creation",
-    sector: "Secteur",
-    stage: "Stade",
-    revenue_2025: "CA 2025",
-    revenue_2026: "CA previsionnel 2026",
-    employees: "Nombre de salaries",
-    pitch_english: "Pitch en anglais",
-    summary: "Presentation entreprise / projet",
-    impact_statement: "Reponse aux enjeux",
-    tech_stack: "Technologies utilisees",
-    source: "Comment avez-vous connu le concours",
-    conflict: "Conflit d'interets",
-    conflict_details: "Details conflit",
-    terms: "Acceptation du reglement",
-  };
-  return map[value] || String(value || "").replace(/_/g, " ");
+async function deleteSubmission() {
+  if (!state.user || !state.selectedSubmissionReference) {
+    return;
+  }
+
+  const item = state.submissions.find((entry) => entry.reference === state.selectedSubmissionReference);
+  const label = item?.summary?.name || state.selectedSubmissionReference;
+  const confirmed = window.confirm(`Supprimer definitivement la candidature "${label}" ?`);
+  if (!confirmed) {
+    return;
+  }
+
+  const button = submissionDetailDeleteButton;
+  const previousLabel = button?.textContent || "";
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Suppression...";
+  }
+
+  try {
+    const jwt = await state.user.jwt(true);
+    const response = await fetch(DELETE_SUBMISSION_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify({
+        reference: state.selectedSubmissionReference,
+      }),
+    });
+    const payload = await readJsonSafe(response);
+    if (!response.ok) {
+      throw new Error(payload.error || `Suppression impossible (${response.status})`);
+    }
+
+    state.submissions = state.submissions.filter((entry) => entry.reference !== state.selectedSubmissionReference);
+    state.filteredSubmissions = state.filteredSubmissions.filter((entry) => entry.reference !== state.selectedSubmissionReference);
+    state.selectedSubmissionReference = "";
+    applySubmissionsFilters();
+    setStatus("Candidature supprimee");
+    setResult("Candidature supprimee.");
+  } catch (error) {
+    setResult(error.message || "Erreur suppression candidature.", true);
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = previousLabel || "Supprimer la candidature";
+    }
+  }
 }
 
-function formatFieldValue(value) {
-  if (Array.isArray(value)) {
-    return value.join(" | ");
+async function readJsonSafe(response) {
+  const raw = await response.text();
+  if (!raw) {
+    return {};
   }
-  if (typeof value === "boolean") {
-    return value ? "Oui" : "Non";
+  try {
+    return JSON.parse(raw);
+  } catch (_error) {
+    return { error: raw };
   }
-  return String(value ?? "");
-}
-
-function formatBytes(value) {
-  const size = Number(value || 0);
-  if (size < 1024) {
-    return `${size} B`;
-  }
-  if (size < 1024 * 1024) {
-    return `${(size / 1024).toFixed(1)} KB`;
-  }
-  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function csvEscape(value) {
-  const text = String(value ?? "");
-  if (text.includes(";") || text.includes('"') || text.includes("\n")) {
-    return `"${text.replace(/"/g, '""')}"`;
-  }
-  return text;
 }
 
 function showAuth() {
-  authScreen.classList.remove("hidden");
-  appRoot.classList.add("hidden");
+  authScreen?.classList.remove("hidden");
+  appRoot?.classList.add("hidden");
 }
 
 function showApp() {
-  authScreen.classList.add("hidden");
-  appRoot.classList.remove("hidden");
-}
-
-function showPanel(panelId) {
-  const panels = [...document.querySelectorAll(".panel")];
-  for (const panel of panels) {
-    panel.classList.toggle("active", panel.id === panelId);
-  }
+  authScreen?.classList.add("hidden");
+  appRoot?.classList.remove("hidden");
 }
 
 function setStatus(text) {
@@ -745,19 +546,81 @@ function setStatus(text) {
 }
 
 function setResult(text, isError = false) {
-  if (!publishResult) {
+  if (!resultMessage) {
     return;
   }
-  publishResult.textContent = text;
-  publishResult.classList.toggle("error", isError);
+  if (!text) {
+    resultMessage.textContent = "";
+    resultMessage.classList.add("hidden");
+    resultMessage.classList.remove("error");
+    return;
+  }
+  resultMessage.textContent = text;
+  resultMessage.classList.remove("hidden");
+  resultMessage.classList.toggle("error", isError);
 }
 
-function setText(id, value) {
-  const node = document.getElementById(id);
-  if (!node) {
-    return;
+function hasIdentityToken() {
+  const pattern = /(invite_token|recovery_token|confirmation_token|email_change_token)=/;
+  return pattern.test(window.location.hash) || pattern.test(window.location.search);
+}
+
+function programToLabel(program) {
+  if (String(program || "").toLowerCase() === "smart_mobility") {
+    return "Smart Mobility";
   }
-  node.textContent = value == null ? "" : String(value);
+  return program || "-";
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "-";
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return String(value);
+  }
+  return parsed.toLocaleString("fr-FR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function humanizeFieldName(value) {
+  if (FIELD_LABELS[value]) {
+    return FIELD_LABELS[value];
+  }
+  return String(value || "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatFieldValue(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => formatFieldValue(item)).join(", ");
+  }
+  if (typeof value === "boolean") {
+    return value ? "Oui" : "Non";
+  }
+  return String(value ?? "-");
+}
+
+function formatBytes(value) {
+  const size = Number(value || 0);
+  if (!Number.isFinite(size) || size <= 0) {
+    return "0 B";
+  }
+  const units = ["B", "KB", "MB", "GB"];
+  let index = 0;
+  let current = size;
+  while (current >= 1024 && index < units.length - 1) {
+    current /= 1024;
+    index += 1;
+  }
+  return `${current.toFixed(current >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
 }
 
 function escapeHtml(value) {
@@ -769,74 +632,6 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function hasIdentityToken() {
-  const pattern = /(invite_token|recovery_token|confirmation_token|email_change_token)=/;
-  return pattern.test(window.location.hash) || pattern.test(window.location.search);
-}
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = String(reader.result || "");
-      const split = result.split(",");
-      if (split.length < 2) {
-        reject(new Error("Fichier non lisible"));
-        return;
-      }
-      resolve(split[1]);
-    };
-    reader.onerror = () => reject(new Error("Lecture fichier echouee"));
-    reader.readAsDataURL(file);
-  });
-}
-
-async function readJsonSafe(response) {
-  const payload = await response.text();
-  if (!payload) {
-    return {};
-  }
-  try {
-    return JSON.parse(payload);
-  } catch (_error) {
-    return { error: payload };
-  }
-}
-
-function deepClone(value) {
-  return JSON.parse(JSON.stringify(value));
-}
-
-function getByPath(object, path) {
-  const parts = pathToParts(path);
-  let cursor = object;
-  for (const part of parts) {
-    if (cursor == null) {
-      return undefined;
-    }
-    cursor = cursor[part];
-  }
-  return cursor;
-}
-
-function setByPath(object, path, value) {
-  const parts = pathToParts(path);
-  let cursor = object;
-  for (let index = 0; index < parts.length - 1; index += 1) {
-    const part = parts[index];
-    const nextPart = parts[index + 1];
-    if (cursor[part] == null) {
-      cursor[part] = Number.isInteger(nextPart) ? [] : {};
-    }
-    cursor = cursor[part];
-  }
-  cursor[parts[parts.length - 1]] = value;
-}
-
-function pathToParts(path) {
-  return path
-    .replace(/\[(\d+)\]/g, ".$1")
-    .split(".")
-    .filter(Boolean)
-    .map((part) => (/^\d+$/.test(part) ? Number(part) : part));
+function escapeAttr(value) {
+  return escapeHtml(value);
 }

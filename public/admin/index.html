@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin | Digital InPulse</title>
-    <meta name="description" content="Back-office Digital InPulse pour la gestion des contenus, visuels et candidatures." />
+    <title>Candidatures | Digital InPulse</title>
+    <meta name="description" content="Back-office de lecture des candidatures Digital InPulse." />
     <meta name="robots" content="noindex,nofollow,noarchive" />
     <meta name="theme-color" content="#0f172a" />
     <link rel="icon" type="image/png" href="/assets/media/system/share-favicon-2026.png" />
@@ -13,10 +13,9 @@
   <body>
     <div id="auth-screen" class="auth-screen">
       <section class="auth-card">
-        <p class="auth-badge">Back-office Digital InPulse</p>
-        <h1>Edition simplifiee</h1>
-        <p>Connectez-vous avec votre compte Netlify Identity pour modifier textes et visuels.</p>
-        <p class="notes">Mot de passe oublie: utilisez l'option de reset dans la fenetre de connexion.</p>
+        <p class="auth-badge">Digital InPulse</p>
+        <h1>Candidatures</h1>
+        <p>Connectez-vous avec votre compte Netlify Identity pour consulter les dossiers soumis.</p>
         <button type="button" id="login-btn" class="btn btn-primary">Se connecter</button>
       </section>
     </div>
@@ -31,330 +30,92 @@
           </div>
         </div>
         <div class="top-actions">
-          <button type="button" id="save-draft-btn" class="btn btn-ghost">Sauvegarder brouillon</button>
-          <button type="button" id="restore-draft-btn" class="btn btn-ghost">Restaurer brouillon</button>
-          <button type="button" id="publish-btn" class="btn btn-primary">Publier</button>
+          <button type="button" id="submissions-refresh-btn" class="btn btn-ghost">Rafraichir</button>
           <button type="button" id="logout-btn" class="btn btn-ghost">Deconnexion</button>
         </div>
       </header>
 
-      <div class="layout">
-        <aside class="sidebar">
-          <button class="nav-item active" data-panel-target="panel-global">Global</button>
-          <button class="nav-item" data-panel-target="panel-home">Accueil</button>
-          <button class="nav-item" data-panel-target="panel-concours">Le concours</button>
-          <button class="nav-item" data-panel-target="panel-principe">Accompagnement</button>
-          <button class="nav-item" data-panel-target="panel-tech">Tech</button>
-          <button class="nav-item" data-panel-target="panel-women">Women</button>
-          <button class="nav-item" data-panel-target="panel-legal">Legal</button>
-          <button class="nav-item" data-panel-target="panel-submissions">Candidatures</button>
-          <button class="nav-item" data-panel-target="panel-media">Media</button>
-          <button class="nav-item" data-panel-target="panel-advanced">JSON avance</button>
-        </aside>
+      <main class="shell">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Lecture seule</p>
+              <h1>Candidatures soumises</h1>
+            </div>
+            <p id="submissions-count" class="submissions-count">Chargement...</p>
+          </div>
 
-        <main class="main">
-          <section id="panel-global" class="panel active">
-            <h2>Global</h2>
-            <div class="form-grid">
-              <label>Baseline
-                <input data-path="meta.tagline" type="text" />
-              </label>
-              <label>Email contact
-                <input data-path="meta.contactEmail" type="email" />
-              </label>
-              <label>Copyright
-                <input data-path="meta.copyright" type="text" />
-              </label>
-            </div>
-            <div class="notes">
-              <p>Les changements ici impactent header et footer sur tout le site.</p>
-            </div>
-          </section>
+          <div id="result-message" class="result-message hidden" role="status" aria-live="polite"></div>
 
-          <section id="panel-home" class="panel">
-            <h2>Accueil</h2>
-            <div class="form-grid">
-              <label>Titre hero
-                <textarea data-path="pages.home.hero.title"></textarea>
-              </label>
-              <label>Sous-titre hero
-                <textarea data-path="pages.home.hero.subtitle"></textarea>
-              </label>
-              <label>Image hero (URL)
-                <input data-path="pages.home.hero.image" data-image-field="true" type="text" />
-              </label>
-              <label>Video - Titre
-                <input data-path="pages.home.video.title" type="text" />
-              </label>
-              <label>Video - Texte
-                <textarea data-path="pages.home.video.text"></textarea>
-              </label>
-              <label>Video - URL (MP4 / YouTube / Vimeo)
-                <input data-path="pages.home.video.url" type="text" />
-              </label>
-              <label>Video - Poster (URL)
-                <input data-path="pages.home.video.poster" data-image-field="true" type="text" />
-              </label>
-              <label>Video - Afficher sur mobile
-                <select data-path="pages.home.video.mobileVisibility">
-                  <option value="on">On</option>
-                  <option value="off">Off</option>
-                </select>
-              </label>
-              <label>Titre section categories
-                <input data-path="pages.home.categoriesTitle" type="text" />
-              </label>
-              <label>Carte 1 - Titre
-                <input data-path="pages.home.categories[0].title" type="text" />
-              </label>
-              <label>Carte 1 - Image (URL)
-                <input data-path="pages.home.categories[0].image" data-image-field="true" type="text" />
-              </label>
-              <label>Carte 2 - Titre
-                <input data-path="pages.home.categories[1].title" type="text" />
-              </label>
-              <label>Carte 2 - Image (URL)
-                <input data-path="pages.home.categories[1].image" data-image-field="true" type="text" />
-              </label>
-            </div>
-          </section>
+          <div class="bulk-actions">
+            <button type="button" id="submissions-download-all-btn" class="btn btn-primary">Tout telecharger</button>
+          </div>
 
-          <section id="panel-concours" class="panel">
-            <h2>Le concours</h2>
-            <div class="form-grid">
-              <label>Titre hero
-                <textarea data-path="pages.digital_in_pulse.hero.title"></textarea>
-              </label>
-              <label>Sous-titre hero
-                <textarea data-path="pages.digital_in_pulse.hero.subtitle"></textarea>
-              </label>
-              <label>Calendrier - Candidatures
-                <input data-path="pages.digital_in_pulse.timeline[0].date" type="text" />
-              </label>
-              <label>Calendrier - Auditions
-                <input data-path="pages.digital_in_pulse.timeline[1].date" type="text" />
-              </label>
-              <label>Calendrier - Finale
-                <input data-path="pages.digital_in_pulse.timeline[2].date" type="text" />
-              </label>
-              <label>Calendrier - Voyage
-                <input data-path="pages.digital_in_pulse.timeline[3].date" type="text" />
-              </label>
-            </div>
-          </section>
+          <div class="submissions-toolbar">
+            <label>
+              Programme
+              <select id="submissions-program-filter">
+                <option value="all">Tous</option>
+                <option value="smart_mobility">Smart Mobility</option>
+              </select>
+            </label>
+            <label>
+              Recherche
+              <input id="submissions-search" type="text" placeholder="Nom, email, entreprise, reference..." />
+            </label>
+          </div>
 
-          <section id="panel-principe" class="panel">
-            <h2>L'accompagnement</h2>
-            <div class="form-grid">
-              <label>Titre hero
-                <textarea data-path="pages.le_principe.hero.title"></textarea>
-              </label>
-              <label>Sous-titre hero
-                <textarea data-path="pages.le_principe.hero.subtitle"></textarea>
-              </label>
-              <label>Image hero (URL)
-                <input data-path="pages.le_principe.hero.image" data-image-field="true" type="text" />
-              </label>
-              <label>Titre intro
-                <input data-path="pages.le_principe.introTitle" type="text" />
-              </label>
-              <label>Texte intro
-                <textarea data-path="pages.le_principe.introText"></textarea>
-              </label>
-              <label>Benefice 1 - Titre
-                <input data-path="pages.le_principe.benefits[0].title" type="text" />
-              </label>
-              <label>Benefice 1 - Image (URL)
-                <input data-path="pages.le_principe.benefits[0].image" data-image-field="true" type="text" />
-              </label>
-              <label>Titre alumni
-                <input data-path="pages.le_principe.alumniTitle" type="text" />
-              </label>
-            </div>
-          </section>
+          <div class="submissions-table-wrap">
+            <table class="submissions-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Programme</th>
+                  <th>Nom</th>
+                  <th>Email</th>
+                  <th>Entreprise</th>
+                  <th>Region</th>
+                  <th>Reference</th>
+                  <th>Fichiers</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="submissions-table-body">
+                <tr>
+                  <td colspan="9">Aucune candidature chargee.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-          <section id="panel-tech" class="panel">
-            <h2>Tech For Competitivity</h2>
-            <div class="form-grid">
-              <label>Titre hero
-                <textarea data-path="pages.tech_for_competitivity.hero.title"></textarea>
-              </label>
-              <label>Sous-titre hero
-                <textarea data-path="pages.tech_for_competitivity.hero.subtitle"></textarea>
-              </label>
-              <label>Image hero (URL)
-                <input data-path="pages.tech_for_competitivity.hero.image" data-image-field="true" type="text" />
-              </label>
-              <label>Titre formulaire
-                <input data-path="pages.tech_for_competitivity.form.title" type="text" />
-              </label>
-              <label>Texte formulaire
-                <textarea data-path="pages.tech_for_competitivity.form.description"></textarea>
-              </label>
-              <label>Date principale (finale)
-                <input data-path="pages.tech_for_competitivity.schedule[3].date" type="text" />
-              </label>
-              <label>Notice formulaire
-                <textarea data-path="pages.tech_for_competitivity.form.notice"></textarea>
-              </label>
-            </div>
-          </section>
-
-          <section id="panel-women" class="panel">
-            <h2>Women For Innovation</h2>
-            <div class="form-grid">
-              <label>Titre hero
-                <textarea data-path="pages.women_for_innovation.hero.title"></textarea>
-              </label>
-              <label>Sous-titre hero
-                <textarea data-path="pages.women_for_innovation.hero.subtitle"></textarea>
-              </label>
-              <label>Image hero (URL)
-                <input data-path="pages.women_for_innovation.hero.image" data-image-field="true" type="text" />
-              </label>
-              <label>Titre formulaire
-                <input data-path="pages.women_for_innovation.form.title" type="text" />
-              </label>
-              <label>Label champ video
-                <input data-path="pages.women_for_innovation.form.videoField" type="text" />
-              </label>
-              <label>Date principale (finale)
-                <input data-path="pages.women_for_innovation.schedule[3].date" type="text" />
-              </label>
-              <label>Notice formulaire
-                <textarea data-path="pages.women_for_innovation.form.notice"></textarea>
-              </label>
-            </div>
-          </section>
-
-          <section id="panel-legal" class="panel">
-            <h2>Legal & liens critiques</h2>
-            <div class="form-grid">
-              <label>URL politique confidentialite
-                <input data-path="footer.legalLinks[3].url" type="text" />
-              </label>
-              <label>URL reglement concours
-                <input data-path="footer.legalLinks[4].url" type="text" />
-              </label>
-              <label>Texte cookies - paragraphe 1
-                <textarea data-path="pages.politique_cookies.paragraphs[0]"></textarea>
-              </label>
-              <label>Texte confidentialite - paragraphe 1
-                <textarea data-path="pages.politique_confidentialite.paragraphs[0]"></textarea>
-              </label>
-            </div>
-          </section>
-
-          <section id="panel-submissions" class="panel">
-            <h2>Candidatures</h2>
-            <div class="submissions-toolbar">
-              <label>Programme
-                <select id="submissions-program-filter">
-                  <option value="all">Tous</option>
-                  <option value="smart_mobility">Smart Mobility</option>
-                </select>
-              </label>
-              <label>Recherche
-                <input id="submissions-search" type="text" placeholder="Nom, email, entreprise, reference..." />
-              </label>
-              <button type="button" id="submissions-refresh-btn" class="btn btn-ghost">Rafraichir</button>
-              <button type="button" id="submissions-export-btn" class="btn btn-primary">Exporter CSV (Excel)</button>
-              <button type="button" id="submissions-export-zip-btn" class="btn btn-primary">Exporter dossiers ZIP</button>
-            </div>
-            <p id="submissions-count" class="notes">Aucune candidature chargee.</p>
-            <div class="submissions-table-wrap">
-              <table class="submissions-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Programme</th>
-                    <th>Nom</th>
-                    <th>Email</th>
-                    <th>Entreprise</th>
-                    <th>Region</th>
-                    <th>Reference</th>
-                    <th>Fichiers</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="submissions-table-body"></tbody>
-              </table>
-            </div>
-            <section id="submission-detail" class="submission-detail hidden">
-              <div class="submission-detail-head">
-                <div>
-                  <p class="preview-label">Dossier selectionne</p>
-                  <h3 id="submission-detail-title">Aucun dossier selectionne</h3>
-                </div>
-                <div class="actions">
-                  <button type="button" id="submission-detail-export-btn" class="btn btn-ghost">ZIP du dossier</button>
+          <section id="submission-detail" class="submission-detail hidden">
+            <div class="submission-detail-head">
+              <div>
+                <p class="eyebrow">Dossier</p>
+                <h2 id="submission-detail-title">Candidature</h2>
+              </div>
+              <div class="submission-detail-side">
+                <div id="submission-detail-meta" class="submission-detail-meta"></div>
+                <div class="submission-detail-actions">
+                  <button type="button" id="submission-detail-download-btn" class="btn btn-primary">Telecharger le dossier complet</button>
+                  <button type="button" id="submission-detail-delete-btn" class="btn btn-danger">Supprimer la candidature</button>
                 </div>
               </div>
-              <div id="submission-detail-meta" class="submission-detail-meta"></div>
-              <div class="submission-detail-grid">
-                <article class="preview-card">
-                  <p class="preview-label">Champs</p>
-                  <div id="submission-detail-fields" class="submission-detail-list"></div>
-                </article>
-                <article class="preview-card">
-                  <p class="preview-label">Fichiers</p>
-                  <div id="submission-detail-files" class="submission-detail-list"></div>
-                </article>
+            </div>
+
+            <div class="submission-detail-grid">
+              <div>
+                <h3>Informations</h3>
+                <div id="submission-detail-fields" class="submission-detail-list"></div>
               </div>
-            </section>
-          </section>
-
-          <section id="panel-media" class="panel">
-            <h2>Media</h2>
-            <div class="form-grid">
-              <label>Fichier image
-                <input id="media-file-input" type="file" accept=".png,.jpg,.jpeg,.webp,.gif,.svg" />
-              </label>
-              <label>URL media generee
-                <input id="media-url-output" type="text" readonly />
-              </label>
-            </div>
-            <div class="actions">
-              <button type="button" id="upload-media-btn" class="btn btn-primary">Uploader le media</button>
-              <button type="button" id="copy-media-url-btn" class="btn btn-ghost">Copier l'URL</button>
-            </div>
-            <p class="notes">Uploader ici, puis coller l'URL dans un champ image.</p>
-          </section>
-
-          <section id="panel-advanced" class="panel">
-            <h2>JSON avance</h2>
-            <textarea id="raw-json" class="raw-json"></textarea>
-            <div class="actions">
-              <button type="button" id="apply-json-btn" class="btn btn-primary">Appliquer le JSON</button>
+              <div>
+                <h3>Pieces jointes</h3>
+                <div id="submission-detail-files" class="submission-detail-list"></div>
+              </div>
             </div>
           </section>
-        </main>
-
-        <aside class="preview">
-          <h3>Apercu instantane</h3>
-          <article class="preview-card">
-            <p class="preview-label">Accueil</p>
-            <h4 id="preview-home-title"></h4>
-            <p id="preview-home-subtitle"></p>
-          </article>
-          <article class="preview-card">
-            <p class="preview-label">Tech</p>
-            <h4 id="preview-tech-title"></h4>
-            <p id="preview-tech-date"></p>
-          </article>
-          <article class="preview-card">
-            <p class="preview-label">Women</p>
-            <h4 id="preview-women-title"></h4>
-            <p id="preview-women-date"></p>
-          </article>
-          <article class="preview-card">
-            <p class="preview-label">Liens legaux</p>
-            <p id="preview-privacy-link"></p>
-            <p id="preview-rules-link"></p>
-          </article>
-          <p id="publish-result" class="publish-result"></p>
-        </aside>
-      </div>
+        </section>
+      </main>
     </div>
 
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
