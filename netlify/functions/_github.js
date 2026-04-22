@@ -37,7 +37,7 @@ async function requestGitHub(config, path, method = "GET", body = null) {
   return response.json();
 }
 
-function getUserFromEvent(event, context) {
+async function getUserFromEvent(event, context) {
   const directUser = event?.clientContext?.user || context?.clientContext?.user;
   if (directUser) {
     return directUser;
@@ -53,10 +53,60 @@ function getUserFromEvent(event, context) {
   try {
     const decoded = Buffer.from(String(rawNetlifyContext), "base64").toString("utf-8");
     const parsed = JSON.parse(decoded);
-    return parsed?.user || null;
+    if (parsed?.user) {
+      return parsed.user;
+    }
+  } catch (_error) {
+    // Fall through to Authorization header lookup.
+  }
+
+  const authorization = readHeader(event, "authorization");
+  if (!authorization.toLowerCase().startsWith("bearer ")) {
+    return null;
+  }
+
+  const siteOrigin = getSiteOrigin(event);
+  if (!siteOrigin) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(`${siteOrigin}/.netlify/identity/user`, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
+    if (!response.ok) {
+      return null;
+    }
+    const payload = await response.json();
+    return payload && typeof payload === "object" ? payload : null;
   } catch (_error) {
     return null;
   }
+}
+
+function getSiteOrigin(event) {
+  const proto = readHeader(event, "x-forwarded-proto") || "https";
+  const host =
+    readHeader(event, "x-forwarded-host") ||
+    readHeader(event, "host") ||
+    "";
+  if (!host) {
+    return "";
+  }
+  return `${proto}://${host}`;
+}
+
+function readHeader(event, name) {
+  const headers = event?.headers || {};
+  const target = String(name || "").toLowerCase();
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase() === target) {
+      return String(headers[key] || "");
+    }
+  }
+  return "";
 }
 
 function ensureAuthorizedEmail(config, user) {

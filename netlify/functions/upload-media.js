@@ -23,7 +23,7 @@ exports.handler = async (event, context) => {
 
   try {
     const config = getConfig();
-    const user = getUserFromEvent(event, context);
+    const user = await getUserFromEvent(event, context);
     if (!user) {
       return response(401, { error: "Authentication required" });
     }
