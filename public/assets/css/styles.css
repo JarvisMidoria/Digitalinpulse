@@ -2864,10 +2864,24 @@ textarea:focus {
   min-height: 1.2rem;
   color: #000000;
   font-size: 0.86rem;
+  transition: 180ms ease;
 }
 
 .form-feedback.error {
   color: #b82846;
+}
+
+.form-feedback.success {
+  min-height: auto;
+  padding: 0.95rem 1rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(36, 152, 98, 0.28);
+  background: linear-gradient(180deg, rgba(231, 252, 241, 0.96), rgba(214, 246, 228, 0.96));
+  color: #146a44;
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.5;
+  box-shadow: 0 12px 28px rgba(20, 106, 68, 0.08);
 }
 
 .legal-panel {

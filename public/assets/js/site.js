@@ -1074,7 +1074,7 @@ function buildProgramForm(form, programKey) {
           </div>
           <div class="field">
             <label for="${idPrefix}-website">Site web *</label>
-            <input id="${idPrefix}-website" name="website" type="url" required />
+            <input id="${idPrefix}-website" name="website" type="text" inputmode="url" autocomplete="url" placeholder="www.votresite.com" required />
           </div>
           <div class="field">
             <label for="${idPrefix}-founded">Date de création *</label>
@@ -1538,8 +1538,9 @@ function wireApplicationForms() {
         form.reset();
         setFormFeedback(
           feedback,
-          `Candidature envoyee avec succes. Reference: ${String(responseBody.reference || "DIP-UNKNOWN")}.`,
+          `Votre candidature a bien ete envoyee. Reference du dossier : ${String(responseBody.reference || "DIP-UNKNOWN")}. Conservez cette reference.`,
         );
+        feedback?.scrollIntoView({ behavior: "smooth", block: "center" });
       } catch (error) {
         setFormFeedback(feedback, error.message || "Erreur de soumission.", true);
       } finally {
@@ -1766,7 +1767,7 @@ async function buildSubmissionPayload(form) {
       });
       continue;
     }
-    appendSubmissionField(fields, name, String(value));
+    appendSubmissionField(fields, name, normalizeSubmissionValue(name, String(value)));
   }
 
   return {
@@ -1790,6 +1791,23 @@ function appendSubmissionField(fields, name, value) {
   fields[name] = value;
 }
 
+function normalizeSubmissionValue(name, value) {
+  const normalizedName = String(name || "").trim();
+  const text = String(value || "").trim();
+  if (!text) {
+    return text;
+  }
+
+  if (normalizedName === "website") {
+    if (/^[a-z]+:\/\//i.test(text)) {
+      return text;
+    }
+    return `https://${text.replace(/^\/+/, "")}`;
+  }
+
+  return text;
+}
+
 function setFormBusy(form, submitButton, busy) {
   form.classList.toggle("is-submitting", busy);
   form.setAttribute("aria-busy", String(busy));
@@ -1809,6 +1827,7 @@ function setFormFeedback(node, message, isError = false) {
   }
   node.textContent = message;
   node.classList.toggle("error", isError);
+  node.classList.toggle("success", !isError && Boolean(String(message || "").trim()));
 }
 
 async function readJsonSafe(response) {
