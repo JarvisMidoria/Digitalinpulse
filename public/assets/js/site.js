@@ -1538,7 +1538,7 @@ function wireApplicationForms() {
         form.reset();
         setFormFeedback(
           feedback,
-          `Votre candidature a bien ete envoyee. Reference du dossier : ${String(responseBody.reference || "DIP-UNKNOWN")}. Conservez cette reference.`,
+          `Votre candidature a bien été envoyée. Référence du dossier : ${String(responseBody.reference || "DIP-UNKNOWN")}. Conservez cette référence.`,
         );
         feedback?.scrollIntoView({ behavior: "smooth", block: "center" });
       } catch (error) {
