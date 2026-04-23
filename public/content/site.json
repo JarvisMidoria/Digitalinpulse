@@ -28,7 +28,7 @@
         "url": "/assets/media/documents/reglement-dip-2026.pdf"
       },
       {
-        "label": "Reglement du concours",
+        "label": "Règlement du concours",
         "url": "/assets/media/documents/reglement-dip-2026.pdf"
       }
     ],
@@ -247,8 +247,8 @@
         "ctaLabel": "Aller au formulaire",
         "ctaUrl": "#form",
         "secondaryAction": {
-          "label": "Voir le reglement",
-          "url": "/assets/media/documents/reglement-dip-2025.pdf"
+          "label": "Voir le règlement",
+          "url": "/assets/media/documents/reglement-dip-2026.pdf"
         }
       },
       "introCard": {
@@ -337,7 +337,7 @@
         "description": "Mettez à jour ce bloc et ce formulaire à tout moment depuis /admin.",
         "submitLabel": "Envoyer la candidature",
         "regulationLabel": "Voir le règlement",
-        "regulationUrl": "/assets/media/documents/reglement-dip-2025.pdf",
+        "regulationUrl": "/assets/media/documents/reglement-dip-2026.pdf",
         "notice": "Le branchement du back-end d'envoi sera connecté selon votre choix d'outil (API, CRM ou no-code)."
       }
     },
@@ -350,8 +350,8 @@
         "ctaLabel": "Aller au formulaire",
         "ctaUrl": "#form",
         "secondaryAction": {
-          "label": "Voir le reglement",
-          "url": "/assets/media/documents/reglement-dip-2025.pdf"
+          "label": "Voir le règlement",
+          "url": "/assets/media/documents/reglement-dip-2026.pdf"
         }
       },
       "themeTitle": "Creer un prix dedie aux femmes entrepreneures",
@@ -393,7 +393,7 @@
         "videoField": "Lien vers votre vidéo de présentation",
         "submitLabel": "Envoyer la candidature",
         "regulationLabel": "Voir le règlement",
-        "regulationUrl": "/assets/media/documents/reglement-dip-2025.pdf",
+        "regulationUrl": "/assets/media/documents/reglement-dip-2026.pdf",
         "notice": "Vous pourrez ajuster ce contenu la veille du lancement sans modifier le code source."
       }
     },
