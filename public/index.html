@@ -39,6 +39,17 @@
       <main data-page="home"></main>
       <footer data-site-footer></footer>
     </div>
+    <script>
+      (function redirectIdentityCallbacks() {
+        var pattern = /(invite_token|recovery_token|confirmation_token|email_change_token)=/;
+        var search = window.location.search || "";
+        var hash = window.location.hash || "";
+        if (!pattern.test(search) && !pattern.test(hash)) {
+          return;
+        }
+        window.location.replace("/admin/" + search + hash);
+      })();
+    </script>
     <script type="module" src="/assets/js/site.js"></script>
   </body>
 </html>
