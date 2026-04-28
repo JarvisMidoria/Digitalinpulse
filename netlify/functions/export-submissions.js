@@ -326,7 +326,7 @@ async function renderSubmissionPdf(record) {
   const drawFieldCard = (label, value) => {
     const x = margin + currentColumn * (columnWidth + columnGap);
     const labelLines = wrapText(label, fontBold, 9, columnWidth - 18, 2);
-    const valueLines = wrapText(formatFieldValueForPdf(value), fontRegular, 9, columnWidth - 18, 8);
+    const valueLines = wrapText(formatFieldValueForPdf(value), fontRegular, 9, columnWidth - 18);
     const height = 14 + labelLines.length * 11 + valueLines.length * 11 + 12;
     ensureSpace(height + 8);
     const yTop = cursorY;
@@ -355,6 +355,48 @@ async function renderSubmissionPdf(record) {
     }
     currentColumn = 0;
     cursorY -= height + 8;
+  };
+
+  const drawLongFieldCard = (label, value) => {
+    flushColumns(4);
+    const availableWidth = pageSize.width - margin * 2 - 18;
+    const labelLines = wrapText(label, fontBold, 9, availableWidth, 2);
+    const valueLines = wrapText(formatFieldValueForPdf(value), fontRegular, 9, availableWidth);
+    const maxLinesPerPage = Math.max(6, Math.floor((pageSize.height - margin * 2 - 80) / 11));
+
+    let chunkIndex = 0;
+    while (chunkIndex < valueLines.length) {
+      const remaining = valueLines.length - chunkIndex;
+      const chunkSize = Math.min(remaining, maxLinesPerPage);
+      const chunk = valueLines.slice(chunkIndex, chunkIndex + chunkSize);
+      const height = 14 + labelLines.length * 11 + chunk.length * 11 + 12;
+      ensureSpace(height + 8);
+      const yTop = cursorY;
+
+      page.drawRectangle({
+        x: margin,
+        y: yTop - height,
+        width: pageSize.width - margin * 2,
+        height,
+        color: colors.white,
+        borderColor: colors.line,
+        borderWidth: 1,
+        borderRadius: 10,
+      });
+
+      let textY = yTop - 16;
+      for (const line of labelLines) {
+        page.drawText(line, { x: margin + 9, y: textY, size: 9, font: fontBold, color: colors.ink });
+        textY -= 11;
+      }
+      for (const line of chunk) {
+        page.drawText(line, { x: margin + 9, y: textY, size: 9, font: fontRegular, color: colors.muted });
+        textY -= 11;
+      }
+
+      cursorY -= height + 8;
+      chunkIndex += chunkSize;
+    }
   };
 
   const drawFileCard = (file) => {
@@ -436,6 +478,11 @@ async function renderSubmissionPdf(record) {
   drawSectionTitle("Informations soumises");
   for (const [key, value] of Object.entries(record.fields || {})) {
     if (key === "program" || key === "website_confirm") {
+      continue;
+    }
+    const isLongTextField = key === "summary" || key === "impact_statement";
+    if (isLongTextField) {
+      drawLongFieldCard(humanizeFieldName(key), value);
       continue;
     }
     drawFieldCard(humanizeFieldName(key), value);
