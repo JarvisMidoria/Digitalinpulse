@@ -262,6 +262,7 @@ async function renderSubmissionPdf(record) {
   let page = pdf.addPage([pageSize.width, pageSize.height]);
   let cursorY = pageSize.height - margin;
   let currentColumn = 0;
+  let currentRowHeight = 0;
   const columnGap = 14;
   const columnWidth = (pageSize.width - margin * 2 - columnGap) / 2;
 
@@ -272,6 +273,7 @@ async function renderSubmissionPdf(record) {
     page = pdf.addPage([pageSize.width, pageSize.height]);
     cursorY = pageSize.height - margin;
     currentColumn = 0;
+    currentRowHeight = 0;
     drawPageHeader();
   };
 
@@ -296,9 +298,13 @@ async function renderSubmissionPdf(record) {
 
   const resetColumns = () => {
     currentColumn = 0;
+    currentRowHeight = 0;
   };
 
   const flushColumns = (gap = 8) => {
+    if (currentColumn === 1 && currentRowHeight > 0) {
+      cursorY -= currentRowHeight + 8;
+    }
     resetColumns();
     cursorY -= gap;
   };
@@ -329,6 +335,7 @@ async function renderSubmissionPdf(record) {
     const valueLines = wrapText(formatFieldValueForPdf(value), fontRegular, 9, columnWidth - 18);
     const height = 14 + labelLines.length * 11 + valueLines.length * 11 + 12;
     ensureSpace(height + 8);
+    currentRowHeight = Math.max(currentRowHeight, height);
     const yTop = cursorY;
     page.drawRectangle({
       x,
@@ -354,7 +361,8 @@ async function renderSubmissionPdf(record) {
       return;
     }
     currentColumn = 0;
-    cursorY -= height + 8;
+    cursorY -= currentRowHeight + 8;
+    currentRowHeight = 0;
   };
 
   const drawLongFieldCard = (label, value) => {
