@@ -1168,11 +1168,11 @@ function buildProgramForm(form, programKey) {
         <div class="form-grid">
           <div class="field">
             <label for="${idPrefix}-kbis">KBis (max 50 MB) *</label>
-            <input id="${idPrefix}-kbis" name="kbis" type="file" data-max-size="52428800" accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.heif" required />
+            <input id="${idPrefix}-kbis" name="kbis" type="file" data-max-size="52428800" required />
           </div>
           <div class="field">
             <label for="${idPrefix}-deck">Présentation entreprise/projet (max 50 MB) *</label>
-            <input id="${idPrefix}-deck" name="deck" type="file" data-max-size="52428800" accept=".pdf,.ppt,.pptx,.doc,.docx,.png,.jpg,.jpeg,.webp,.heic,.heif" required />
+            <input id="${idPrefix}-deck" name="deck" type="file" data-max-size="52428800" required />
           </div>
         </div>
       </fieldset>

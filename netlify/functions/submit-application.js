@@ -3,22 +3,6 @@ const { getSubmissionConfig, ensureAllowedOrigin, readHeader } = require("./_sub
 const { getSupabaseConfig, uploadObject, putJson, listObjects } = require("./_supabase");
 
 const ALLOWED_PROGRAMS = new Set(["smart_mobility"]);
-const ALLOWED_CONTENT_TYPES = new Set([
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-powerpoint",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-  "application/zip",
-  "application/x-zip-compressed",
-]);
 
 const MAX_FILES = 6;
 const MAX_FIELDS = 120;
@@ -187,10 +171,7 @@ function normalizeFiles(rawFiles, maxFileSize) {
     const fieldName = String(file.fieldName || "file")
       .replace(/[^a-zA-Z0-9_-]/g, "_")
       .slice(0, 80);
-    const contentType = String(file.contentType || "").toLowerCase().trim();
-    if (!ALLOWED_CONTENT_TYPES.has(contentType)) {
-      throw createHttpError(400, `Unsupported file type: ${contentType || "unknown"}`);
-    }
+    const contentType = String(file.contentType || "application/octet-stream").toLowerCase().trim();
 
     const base64 = String(file.base64 || "");
     const binary = Buffer.from(base64, "base64");
@@ -228,10 +209,7 @@ function normalizeUploadedFiles(rawFiles, maxFileSize) {
     const fieldName = String(file.fieldName || "file")
       .replace(/[^a-zA-Z0-9_-]/g, "_")
       .slice(0, 80);
-    const contentType = String(file.contentType || "").toLowerCase().trim();
-    if (!ALLOWED_CONTENT_TYPES.has(contentType)) {
-      throw createHttpError(400, `Unsupported file type: ${contentType || "unknown"}`);
-    }
+    const contentType = String(file.contentType || "application/octet-stream").toLowerCase().trim();
     const size = Number(file.size || 0);
     if (!Number.isFinite(size) || size <= 0) {
       throw createHttpError(400, `Invalid file payload for ${filename}`);
