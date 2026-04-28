@@ -318,6 +318,7 @@ async function downloadSubmissionBundle() {
   if (!state.user || !state.selectedSubmissionReference) {
     return;
   }
+  const item = state.submissions.find((entry) => entry.reference === state.selectedSubmissionReference);
 
   const button = submissionDetailDownloadButton;
   const previousLabel = button?.textContent || "";
