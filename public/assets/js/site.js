@@ -1512,16 +1512,17 @@ function wireApplicationForms() {
       }
 
       if (!form.reportValidity()) {
+        setFormFeedback(feedback, "Veuillez compléter tous les champs obligatoires avant l'envoi.", true);
         return;
       }
 
       setFormBusy(form, submitButton, true);
-      setFormFeedback(feedback, "Envoi en cours, merci de patienter...");
+      setFormFeedback(feedback, "Étape 1 sur 4 : préparation de votre candidature...");
 
       try {
         const payload = await buildSubmissionPayload(form);
         const uploadState = await uploadSubmissionFiles(payload, feedback);
-        setFormFeedback(feedback, "Finalisation de votre candidature...");
+        setFormFeedback(feedback, "Étape 4 sur 4 : finalisation de votre candidature...");
         const response = await fetch(FORM_SUBMIT_ENDPOINT, {
           method: "POST",
           headers: {
@@ -1544,7 +1545,7 @@ function wireApplicationForms() {
           if (response.status === 404) {
             throw new Error("Le service de soumission n'est pas disponible sur cet environnement.");
           }
-          throw new Error(responseBody.error || `Soumission impossible (${response.status})`);
+          throw new Error(formatSubmissionError(responseBody.error, response.status));
         }
 
         form.reset();
@@ -1554,7 +1555,7 @@ function wireApplicationForms() {
         );
         feedback?.scrollIntoView({ behavior: "smooth", block: "center" });
       } catch (error) {
-        setFormFeedback(feedback, error.message || "Erreur de soumission.", true);
+        setFormFeedback(feedback, formatSubmissionError(error.message), true);
       } finally {
         setFormBusy(form, submitButton, false);
       }
@@ -1855,6 +1856,7 @@ async function readJsonSafe(response) {
 }
 
 async function uploadSubmissionFiles(payload, feedback) {
+  setFormFeedback(feedback, "Étape 2 sur 4 : préparation des fichiers...");
   const response = await fetch(FORM_UPLOAD_ENDPOINT, {
     method: "POST",
     headers: {
@@ -1873,13 +1875,13 @@ async function uploadSubmissionFiles(payload, feedback) {
 
   const uploadPlan = await readJsonSafe(response);
   if (!response.ok) {
-    throw new Error(uploadPlan.error || `Préparation upload impossible (${response.status})`);
+    throw new Error(formatSubmissionError(uploadPlan.error, response.status));
   }
 
   const uploads = Array.isArray(uploadPlan.uploads) ? uploadPlan.uploads : [];
   const uploadedFiles = [];
 
-  for (const upload of uploads) {
+  for (const [index, upload] of uploads.entries()) {
     const source =
       payload.files.find((file) => file.fieldName === upload.fieldName && file.filename === upload.filename) ||
       payload.files.find((file) => file.fieldName === upload.fieldName);
@@ -1887,7 +1889,7 @@ async function uploadSubmissionFiles(payload, feedback) {
       throw new Error(`Fichier introuvable pour ${upload.filename || "upload"}.`);
     }
 
-    setFormFeedback(feedback, `Téléversement du fichier ${upload.filename}...`);
+    setFormFeedback(feedback, `Étape 3 sur 4 : téléversement du fichier ${index + 1} sur ${uploads.length} (${upload.filename})...`);
     const uploadResponse = await fetch(upload.uploadUrl, {
       method: "PUT",
       headers: {
@@ -1930,6 +1932,58 @@ function findInvalidFile(form) {
     }
   }
   return null;
+}
+
+function formatSubmissionError(message, statusCode = 0) {
+  const text = String(message || "").trim();
+  if (!text) {
+    return "La candidature n'a pas pu être envoyée. Merci de réessayer.";
+  }
+
+  if (text.includes("Missing required files")) {
+    return "Merci d'ajouter les deux fichiers requis : KBis et présentation entreprise/projet.";
+  }
+  if (text.includes("File too large")) {
+    return "Un fichier dépasse la taille maximale autorisée de 50 MB.";
+  }
+  if (text.includes("No files provided")) {
+    return "Aucun fichier n'a été détecté. Merci de sélectionner vos pièces jointes avant l'envoi.";
+  }
+  if (text.includes("Invalid file payload")) {
+    return "Un fichier n'a pas pu être lu correctement. Merci de le sélectionner à nouveau puis de réessayer.";
+  }
+  if (text.includes("Uploaded file is missing")) {
+    return "Un fichier téléversé n'a pas été retrouvé. Merci de réessayer l'envoi.";
+  }
+  if (text.includes("Fichier introuvable")) {
+    return "Le navigateur n'a pas retrouvé un des fichiers sélectionnés. Merci de le sélectionner à nouveau puis de réessayer.";
+  }
+  if (text.includes("Trop de tentatives")) {
+    return text;
+  }
+  if (text.includes("Origin is not allowed")) {
+    return "Cette soumission n'est pas autorisée depuis cet environnement.";
+  }
+  if (text.includes("Unknown program")) {
+    return "Le formulaire n'a pas pu identifier le programme de candidature.";
+  }
+  if (text.includes("Email is required")) {
+    return "Merci de renseigner une adresse e-mail valide.";
+  }
+  if (text.includes("Invalid submission timestamp")) {
+    return "La préparation de la candidature a expiré. Merci de relancer l'envoi.";
+  }
+  if (text.includes("Internal Error. ID:")) {
+    return `Une erreur technique est survenue côté serveur. Merci de réessayer dans quelques instants. ${text}`;
+  }
+  if (statusCode >= 500) {
+    return "Une erreur technique est survenue côté serveur. Merci de réessayer dans quelques instants.";
+  }
+  if (statusCode >= 400) {
+    return `La candidature n'a pas pu être envoyée (${statusCode}). Merci de vérifier les champs et fichiers puis de réessayer.`;
+  }
+
+  return text;
 }
 
 function socialIconLabel(label, url = "") {
