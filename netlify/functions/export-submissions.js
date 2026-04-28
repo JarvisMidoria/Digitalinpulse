@@ -30,7 +30,7 @@ const FIELD_LABELS = {
 
 const { getUserFromEvent, ensureAuthorizedEmail, response } = require("./_github");
 const { getSubmissionConfig } = require("./_submissions");
-const { getSupabaseConfig, listObjects, getObject, getObjectBuffer } = require("./_supabase");
+const { getSupabaseConfig, listObjects, getObject, getObjectBuffer, uploadObject, createSignedUrl } = require("./_supabase");
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== "POST" && event.httpMethod !== "GET") {
@@ -96,15 +96,16 @@ exports.handler = async (event, context) => {
       compressionOptions: { level: 6 },
     });
 
-    return {
-      statusCode: 200,
-      headers: {
-        "Content-Type": "application/zip",
-        "Content-Disposition": `attachment; filename=\"${buildArchiveName(records)}\"`,
-      },
-      body: buffer.toString("base64"),
-      isBase64Encoded: true,
-    };
+    const filename = buildArchiveName(records);
+    const exportPath = buildExportPath(filename);
+    await uploadObject(supabase, exportPath, buffer, "application/zip");
+    const downloadUrl = await createSignedUrl(supabase, exportPath, 900);
+
+    return response(200, {
+      ok: true,
+      filename,
+      downloadUrl,
+    });
   } catch (error) {
     return response(Number(error.statusCode) || 500, { error: error.message });
   }
@@ -222,6 +223,11 @@ function buildSubmissionBundleName(record) {
   const company = safeFolderName(record?.summary?.company || "Entreprise");
   const reference = safeFolderName(record?.reference || "submission");
   return `${company} (${reference})`;
+}
+
+function buildExportPath(filename) {
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  return `exports/${stamp}-${safeFolderName(filename)}`;
 }
 
 function csvEscape(value) {

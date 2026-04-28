@@ -338,23 +338,22 @@ async function downloadSubmissionBundle() {
         references: [state.selectedSubmissionReference],
       }),
     });
+    const contentType = response.headers.get("Content-Type") || response.headers.get("content-type") || "";
     if (!response.ok) {
       const payload = await readJsonSafe(response);
       throw new Error(payload.error || `Export impossible (${response.status})`);
     }
+    if (contentType.includes("application/json")) {
+      const payload = await readJsonSafe(response);
+      if (!payload.downloadUrl) {
+        throw new Error("Lien de téléchargement manquant.");
+      }
+      triggerBrowserDownload(payload.downloadUrl, payload.filename || `${buildSubmissionArchiveName(item)}.zip`);
+      return;
+    }
 
     const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = getDownloadFilename(response, `${buildSubmissionArchiveName(item)}.zip`);
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    window.setTimeout(() => {
-      link.remove();
-      URL.revokeObjectURL(url);
-    }, 1000);
+    triggerBlobDownload(blob, getDownloadFilename(response, `${buildSubmissionArchiveName(item)}.zip`));
   } catch (error) {
     setResult(error.message || "Erreur export dossier.", true);
   } finally {
@@ -396,23 +395,22 @@ async function downloadAllSubmissions() {
       },
       body: JSON.stringify({ references }),
     });
+    const contentType = response.headers.get("Content-Type") || response.headers.get("content-type") || "";
     if (!response.ok) {
       const payload = await readJsonSafe(response);
       throw new Error(payload.error || `Export impossible (${response.status})`);
     }
+    if (contentType.includes("application/json")) {
+      const payload = await readJsonSafe(response);
+      if (!payload.downloadUrl) {
+        throw new Error("Lien de téléchargement manquant.");
+      }
+      triggerBrowserDownload(payload.downloadUrl, payload.filename || "digital-inpulse-candidatures.zip");
+      return;
+    }
 
     const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = getDownloadFilename(response, "digital-inpulse-candidatures.zip");
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    window.setTimeout(() => {
-      link.remove();
-      URL.revokeObjectURL(url);
-    }, 1000);
+    triggerBlobDownload(blob, getDownloadFilename(response, "digital-inpulse-candidatures.zip"));
   } catch (error) {
     setResult(error.message || "Erreur export candidatures.", true);
   } finally {
@@ -436,6 +434,26 @@ function getDownloadFilename(response, fallback) {
     return match[1];
   }
   return fallback;
+}
+
+function triggerBlobDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  triggerBrowserDownload(url, filename, true);
+}
+
+function triggerBrowserDownload(url, filename, revokeObjectUrl = false) {
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  window.setTimeout(() => {
+    link.remove();
+    if (revokeObjectUrl) {
+      URL.revokeObjectURL(url);
+    }
+  }, 1000);
 }
 
 async function deleteSubmission() {
