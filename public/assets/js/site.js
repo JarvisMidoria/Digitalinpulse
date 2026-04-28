@@ -1838,9 +1838,14 @@ function setFormFeedback(node, message, isError = false) {
   if (!node) {
     return;
   }
-  node.textContent = message;
+  const text = String(message || "").trim();
+  if (isError && text) {
+    node.innerHTML = `${escapeHtml(text)}<br /><span class="form-feedback-note">Note : N'hésitez pas à nous envoyer votre candidature par mail si le message d'erreur persiste.</span>`;
+  } else {
+    node.textContent = text;
+  }
   node.classList.toggle("error", isError);
-  node.classList.toggle("success", !isError && Boolean(String(message || "").trim()));
+  node.classList.toggle("success", !isError && Boolean(text));
 }
 
 async function readJsonSafe(response) {
