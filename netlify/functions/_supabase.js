@@ -100,6 +100,23 @@ async function createSignedUrl(config, objectPath, expiresIn = 900) {
   return `${config.url}/storage/v1${signedPath}`;
 }
 
+async function createSignedUpload(config, objectPath, options = {}) {
+  const response = await supabaseFetch(
+    config,
+    `/storage/v1/object/upload/sign/${config.bucket}/${objectPath}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        upsert: Boolean(options.upsert),
+      }),
+    },
+  );
+  return response.json();
+}
+
 module.exports = {
   getSupabaseConfig,
   uploadObject,
@@ -109,4 +126,5 @@ module.exports = {
   getObject,
   getObjectBuffer,
   createSignedUrl,
+  createSignedUpload,
 };

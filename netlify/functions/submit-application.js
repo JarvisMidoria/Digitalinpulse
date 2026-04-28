@@ -1,6 +1,6 @@
 const { normalizeFileName, response, createHttpError } = require("./_github");
 const { getSubmissionConfig, ensureAllowedOrigin, readHeader } = require("./_submissions");
-const { getSupabaseConfig, uploadObject, putJson } = require("./_supabase");
+const { getSupabaseConfig, uploadObject, putJson, listObjects } = require("./_supabase");
 
 const ALLOWED_PROGRAMS = new Set(["smart_mobility"]);
 const ALLOWED_CONTENT_TYPES = new Set([
@@ -14,6 +14,8 @@ const ALLOWED_CONTENT_TYPES = new Set([
   "image/png",
   "image/jpeg",
   "image/webp",
+  "image/heic",
+  "image/heif",
   "application/zip",
   "application/x-zip-compressed",
 ]);
@@ -40,27 +42,16 @@ exports.handler = async (event) => {
     }
 
     const normalized = normalizeSubmission(payload, config);
-    const timestamp = new Date();
+    const timestamp = normalized.createdAt ? new Date(normalized.createdAt) : new Date();
+    if (Number.isNaN(timestamp.getTime())) {
+      throw createHttpError(400, "Invalid submission timestamp");
+    }
     const createdAt = timestamp.toISOString();
     await enforceRateLimit(supabase, event, normalized, timestamp);
-    const reference = buildReference(normalized.program, timestamp);
+    const reference = normalized.reference || buildReference(normalized.program, timestamp);
     const basePath = `${config.dataDir}/${createdAt.slice(0, 4)}/${createdAt.slice(5, 7)}/${reference}`;
 
-    const storedFiles = [];
-    for (const [index, file] of normalized.files.entries()) {
-      const extension = getPreferredExtension(file);
-      const baseName = normalizeFileName(file.filename || `file-${index + 1}`).replace(/\.[^.]+$/, "");
-      const fileName = `${String(index + 1).padStart(2, "0")}-${baseName || `file-${index + 1}`}.${extension}`;
-      const filePath = `${basePath}/files/${fileName}`;
-      await uploadObject(supabase, filePath, file.binary, file.contentType);
-      storedFiles.push({
-        fieldName: file.fieldName,
-        filename: file.filename,
-        contentType: file.contentType,
-        size: file.binary.length,
-        path: filePath,
-      });
-    }
+    const storedFiles = await materializeSubmissionFiles(supabase, normalized, basePath);
 
     const record = {
       reference,
@@ -116,7 +107,8 @@ function normalizeSubmission(payload, config) {
   }
 
   const files = normalizeFiles(payload.files, config.maxFileSize);
-  const fileFields = new Set(files.map((file) => file.fieldName));
+  const uploadedFiles = normalizeUploadedFiles(payload.uploadedFiles, config.maxFileSize);
+  const fileFields = new Set((uploadedFiles.length ? uploadedFiles : files).map((file) => file.fieldName));
   if (!fileFields.has("kbis") || !fileFields.has("deck")) {
     throw createHttpError(400, "Missing required files (kbis, deck)");
   }
@@ -125,6 +117,9 @@ function normalizeSubmission(payload, config) {
     program,
     fields,
     files,
+    uploadedFiles,
+    reference: trimText(payload.reference, 64),
+    createdAt: trimText(payload.createdAt, 64),
     userAgent: trimText(payload.userAgent, 512),
     submittedAt: trimText(payload.submittedAt, 64),
   };
@@ -214,6 +209,102 @@ function normalizeFiles(rawFiles, maxFileSize) {
     });
   }
   return normalized;
+}
+
+function normalizeUploadedFiles(rawFiles, maxFileSize) {
+  if (!Array.isArray(rawFiles)) {
+    return [];
+  }
+  if (rawFiles.length > MAX_FILES) {
+    throw createHttpError(400, "Too many files");
+  }
+
+  const normalized = [];
+  for (const file of rawFiles) {
+    if (!file || typeof file !== "object") {
+      throw createHttpError(400, "Invalid uploaded file payload");
+    }
+    const filename = normalizeFileName(file.filename || "file");
+    const fieldName = String(file.fieldName || "file")
+      .replace(/[^a-zA-Z0-9_-]/g, "_")
+      .slice(0, 80);
+    const contentType = String(file.contentType || "").toLowerCase().trim();
+    if (!ALLOWED_CONTENT_TYPES.has(contentType)) {
+      throw createHttpError(400, `Unsupported file type: ${contentType || "unknown"}`);
+    }
+    const size = Number(file.size || 0);
+    if (!Number.isFinite(size) || size <= 0) {
+      throw createHttpError(400, `Invalid file payload for ${filename}`);
+    }
+    if (size > maxFileSize) {
+      throw createHttpError(400, `File too large: ${filename}`);
+    }
+    const path = String(file.path || "").replace(/^\/+/, "");
+    if (!path) {
+      throw createHttpError(400, `Missing file path for ${filename}`);
+    }
+    normalized.push({
+      fieldName,
+      filename,
+      contentType,
+      size,
+      path,
+    });
+  }
+  return normalized;
+}
+
+async function materializeSubmissionFiles(supabase, normalized, basePath) {
+  if (normalized.uploadedFiles.length) {
+    await verifyUploadedFiles(supabase, normalized.uploadedFiles, basePath);
+    return normalized.uploadedFiles.map((file) => ({
+      fieldName: file.fieldName,
+      filename: file.filename,
+      contentType: file.contentType,
+      size: file.size,
+      path: file.path,
+    }));
+  }
+
+  const storedFiles = [];
+  for (const [index, file] of normalized.files.entries()) {
+    const extension = getPreferredExtension(file);
+    const baseName = normalizeFileName(file.filename || `file-${index + 1}`).replace(/\.[^.]+$/, "");
+    const fileName = `${String(index + 1).padStart(2, "0")}-${baseName || `file-${index + 1}`}.${extension}`;
+    const filePath = `${basePath}/files/${fileName}`;
+    await uploadObject(supabase, filePath, file.binary, file.contentType);
+    storedFiles.push({
+      fieldName: file.fieldName,
+      filename: file.filename,
+      contentType: file.contentType,
+      size: file.binary.length,
+      path: filePath,
+    });
+  }
+  return storedFiles;
+}
+
+async function verifyUploadedFiles(supabase, uploadedFiles, basePath) {
+  const expectedPrefix = `${basePath}/files/`;
+  const entries = await listObjects(supabase, expectedPrefix, 200, 0);
+  const byPath = new Map();
+
+  for (const entry of entries) {
+    if (!entry?.name || entry.id === null) {
+      continue;
+    }
+    byPath.set(`${expectedPrefix}${entry.name}`, entry);
+  }
+
+  for (const file of uploadedFiles) {
+    if (!String(file.path || "").startsWith(expectedPrefix)) {
+      throw createHttpError(400, `Unexpected upload path for ${file.filename}`);
+    }
+    const entry = byPath.get(file.path);
+    if (!entry) {
+      throw createHttpError(400, `Uploaded file is missing: ${file.filename}`);
+    }
+  }
 }
 
 async function notifyIntegrations(config, record) {
@@ -376,6 +467,8 @@ function getPreferredExtension(file) {
     "image/png": "png",
     "image/jpeg": "jpg",
     "image/webp": "webp",
+    "image/heic": "heic",
+    "image/heif": "heif",
     "application/zip": "zip",
     "application/x-zip-compressed": "zip",
   };

@@ -39,7 +39,8 @@ const BRAND_ASSETS = {
 };
 
 const FORM_SUBMIT_ENDPOINT = "/.netlify/functions/submit-application";
-const FORM_MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
+const FORM_UPLOAD_ENDPOINT = "/.netlify/functions/create-submission-upload";
+const FORM_MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
 
 redirectIdentityTokensToAdmin();
 
@@ -1166,12 +1167,12 @@ function buildProgramForm(form, programKey) {
         <legend>Documents</legend>
         <div class="form-grid">
           <div class="field">
-            <label for="${idPrefix}-kbis">KBis (max 10 MB) *</label>
-            <input id="${idPrefix}-kbis" name="kbis" type="file" data-max-size="10485760" accept=".pdf,.png,.jpg,.jpeg,.webp" required />
+            <label for="${idPrefix}-kbis">KBis (max 50 MB) *</label>
+            <input id="${idPrefix}-kbis" name="kbis" type="file" data-max-size="52428800" accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.heif" required />
           </div>
           <div class="field">
-            <label for="${idPrefix}-deck">Présentation entreprise/projet (max 10 MB) *</label>
-            <input id="${idPrefix}-deck" name="deck" type="file" data-max-size="10485760" accept=".pdf,.ppt,.pptx,.doc,.docx,.png,.jpg,.jpeg,.webp" required />
+            <label for="${idPrefix}-deck">Présentation entreprise/projet (max 50 MB) *</label>
+            <input id="${idPrefix}-deck" name="deck" type="file" data-max-size="52428800" accept=".pdf,.ppt,.pptx,.doc,.docx,.png,.jpg,.jpeg,.webp,.heic,.heif" required />
           </div>
         </div>
       </fieldset>
@@ -1506,7 +1507,7 @@ function wireApplicationForms() {
 
       const invalidFile = findInvalidFile(form);
       if (invalidFile) {
-        setFormFeedback(feedback, "Un fichier depasse la taille maximale autorisee de 10 MB.", true);
+        setFormFeedback(feedback, "Un fichier dépasse la taille maximale autorisée de 50 MB.", true);
         return;
       }
 
@@ -1519,12 +1520,23 @@ function wireApplicationForms() {
 
       try {
         const payload = await buildSubmissionPayload(form);
+        const uploadState = await uploadSubmissionFiles(payload, feedback);
+        setFormFeedback(feedback, "Finalisation de votre candidature...");
         const response = await fetch(FORM_SUBMIT_ENDPOINT, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            program: payload.program,
+            fields: payload.fields,
+            uploadedFiles: uploadState.uploadedFiles,
+            honeypot: payload.honeypot,
+            submittedAt: payload.submittedAt,
+            userAgent: payload.userAgent,
+            reference: uploadState.reference,
+            createdAt: uploadState.createdAt,
+          }),
         });
 
         const responseBody = await readJsonSafe(response);
@@ -1763,7 +1775,7 @@ async function buildSubmissionPayload(form) {
         filename: value.name,
         contentType: value.type || "application/octet-stream",
         size: value.size,
-        base64: await fileToBase64(value),
+        file: value,
       });
       continue;
     }
@@ -1842,21 +1854,64 @@ async function readJsonSafe(response) {
   }
 }
 
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = String(reader.result || "");
-      const parts = result.split(",");
-      if (parts.length < 2) {
-        reject(new Error("Fichier non lisible"));
-        return;
-      }
-      resolve(parts[1]);
-    };
-    reader.onerror = () => reject(new Error("Lecture fichier impossible"));
-    reader.readAsDataURL(file);
+async function uploadSubmissionFiles(payload, feedback) {
+  const response = await fetch(FORM_UPLOAD_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      program: payload.program,
+      files: payload.files.map((file) => ({
+        fieldName: file.fieldName,
+        filename: file.filename,
+        contentType: file.contentType,
+        size: file.size,
+      })),
+    }),
   });
+
+  const uploadPlan = await readJsonSafe(response);
+  if (!response.ok) {
+    throw new Error(uploadPlan.error || `Préparation upload impossible (${response.status})`);
+  }
+
+  const uploads = Array.isArray(uploadPlan.uploads) ? uploadPlan.uploads : [];
+  const uploadedFiles = [];
+
+  for (const upload of uploads) {
+    const source = payload.files.find((file) => file.fieldName === upload.fieldName && file.filename === upload.filename);
+    if (!source?.file) {
+      throw new Error(`Fichier introuvable pour ${upload.filename || "upload"}.`);
+    }
+
+    setFormFeedback(feedback, `Téléversement du fichier ${upload.filename}...`);
+    const uploadResponse = await fetch(upload.uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": source.contentType || "application/octet-stream",
+      },
+      body: source.file,
+    });
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text();
+      throw new Error(errorText || `Téléversement impossible pour ${upload.filename}.`);
+    }
+
+    uploadedFiles.push({
+      fieldName: upload.fieldName,
+      filename: upload.filename,
+      contentType: upload.contentType,
+      size: upload.size,
+      path: upload.path,
+    });
+  }
+
+  return {
+    reference: String(uploadPlan.reference || ""),
+    createdAt: String(uploadPlan.createdAt || ""),
+    uploadedFiles,
+  };
 }
 
 function findInvalidFile(form) {
