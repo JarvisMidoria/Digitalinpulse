@@ -1880,7 +1880,9 @@ async function uploadSubmissionFiles(payload, feedback) {
   const uploadedFiles = [];
 
   for (const upload of uploads) {
-    const source = payload.files.find((file) => file.fieldName === upload.fieldName && file.filename === upload.filename);
+    const source =
+      payload.files.find((file) => file.fieldName === upload.fieldName && file.filename === upload.filename) ||
+      payload.files.find((file) => file.fieldName === upload.fieldName);
     if (!source?.file) {
       throw new Error(`Fichier introuvable pour ${upload.filename || "upload"}.`);
     }

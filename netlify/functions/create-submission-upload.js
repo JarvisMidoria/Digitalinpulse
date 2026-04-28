@@ -33,7 +33,7 @@ exports.handler = async (event) => {
     const uploads = [];
     for (const [index, file] of files.entries()) {
       const extension = getPreferredExtension(file);
-      const baseName = normalizeFileName(file.filename || `file-${index + 1}`).replace(/\.[^.]+$/, "");
+      const baseName = String(file.safeFilename || normalizeFileName(file.filename || `file-${index + 1}`)).replace(/\.[^.]+$/, "");
       const fileName = `${String(index + 1).padStart(2, "0")}-${baseName || `file-${index + 1}`}.${extension}`;
       const filePath = `${basePath}/files/${fileName}`;
       const signed = await createSignedUpload(supabase, filePath, { upsert: true });
@@ -86,21 +86,23 @@ function normalizeFiles(rawFiles, maxFileSize) {
     if (!file || typeof file !== "object") {
       throw createHttpError(400, "Invalid file payload");
     }
-    const filename = normalizeFileName(file.filename || "file");
+    const originalFilename = String(file.filename || "").trim() || "file";
+    const safeFilename = normalizeFileName(originalFilename);
     const fieldName = String(file.fieldName || "file")
       .replace(/[^a-zA-Z0-9_-]/g, "_")
       .slice(0, 80);
     const contentType = String(file.contentType || "application/octet-stream").toLowerCase().trim();
     const size = Number(file.size || 0);
     if (!Number.isFinite(size) || size <= 0) {
-      throw createHttpError(400, `Invalid file payload for ${filename}`);
+      throw createHttpError(400, `Invalid file payload for ${safeFilename}`);
     }
     if (size > maxFileSize) {
-      throw createHttpError(400, `File too large: ${filename}`);
+      throw createHttpError(400, `File too large: ${safeFilename}`);
     }
     normalized.push({
       fieldName,
-      filename,
+      filename: originalFilename,
+      safeFilename,
       contentType,
       size,
     });
