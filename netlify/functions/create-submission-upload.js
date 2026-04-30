@@ -1,18 +1,20 @@
 const { normalizeFileName, response, createHttpError } = require("./_github");
 const { getSubmissionConfig, ensureAllowedOrigin } = require("./_submissions");
 const { getSupabaseConfig, createSignedUpload } = require("./_supabase");
+const { sendSubmissionFailureEmail } = require("./_submission-alerts");
 
 const ALLOWED_PROGRAMS = new Set(["smart_mobility"]);
 
 const MAX_FILES = 6;
 
 exports.handler = async (event) => {
+  let config = null;
   if (event.httpMethod !== "POST") {
     return response(405, { error: "Method not allowed" });
   }
 
   try {
-    const config = getSubmissionConfig();
+    config = getSubmissionConfig();
     const supabase = getSupabaseConfig();
     ensureAllowedOrigin(config, event);
 
@@ -56,6 +58,7 @@ exports.handler = async (event) => {
       uploads,
     });
   } catch (error) {
+    await notifyFailureSafely(config, event, error);
     return response(Number(error.statusCode) || 500, { error: error.message });
   }
 };
@@ -148,4 +151,61 @@ function getPreferredExtension(file) {
     "application/x-zip-compressed": "zip",
   };
   return map[file.contentType] || "bin";
+}
+
+async function notifyFailureSafely(config, event, error) {
+  if (!config) {
+    return;
+  }
+  try {
+    const payload = parseEventBody(event);
+    await sendSubmissionFailureEmail(config, {
+      stage: "create-submission-upload",
+      error: error?.message || "Erreur inconnue",
+      program: payload.program || "",
+      email: "",
+      company: "",
+      reference: "",
+      origin: readHeaderSafe(event, "origin"),
+      referer: readHeaderSafe(event, "referer"),
+      ip: extractClientIp(event),
+      userAgent: readHeaderSafe(event, "user-agent"),
+      files: Array.isArray(payload.files)
+        ? payload.files.slice(0, 10).map((file) => ({
+            fieldName: String(file?.fieldName || ""),
+            filename: String(file?.filename || ""),
+            size: Number(file?.size || 0),
+          }))
+        : [],
+    });
+  } catch (_notifyError) {
+    // Swallow notification errors to preserve the original response.
+  }
+}
+
+function parseEventBody(event) {
+  try {
+    return JSON.parse(event?.body || "{}");
+  } catch (_error) {
+    return {};
+  }
+}
+
+function readHeaderSafe(event, name) {
+  const headers = event?.headers || {};
+  const target = String(name || "").toLowerCase();
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase() === target) {
+      return String(headers[key] || "");
+    }
+  }
+  return "";
+}
+
+function extractClientIp(event) {
+  const forwarded = readHeaderSafe(event, "x-forwarded-for")
+    .split(",")[0]
+    .trim();
+  const netlifyIp = String(readHeaderSafe(event, "client-ip") || readHeaderSafe(event, "x-nf-client-connection-ip") || "").trim();
+  return forwarded || netlifyIp || "unknown";
 }

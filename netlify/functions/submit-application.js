@@ -1,6 +1,7 @@
 const { normalizeFileName, response, createHttpError } = require("./_github");
 const { getSubmissionConfig, ensureAllowedOrigin, readHeader } = require("./_submissions");
 const { getSupabaseConfig, uploadObject, putJson, listObjects } = require("./_supabase");
+const { sendSubmissionSuccessEmail, sendSubmissionFailureEmail } = require("./_submission-alerts");
 
 const ALLOWED_PROGRAMS = new Set(["smart_mobility"]);
 
@@ -9,12 +10,13 @@ const MAX_FIELDS = 120;
 const RATE_LIMIT_WINDOW_SECONDS = 60;
 
 exports.handler = async (event) => {
+  let config = null;
   if (event.httpMethod !== "POST") {
     return response(405, { error: "Method not allowed" });
   }
 
   try {
-    const config = getSubmissionConfig();
+    config = getSubmissionConfig();
     const supabase = getSupabaseConfig();
     ensureAllowedOrigin(config, event);
 
@@ -61,6 +63,7 @@ exports.handler = async (event) => {
       warnings: notificationWarnings,
     });
   } catch (error) {
+    await notifyFailureSafely(config, event, error, "submit-application");
     return response(Number(error.statusCode) || 500, { error: error.message });
   }
 };
@@ -289,7 +292,7 @@ async function notifyIntegrations(config, record) {
   const warnings = [];
 
   const jobs = [
-    sendEmailNotification(config, record),
+    sendSubmissionSuccessEmail(config, record),
     sendCrmWebhook(config, record),
   ];
   const results = await Promise.allSettled(jobs);
@@ -350,45 +353,6 @@ function hashRateLimitKey(value) {
     hash = Math.imul(hash, 16777619);
   }
   return (hash >>> 0).toString(16);
-}
-
-async function sendEmailNotification(config, record) {
-  if (!config.resendApiKey || !config.notifyEmails.length) {
-    return;
-  }
-
-  const name = `${toSingleValue(record.fields.first_name)} ${toSingleValue(record.fields.last_name)}`.trim() || "Candidat";
-  const email = toSingleValue(record.fields.email) || "N/A";
-  const company = toSingleValue(record.fields.company) || "N/A";
-  const subject = `[Digital InPulse] Nouvelle candidature ${record.reference}`;
-  const text = [
-    `Reference: ${record.reference}`,
-    `Programme: ${record.program}`,
-    `Date: ${record.createdAt}`,
-    `Nom: ${name}`,
-    `Email: ${email}`,
-    `Entreprise: ${company}`,
-    `Fichiers: ${record.files.length}`,
-  ].join("\n");
-
-  const responseResend = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${config.resendApiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: config.fromEmail,
-      to: config.notifyEmails,
-      subject,
-      text,
-    }),
-  });
-
-  if (!responseResend.ok) {
-    const payload = await responseResend.text();
-    throw new Error(`Email notification failed: ${responseResend.status} ${payload}`);
-  }
 }
 
 async function sendCrmWebhook(config, record) {
@@ -465,4 +429,49 @@ function toSingleValue(value) {
 
 function trimText(value, maxLength) {
   return String(value || "").slice(0, maxLength);
+}
+
+async function notifyFailureSafely(config, event, error, stage) {
+  if (!config) {
+    return;
+  }
+  try {
+    const payload = parseEventBody(event);
+    await sendSubmissionFailureEmail(config, {
+      stage,
+      error: error?.message || "Erreur inconnue",
+      program: payload.program || payload.fields?.program || "",
+      email: toSingleValue(payload.fields?.email),
+      company: toSingleValue(payload.fields?.company),
+      reference: trimText(payload.reference, 64),
+      origin: readHeader(event, "origin"),
+      referer: readHeader(event, "referer"),
+      ip: extractClientIp(event),
+      userAgent: trimText(payload.userAgent || readHeader(event, "user-agent"), 512),
+      files: collectFileDetails(payload),
+    });
+  } catch (_notifyError) {
+    // Swallow notification errors to preserve the original response.
+  }
+}
+
+function parseEventBody(event) {
+  try {
+    return JSON.parse(event?.body || "{}");
+  } catch (_error) {
+    return {};
+  }
+}
+
+function collectFileDetails(payload) {
+  const candidates = Array.isArray(payload?.uploadedFiles) && payload.uploadedFiles.length
+    ? payload.uploadedFiles
+    : Array.isArray(payload?.files)
+      ? payload.files
+      : [];
+  return candidates.slice(0, 10).map((file) => ({
+    fieldName: String(file?.fieldName || ""),
+    filename: String(file?.filename || ""),
+    size: Number(file?.size || 0),
+  }));
 }
