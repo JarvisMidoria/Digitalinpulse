@@ -72,11 +72,13 @@ function wireIdentity() {
 
   window.netlifyIdentity.on("init", async (user) => {
     state.user = user;
+    if (hasIdentityToken()) {
+      showAuth();
+      openIdentityCallbackModal();
+      return;
+    }
     if (!user) {
       showAuth();
-      if (hasIdentityToken()) {
-        window.netlifyIdentity.open();
-      }
       return;
     }
     await enterReaderMode();
@@ -96,6 +98,11 @@ function wireIdentity() {
     showAuth();
     setStatus("Deconnecte");
     setResult("");
+  });
+
+  window.netlifyIdentity.on("error", (error) => {
+    const message = String(error?.message || "Erreur Netlify Identity");
+    setResult(message, true);
   });
 
   window.netlifyIdentity.init();
@@ -573,6 +580,15 @@ function normalizeIdentityCallbackLocation() {
   const nextHash = search.startsWith("?") ? `#${search.slice(1)}` : `#${search}`;
   window.location.replace(`${window.location.pathname}${nextHash}`);
   return true;
+}
+
+function openIdentityCallbackModal() {
+  const openModal = () => {
+    window.netlifyIdentity?.open("login");
+  };
+  window.requestAnimationFrame(openModal);
+  window.setTimeout(openModal, 250);
+  window.setTimeout(openModal, 1000);
 }
 
 function programToLabel(program) {
