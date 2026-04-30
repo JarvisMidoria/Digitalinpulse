@@ -14,9 +14,28 @@
     <div id="auth-screen" class="auth-screen">
       <section class="auth-card">
         <p class="auth-badge">Digital InPulse</p>
-        <h1>Login Admin</h1>
-        <p>Connectez-vous à l'espace admin du site.</p>
-        <button type="button" id="login-btn" class="btn btn-primary">Se connecter</button>
+        <div id="auth-login-panel">
+          <h1>Login Admin</h1>
+          <p>Connectez-vous à l'espace admin du site.</p>
+          <button type="button" id="login-btn" class="btn btn-primary">Se connecter</button>
+        </div>
+
+        <div id="auth-password-panel" class="hidden">
+          <h1 id="password-panel-title">Définir votre mot de passe</h1>
+          <p id="password-panel-copy">Choisissez un nouveau mot de passe pour accéder à l'espace admin.</p>
+          <form id="password-form" class="password-form">
+            <label>
+              Nouveau mot de passe
+              <input id="password-input" type="password" autocomplete="new-password" minlength="8" required />
+            </label>
+            <label>
+              Confirmer le mot de passe
+              <input id="password-confirm-input" type="password" autocomplete="new-password" minlength="8" required />
+            </label>
+            <div id="password-form-message" class="auth-inline-message hidden" role="status" aria-live="polite"></div>
+            <button type="submit" id="password-submit-btn" class="btn btn-primary">Valider</button>
+          </form>
+        </div>
       </section>
     </div>
 

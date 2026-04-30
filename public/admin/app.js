@@ -35,9 +35,20 @@ const state = {
   submissions: [],
   filteredSubmissions: [],
   selectedSubmissionReference: "",
+  identityCallback: null,
+  identityWired: false,
 };
 
 const authScreen = document.getElementById("auth-screen");
+const authLoginPanel = document.getElementById("auth-login-panel");
+const authPasswordPanel = document.getElementById("auth-password-panel");
+const passwordPanelTitle = document.getElementById("password-panel-title");
+const passwordPanelCopy = document.getElementById("password-panel-copy");
+const passwordForm = document.getElementById("password-form");
+const passwordInput = document.getElementById("password-input");
+const passwordConfirmInput = document.getElementById("password-confirm-input");
+const passwordFormMessage = document.getElementById("password-form-message");
+const passwordSubmitButton = document.getElementById("password-submit-btn");
 const appRoot = document.getElementById("app");
 const statusText = document.getElementById("status-text");
 const resultMessage = document.getElementById("result-message");
@@ -60,23 +71,27 @@ function init() {
   if (normalizeIdentityCallbackLocation()) {
     return;
   }
-  wireIdentity();
   wireActions();
+  state.identityCallback = getIdentityCallback();
+  if (state.identityCallback) {
+    showIdentityPasswordFlow(state.identityCallback);
+    return;
+  }
+  wireIdentity();
 }
 
 function wireIdentity() {
+  if (state.identityWired) {
+    return;
+  }
   if (!window.netlifyIdentity) {
     setStatus("Netlify Identity non disponible");
     return;
   }
+  state.identityWired = true;
 
   window.netlifyIdentity.on("init", async (user) => {
     state.user = user;
-    if (hasIdentityToken()) {
-      showAuth();
-      openIdentityCallbackModal();
-      return;
-    }
     if (!user) {
       showAuth();
       return;
@@ -112,6 +127,7 @@ function wireActions() {
   document.getElementById("login-btn")?.addEventListener("click", () => {
     window.netlifyIdentity?.open("login");
   });
+  passwordForm?.addEventListener("submit", submitIdentityPasswordForm);
 
   document.getElementById("logout-btn")?.addEventListener("click", () => {
     window.netlifyIdentity?.logout();
@@ -534,6 +550,8 @@ async function readJsonSafe(response) {
 function showAuth() {
   authScreen?.classList.remove("hidden");
   appRoot?.classList.add("hidden");
+  authLoginPanel?.classList.remove("hidden");
+  authPasswordPanel?.classList.add("hidden");
 }
 
 function showApp() {
@@ -567,6 +585,27 @@ function hasIdentityToken() {
   return pattern.test(window.location.hash) || pattern.test(window.location.search);
 }
 
+function getIdentityCallback() {
+  const params = new URLSearchParams(window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.search.slice(1));
+  const inviteToken = params.get("invite_token");
+  if (inviteToken) {
+    return { type: "invite", token: inviteToken };
+  }
+  const recoveryToken = params.get("recovery_token");
+  if (recoveryToken) {
+    return { type: "recovery", token: recoveryToken };
+  }
+  const confirmationToken = params.get("confirmation_token");
+  if (confirmationToken) {
+    return { type: "confirmation", token: confirmationToken };
+  }
+  const emailChangeToken = params.get("email_change_token");
+  if (emailChangeToken) {
+    return { type: "email_change", token: emailChangeToken };
+  }
+  return null;
+}
+
 function normalizeIdentityCallbackLocation() {
   const pattern = /(invite_token|recovery_token|confirmation_token|email_change_token)=/;
   const search = window.location.search || "";
@@ -582,13 +621,168 @@ function normalizeIdentityCallbackLocation() {
   return true;
 }
 
-function openIdentityCallbackModal() {
-  const openModal = () => {
-    window.netlifyIdentity?.open("login");
-  };
-  window.requestAnimationFrame(openModal);
-  window.setTimeout(openModal, 250);
-  window.setTimeout(openModal, 1000);
+function showIdentityPasswordFlow(callback) {
+  showAuth();
+  authLoginPanel?.classList.add("hidden");
+  authPasswordPanel?.classList.remove("hidden");
+  if (callback.type === "invite") {
+    passwordPanelTitle.textContent = "Créer votre mot de passe";
+    passwordPanelCopy.textContent = "Définissez un mot de passe pour activer votre accès à l'espace admin.";
+  } else if (callback.type === "recovery") {
+    passwordPanelTitle.textContent = "Réinitialiser votre mot de passe";
+    passwordPanelCopy.textContent = "Choisissez un nouveau mot de passe pour retrouver l'accès à l'espace admin.";
+  } else {
+    passwordPanelTitle.textContent = "Finaliser votre accès";
+    passwordPanelCopy.textContent = "Validez un mot de passe pour finaliser votre accès à l'espace admin.";
+  }
+  setPasswordFormMessage("");
+}
+
+async function submitIdentityPasswordForm(event) {
+  event.preventDefault();
+  if (!state.identityCallback?.token) {
+    setPasswordFormMessage("Lien de sécurité introuvable. Demandez un nouvel e-mail.", true);
+    return;
+  }
+
+  const password = String(passwordInput?.value || "");
+  const confirmation = String(passwordConfirmInput?.value || "");
+  if (password.length < 8) {
+    setPasswordFormMessage("Votre mot de passe doit contenir au moins 8 caractères.", true);
+    return;
+  }
+  if (password !== confirmation) {
+    setPasswordFormMessage("Les deux mots de passe ne correspondent pas.", true);
+    return;
+  }
+
+  setPasswordFormBusy(true);
+  setPasswordFormMessage("Validation en cours...");
+
+  try {
+    if (state.identityCallback.type === "invite" || state.identityCallback.type === "confirmation") {
+      await acceptIdentityInvite(state.identityCallback.token, password);
+    } else if (state.identityCallback.type === "recovery" || state.identityCallback.type === "email_change") {
+      const session = await verifyIdentityRecovery(state.identityCallback.token);
+      await updateIdentityPassword(session.access_token, password);
+    } else {
+      throw new Error("Type de lien non pris en charge.");
+    }
+
+    clearIdentityCallbackFromLocation();
+    state.identityCallback = null;
+    setPasswordFormMessage("Mot de passe enregistré. Vous pouvez maintenant vous connecter.");
+    passwordForm?.reset();
+    authPasswordPanel?.classList.add("hidden");
+    authLoginPanel?.classList.remove("hidden");
+    wireIdentity();
+    window.netlifyIdentity?.init();
+  } catch (error) {
+    setPasswordFormMessage(normalizeIdentityError(error), true);
+  } finally {
+    setPasswordFormBusy(false);
+  }
+}
+
+async function acceptIdentityInvite(token, password) {
+  const response = await fetch("/.netlify/identity/verify", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      token,
+      password,
+      type: "signup",
+    }),
+  });
+  const payload = await readJsonSafe(response);
+  if (!response.ok) {
+    throw new Error(payload.msg || payload.error || `Invitation invalide (${response.status})`);
+  }
+  return payload;
+}
+
+async function verifyIdentityRecovery(token) {
+  const response = await fetch("/.netlify/identity/verify", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      token,
+      type: "recovery",
+    }),
+  });
+  const payload = await readJsonSafe(response);
+  if (!response.ok) {
+    throw new Error(payload.msg || payload.error || `Lien de réinitialisation invalide (${response.status})`);
+  }
+  if (!payload.access_token) {
+    throw new Error("Session de réinitialisation introuvable.");
+  }
+  return payload;
+}
+
+async function updateIdentityPassword(accessToken, password) {
+  const response = await fetch("/.netlify/identity/user", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      password,
+    }),
+  });
+  const payload = await readJsonSafe(response);
+  if (!response.ok) {
+    throw new Error(payload.msg || payload.error || `Impossible d'enregistrer le mot de passe (${response.status})`);
+  }
+  return payload;
+}
+
+function clearIdentityCallbackFromLocation() {
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+function setPasswordFormMessage(text, isError = false) {
+  if (!passwordFormMessage) {
+    return;
+  }
+  if (!text) {
+    passwordFormMessage.textContent = "";
+    passwordFormMessage.classList.add("hidden");
+    passwordFormMessage.classList.remove("error");
+    return;
+  }
+  passwordFormMessage.textContent = text;
+  passwordFormMessage.classList.remove("hidden");
+  passwordFormMessage.classList.toggle("error", isError);
+}
+
+function setPasswordFormBusy(isBusy) {
+  if (passwordSubmitButton) {
+    passwordSubmitButton.disabled = isBusy;
+    passwordSubmitButton.textContent = isBusy ? "Validation..." : "Valider";
+  }
+  if (passwordInput) {
+    passwordInput.disabled = isBusy;
+  }
+  if (passwordConfirmInput) {
+    passwordConfirmInput.disabled = isBusy;
+  }
+}
+
+function normalizeIdentityError(error) {
+  const message = String(error?.message || "Erreur Netlify Identity");
+  if (message.toLowerCase().includes("invalid token")) {
+    return "Ce lien n'est plus valide. Demandez un nouvel e-mail d'invitation ou de réinitialisation.";
+  }
+  if (message.toLowerCase().includes("password")) {
+    return message;
+  }
+  return message;
 }
 
 function programToLabel(program) {
