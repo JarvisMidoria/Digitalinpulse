@@ -57,6 +57,9 @@ const submissionDetailDeleteButton = document.getElementById("submission-detail-
 init();
 
 function init() {
+  if (normalizeIdentityCallbackLocation()) {
+    return;
+  }
   wireIdentity();
   wireActions();
 }
@@ -555,6 +558,21 @@ function setResult(text, isError = false) {
 function hasIdentityToken() {
   const pattern = /(invite_token|recovery_token|confirmation_token|email_change_token)=/;
   return pattern.test(window.location.hash) || pattern.test(window.location.search);
+}
+
+function normalizeIdentityCallbackLocation() {
+  const pattern = /(invite_token|recovery_token|confirmation_token|email_change_token)=/;
+  const search = window.location.search || "";
+  const hash = window.location.hash || "";
+  if (!pattern.test(search)) {
+    return false;
+  }
+  if (pattern.test(hash)) {
+    return false;
+  }
+  const nextHash = search.startsWith("?") ? `#${search.slice(1)}` : `#${search}`;
+  window.location.replace(`${window.location.pathname}${nextHash}`);
+  return true;
 }
 
 function programToLabel(program) {

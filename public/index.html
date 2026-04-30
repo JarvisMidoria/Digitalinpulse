@@ -47,7 +47,12 @@
         if (!pattern.test(search) && !pattern.test(hash)) {
           return;
         }
-        window.location.replace("/admin/" + search + hash);
+        var tokenHash = pattern.test(hash)
+          ? hash
+          : search
+            ? "#" + search.replace(/^\?/, "")
+            : "";
+        window.location.replace("/admin/" + tokenHash);
       })();
     </script>
     <script type="module" src="/assets/js/site.js"></script>
